@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 from jirafs import __version__ as version_string
 
@@ -38,7 +38,10 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     install_requires=requirements,
-    packages=[
-        'jirafs',
-    ]
+    packages=find_packages(),
+    entry_points={
+        'console_scripts': [
+            'jirafs = jirafs.cmdline:main'
+        ]
+    },
 )
