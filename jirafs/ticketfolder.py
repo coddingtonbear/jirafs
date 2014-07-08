@@ -337,7 +337,6 @@ class TicketFolder(object):
                         self.log(
                             'Download file "%s"',
                             (attachment.filename, ),
-                            logging.DEBUG
                         )
                         download.write(attachment.get())
 
@@ -346,7 +345,6 @@ class TicketFolder(object):
                 self.log(
                     'Uploading file "%s"',
                     (filename, ),
-                    logging.DEBUG
                 )
                 self.jira.add_attachment(
                     self.ticket_number,
