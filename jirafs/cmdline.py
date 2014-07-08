@@ -59,7 +59,7 @@ def init(args):
     jira = get_jira()
 
     folder = TicketFolder.initialize_ticket_folder(os.getcwd(), jira)
-    folder.sync()
+    folder.create_empty_head()
 
 
 @command('Get the status of the current folder')

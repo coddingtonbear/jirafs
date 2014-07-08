@@ -111,6 +111,39 @@ example, ``MYISSUE-1024``):
   above.  See `Ignore File Format`_ for details.
 
 
+Commands
+--------
+
+``sync``
+~~~~~~~~
+
+From within an issue folder, synchronizes the issue with JIRA.
+
+.. note::
+
+   Can also be used within a folder containing issue folders, in which
+   case all issue folders in said folder will be synchronized.
+
+``init``
+~~~~~~~~
+
+From within a folder named after an issue, converts the existing
+folder into a JiraFS issue folder.  This can be useful if you have
+already been storing issue-specific files on your filesystem.
+
+``status``
+~~~~~~~~~~
+
+From within an issue folder, will report any changes that would take place
+were you to run ``jirafs sync``.
+
+``get MYISSUE-1024``
+~~~~~~~~~~~~~~~~~~~~
+
+Create a new issue folder for ``MYISSUE-1024`` (replace ``MYISSUE-1024`` with
+an actual JIRA issue number), and download any assets attached to said issue.
+
+
 Important Details
 -----------------
 

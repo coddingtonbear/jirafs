@@ -143,6 +143,9 @@ class TicketFolder(object):
             if not failure_ok:
                 raise
 
+    def create_empty_head(self):
+        self.run_git_command('commit', '--allow-empty', '-m', 'Initialized')
+
     def get_ignore_globs(self, which=constants.IGNORE_FILE):
         all_globs = [
             constants.TICKET_DETAILS,
@@ -222,14 +225,13 @@ class TicketFolder(object):
         data = {}
         field_name = ''
         value = ''
+        if not string:
+            return data
         lines = string.split('\n')
         for idx, line in enumerate(lines):
             line = line.replace('\t', '    ')
             if state == FIELD_DECLARED and not line:
                 state = PREAMBLE
-            elif state == PREAMBLE and line:
-                state = VALUE
-                value = value + '\n' + line[4:]  # Remove first indentation
             elif (
                 (state == VALUE or state is None)
                 and re.match('^(\w+)::', line)
@@ -243,6 +245,9 @@ class TicketFolder(object):
                     raise ValueError(
                         "Syntax error on line %s" % idx
                     )
+            elif (state == PREAMBLE or state == VALUE) and line:
+                state = VALUE
+                value = value + '\n' + line[4:]  # Remove first indentation
         if value:
             data[field_name] = value.strip()
 
@@ -267,7 +272,8 @@ class TicketFolder(object):
             'show', '%s:%s' % (
                 head,
                 constants.TICKET_DETAILS
-            )
+            ),
+            failure_ok=True
         )
         return self.get_field_data_from_string(original_file)
 
@@ -308,15 +314,18 @@ class TicketFolder(object):
         return differing
 
     def get_new_comment(self, clear=False):
-        with open(
-            self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
-        ) as c:
-            comment = c.read().strip()
-            if clear:
-                c.seek(0)
-                c.truncate()
+        try:
+            with open(
+                self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
+            ) as c:
+                comment = c.read().strip()
+                if clear:
+                    c.seek(0)
+                    c.truncate()
 
-        return comment
+            return comment
+        except IOError:
+            return ''
 
     def sync(self):
         status = self.status()
