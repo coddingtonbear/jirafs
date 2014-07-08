@@ -342,7 +342,7 @@ class TicketFolder(object):
                 v = ''
             elif k in constants.NO_DETAIL_FIELDS:
                 continue
-            if original_values.get(k, '') != six.text_type(v):
+            if original_values.get(k, '') != six.text_type(v).strip():
                 differing.append(k)
 
         return differing
@@ -422,7 +422,7 @@ class TicketFolder(object):
         file_meta = self.get_remote_file_metadata()
 
         for filename in status['to_upload']:
-            with open(self.get_local_path(filename), 'r') as upload:
+            with open(self.get_local_path(filename), 'rb') as upload:
                 self.log(
                     'Uploading file "%s"',
                     (filename, ),
