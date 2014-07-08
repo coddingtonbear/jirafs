@@ -1,4 +1,4 @@
-JiraFS
+Jirafs
 ======
 
 Pronounced like 'giraffes', but totally unrelated to wildlife, this
@@ -41,7 +41,7 @@ with an actual JIRA issue number in your issue tracking system)::
 
 The first time you run this command, it will ask you for a series of details
 that it will use for communicating with JIRA; don't worry: although all of this
-information will be stored in plaintext at ``~/.jirafs_config``, JiraFS will
+information will be stored in plaintext at ``~/.jirafs_config``, Jirafs will
 not store your password unless you give it permission to do so.
 
 Once the command runs successfully, it will download all assets currently
@@ -152,7 +152,7 @@ webbrowser.
 ~~~~~~~~
 
 From within a folder named after an issue, converts the existing
-folder into a JiraFS issue folder.  This can be useful if you have
+folder into a Jirafs issue folder.  This can be useful if you have
 already been storing issue-specific files on your filesystem.
 
 ``status`` *
@@ -190,7 +190,7 @@ Directory Structure
 ~~~~~~~~~~~~~~~~~~~
 
 Each issue folder includes a hidden folder named ``.jirafs`` that
-stores metadata used by JiraFS for this issue.  There may be
+stores metadata used by Jirafs for this issue.  There may be
 many things in this folder, but two highlights include the following
 files/folders:
 
