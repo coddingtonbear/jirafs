@@ -1,5 +1,6 @@
 import datetime
 import fnmatch
+import json
 import logging
 import os
 import re
@@ -62,6 +63,19 @@ class TicketFolder(object):
             self.metadata_dir,
             filename
         )
+
+    def get_remote_file_metadata(self):
+        try:
+            with open(self.get_metadata_path('remote_files.json'), 'r') as _in:
+                return json.loads(_in.read())
+        except IOError:
+            return {}
+
+    def set_remote_file_metadata(self, data):
+        with open(self.get_metadata_path('remote_files.json'), 'w') as out:
+            out.write(
+                json.dumps(data)
+            )
 
     def get_local_path(self, filename):
         return os.path.join(
@@ -185,11 +199,22 @@ class TicketFolder(object):
                 return True
         return False
 
-    def get_local_assets(self):
+    def get_locally_changed(self):
         ignore_globs = self.get_ignore_globs()
 
+        new_files = self.run_git_command(
+            'ls-files', '-o', failure_ok=True
+        ).split('\n')
+        modified_files = self.run_git_command(
+            'ls-files', '-m', failure_ok=True
+        ).split('\n')
+
+        all_possible = [
+            filename for filename in new_files + modified_files if filename
+        ]
+
         assets = []
-        for filename in os.listdir(self.path):
+        for filename in all_possible:
             if self.file_matches_globs(filename, ignore_globs):
                 continue
             if not os.path.isfile(os.path.join(self.path, filename)):
@@ -197,14 +222,20 @@ class TicketFolder(object):
             if filename.startswith('.'):
                 continue
             assets.append(filename)
+
         return assets
 
-    def get_remote_assets(self):
+    def get_remotely_changed(self):
         ignore_globs = self.get_ignore_globs(constants.REMOTE_IGNORE_FILE)
+        metadata = self.get_remote_file_metadata()
 
         assets = []
         for attachment in self.issue.fields.attachment:
-            if not self.file_matches_globs(attachment.filename, ignore_globs):
+            matches_globs = (
+                self.file_matches_globs(attachment.filename, ignore_globs)
+            )
+            changed = metadata.get(attachment.filename) != attachment.created
+            if not matches_globs and changed:
                 assets.append(attachment.filename)
         return assets
 
@@ -330,6 +361,8 @@ class TicketFolder(object):
     def pull(self):
         status = self.status()
 
+        file_meta = self.get_remote_file_metadata()
+
         for filename in status['to_download']:
             for attachment in self.issue.fields.attachment:
                 if attachment.filename == filename:
@@ -338,7 +371,10 @@ class TicketFolder(object):
                             'Download file "%s"',
                             (attachment.filename, ),
                         )
+                        file_meta[filename] = attachment.created
                         download.write(attachment.get())
+
+        self.set_remote_file_metadata(file_meta)
 
         values = self.get_original_values()
 
@@ -374,16 +410,25 @@ class TicketFolder(object):
     def push(self):
         status = self.status()
 
+        file_meta = self.get_remote_file_metadata()
+
         for filename in status['to_upload']:
             with open(self.get_local_path(filename), 'r') as upload:
                 self.log(
                     'Uploading file "%s"',
                     (filename, ),
                 )
-                self.jira.add_attachment(
+                # Delete the existing issue if there is one
+                for attachment in self.issue.fields.attachment:
+                    if attachment.filename == filename:
+                        attachment.delete()
+                attachment = self.jira.add_attachment(
                     self.ticket_number,
                     upload
                 )
+                file_meta[filename] = attachment.created
+
+        self.set_remote_file_metadata(file_meta)
 
         comment = self.get_new_comment(clear=True)
         if comment:
@@ -415,12 +460,12 @@ class TicketFolder(object):
         self.pull()
 
     def status(self):
-        local_assets = set(self.get_local_assets())
-        remote_assets = set(self.get_remote_assets())
+        locally_changed = self.get_locally_changed()
+        remotely_changed = self.get_remotely_changed()
 
         status = {
-            'to_download': list(remote_assets - local_assets),
-            'to_upload': list(local_assets - remote_assets),
+            'to_upload': locally_changed,
+            'to_download': remotely_changed,
             'local_differs': self.get_local_differing_fields(),
             'remote_differs': self.get_remote_differing_fields(),
             'new_comment': self.get_new_comment()
