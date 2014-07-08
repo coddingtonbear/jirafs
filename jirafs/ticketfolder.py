@@ -5,6 +5,8 @@ import os
 import re
 import subprocess
 
+import six
+
 from . import constants
 from .exceptions import (
     CannotInferTicketNumberFromFolderName,
@@ -44,7 +46,9 @@ class TicketFolder(object):
 
     @property
     def issue(self):
-        return self.jira.issue(self.ticket_number)
+        if not hasattr(self, '_issue'):
+            self._issue = self.jira.issue(self.ticket_number)
+        return self._issue
 
     @property
     def metadata_dir(self):
@@ -129,6 +133,11 @@ class TicketFolder(object):
         return subprocess.check_call(cmd)
 
     def get_ignore_globs(self, which=constants.IGNORE_FILE):
+        all_globs = [
+            constants.TICKET_DETAILS,
+            constants.TICKET_COMMENTS,
+        ]
+
         def get_globs_from_file(input_file):
             globs = []
             for line in input_file.readlines():
@@ -138,7 +147,6 @@ class TicketFolder(object):
             return globs
 
         try:
-            all_globs = []
             with open(self.get_local_path(which)) as local_ign:
                 all_globs.extend(
                     get_globs_from_file(local_ign)
@@ -183,6 +191,43 @@ class TicketFolder(object):
                 assets.append(attachment.filename)
         return assets
 
+    def get_local_fields(self):
+        fields = {}
+
+        try:
+            with open(
+                self.get_local_path(constants.TICKET_DETAILS), 'r'
+            ) as current_status:
+                pass
+        except IOError:
+            pass
+
+        return fields
+
+    def get_original_values(self):
+        return {}
+
+    def get_local_differing_fields(self):
+        local_fields = self.get_local_fields()
+        original_values = self.get_original_values()
+
+        differing = []
+        for k, v in original_values.items():
+            if local_fields[k] != v:
+                differing.append(k)
+
+        return differing
+
+    def get_remote_differing_fields(self):
+        original_values = self.get_original_values()
+
+        differing = []
+        for k, v in self.issue.raw['fields'].items():
+            if original_values.get(k, '') != v:
+                differing.append(k)
+
+        return differing
+
     def sync(self):
         status = self.status()
 
@@ -204,6 +249,40 @@ class TicketFolder(object):
                     upload
                 )
 
+        values = self.get_original_values()
+        local_values = self.get_local_fields()
+
+        for field in status['local_differs']:
+            # TODO Upload local changes
+            values[field] = local_values[field]
+
+        for field in status['remote_differs']:
+            values[field] = getattr(self.issue.fields, field)
+
+        with open(self.get_local_path(constants.TICKET_DETAILS), 'w') as dets:
+            for field, value in sorted(six.iteritems(values)):
+                if value is None:
+                    continue
+                elif field in constants.NO_DETAIL_FIELDS:
+                    continue
+                elif not isinstance(value, six.string_types):
+                    value = six.text_type(value)
+                dets.write('%s::\n\n' % field)
+                for line in value.replace('\r\n', '\n').split('\n'):
+                    dets.write('    %s\n' % line)
+                dets.write('\n')
+
+        with open(self.get_local_path(constants.TICKET_COMMENTS), 'w') as comm:
+            for comment in self.issue.fields.comment.comments:
+                comm.write('%s: %s::\n\n' % (comment.created, comment.author))
+                lines = comment.body.replace('\r\n', '\n').split('\n')
+                for line in lines:
+                    comm.write('    %s\n' % line)
+                comm.write('\n')
+
+        self.run_git_command('add', '-A')
+        self.run_git_command('commit', '-m', 'Synchronized')
+
     def status(self):
         local_assets = set(self.get_local_assets())
         remote_assets = set(self.get_remote_assets())
@@ -211,6 +290,8 @@ class TicketFolder(object):
         status = {
             'to_download': remote_assets - local_assets,
             'to_upload': local_assets - remote_assets,
+            'local_differs': self.get_local_differing_fields(),
+            'remote_differs': self.get_remote_differing_fields(),
         }
 
         for key, item in status.items():
