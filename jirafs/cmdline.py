@@ -18,53 +18,64 @@ logger = logging.getLogger(__name__)
 COMMANDS = {}
 
 
-def command(desc, name=None):
+def command(desc, name=None, try_subfolders=True):
     def decorator(func):
         func_name = name or func.__name__
         func.description = desc
+        func.try_subfolders = try_subfolders
         COMMANDS[func_name] = func
         return func
     return decorator
 
 
-@command('Synchronize folder(s) with JIRA')
-def sync(args):
+@command('Synchronize folder(s) with JIRA', try_subfolders=True)
+def sync(args, **kwargs):
+    jira = kwargs.get('jira', get_jira())
+
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
-    jira = get_jira()
+    folder = TicketFolder(os.getcwd(), jira)
+    folder.sync()
 
-    try:
-        folder = TicketFolder(os.getcwd(), jira)
-        folder.sync()
-    except NotTicketFolderException:
-        for folder in os.listdir(os.getcwd()):
-            try:
-                folder = TicketFolder(
-                    os.path.join(
-                        os.getcwd(),
-                        folder
-                    ),
-                    jira
-                )
-                folder.sync()
-            except NotTicketFolderException:
-                pass
+
+@command('Fetch and apply remote changes locally', try_subfolders=True)
+def pull(args, **kwargs):
+    jira = kwargs.get('jira', get_jira())
+
+    parser = argparse.ArgumentParser()
+    parser.parse_args(args)
+
+    folder = TicketFolder(os.getcwd(), jira)
+    folder.pull()
+
+
+@command('Push local changes to JIRA', try_subfolders=True)
+def push(args, **kwargs):
+    jira = kwargs.get('jira', get_jira())
+
+    parser = argparse.ArgumentParser()
+    parser.parse_args(args)
+
+    folder = TicketFolder(os.getcwd(), jira)
+    folder.push()
 
 
 @command('Create a new ticket folder at your current path')
-def init(args):
+def init(args, **kwargs):
+    jira = kwargs.get('jira', get_jira())
+
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
-
-    jira = get_jira()
 
     folder = TicketFolder.initialize_ticket_folder(os.getcwd(), jira)
     folder.create_empty_head()
 
 
 @command('Get the status of the current folder')
-def status(args):
+def status(args, **kwargs):
+    jira = kwargs.get('jira', get_jira())
+
     human_readable = {
         'to_download': 'Files ready to be downloaded from JIRA',
         'to_upload': 'Files ready to be uploaded to JIRA',
@@ -80,8 +91,6 @@ def status(args):
         choices=['text', 'json']
     )
     args = parser.parse_args(args)
-
-    jira = get_jira()
 
     folder = TicketFolder(os.getcwd(), jira)
     if args.format == 'json':
@@ -101,7 +110,9 @@ def status(args):
 
 
 @command('Get a new ticket folder for the specified ticket number')
-def get(args):
+def get(args, **kwargs):
+    jira = kwargs.get('jira', get_jira())
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'ticket',
@@ -111,18 +122,17 @@ def get(args):
     args = parser.parse_args(args)
     ticket_number = args.ticket[0].upper()
 
-    jira = get_jira()
-
     folder = TicketFolder.create_ticket_folder(ticket_number, jira)
     folder.sync()
 
 
 @command('Open this ticket in JIRA')
-def open(args):
+def open(args, **kwargs):
+    jira = kwargs.get('jira', get_jira())
+
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
-    jira = get_jira()
     folder = TicketFolder(os.getcwd(), jira)
 
     webbrowser.open(folder.issue.permalink())

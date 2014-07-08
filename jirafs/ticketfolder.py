@@ -327,7 +327,7 @@ class TicketFolder(object):
         except IOError:
             return ''
 
-    def sync(self):
+    def pull(self):
         status = self.status()
 
         for filename in status['to_download']:
@@ -339,6 +339,40 @@ class TicketFolder(object):
                             (attachment.filename, ),
                         )
                         download.write(attachment.get())
+
+        values = self.get_original_values()
+
+        for field in status['remote_differs']:
+            values[field] = getattr(self.issue.fields, field)
+
+        with open(self.get_local_path(constants.TICKET_DETAILS), 'w') as dets:
+            for field, value in sorted(six.iteritems(values)):
+                if value is None:
+                    continue
+                elif field in constants.NO_DETAIL_FIELDS:
+                    continue
+                elif not isinstance(value, six.string_types):
+                    value = six.text_type(value)
+                dets.write('%s::\n\n' % field)
+                for line in value.replace('\r\n', '\n').split('\n'):
+                    dets.write('    %s\n' % line)
+                dets.write('\n')
+
+        with open(self.get_local_path(constants.TICKET_COMMENTS), 'w') as comm:
+            for comment in self.issue.fields.comment.comments:
+                comm.write('%s: %s::\n\n' % (comment.created, comment.author))
+                lines = comment.body.replace('\r\n', '\n').split('\n')
+                for line in lines:
+                    comm.write('    %s\n' % line)
+                comm.write('\n')
+
+        self.run_git_command('add', '-A')
+        self.run_git_command(
+            'commit', '-m', 'Pulled remote changes', failure_ok=True
+        )
+
+    def push(self):
+        status = self.status()
 
         for filename in status['to_upload']:
             with open(self.get_local_path(filename), 'r') as upload:
@@ -371,32 +405,14 @@ class TicketFolder(object):
             )
             self.issue.update(**collected_updates)
 
-        for field in status['remote_differs']:
-            values[field] = getattr(self.issue.fields, field)
-
-        with open(self.get_local_path(constants.TICKET_DETAILS), 'w') as dets:
-            for field, value in sorted(six.iteritems(values)):
-                if value is None:
-                    continue
-                elif field in constants.NO_DETAIL_FIELDS:
-                    continue
-                elif not isinstance(value, six.string_types):
-                    value = six.text_type(value)
-                dets.write('%s::\n\n' % field)
-                for line in value.replace('\r\n', '\n').split('\n'):
-                    dets.write('    %s\n' % line)
-                dets.write('\n')
-
-        with open(self.get_local_path(constants.TICKET_COMMENTS), 'w') as comm:
-            for comment in self.issue.fields.comment.comments:
-                comm.write('%s: %s::\n\n' % (comment.created, comment.author))
-                lines = comment.body.replace('\r\n', '\n').split('\n')
-                for line in lines:
-                    comm.write('    %s\n' % line)
-                comm.write('\n')
-
         self.run_git_command('add', '-A')
-        self.run_git_command('commit', '-m', 'Synchronized', failure_ok=True)
+        self.run_git_command(
+            'commit', '-m', 'Pushed local changes', failure_ok=True
+        )
+
+    def sync(self):
+        self.push()
+        self.pull()
 
     def status(self):
         local_assets = set(self.get_local_assets())

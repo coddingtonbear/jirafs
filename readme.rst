@@ -119,10 +119,25 @@ Commands
 
 From within an issue folder, synchronizes the issue with JIRA.
 
+Internally, this command first runs ``jirafs push`` followed by
+a ``jirafs pull``.
+
 .. note::
 
    Can also be used within a folder containing issue folders, in which
    case all issue folders in said folder will be synchronized.
+
+``pull``
+~~~~~~~~
+
+From within an issue folder, fetches remote changes from JIRA and applies
+the remote changes to your local copy.
+
+``push``
+~~~~~~~~
+
+From within an issue folder, discovers any local changes, and pushes your
+local changes to JIRA.
 
 ``open``
 ~~~~~~~~
