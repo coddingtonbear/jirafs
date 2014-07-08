@@ -130,6 +130,12 @@ class TicketFolder(object):
             'Ticket folder for issue %s created at %s',
             (instance.ticket_number, instance.path, )
         )
+        instance.run_git_command(
+            'commit', '--allow-empty', '-m', 'Initialized'
+        )
+        comment_path = instance.get_local_path(constants.TICKET_NEW_COMMENT)
+        with open(comment_path, 'w') as out:
+            out.write('')
         return instance
 
     @classmethod
@@ -156,9 +162,6 @@ class TicketFolder(object):
         except subprocess.CalledProcessError:
             if not failure_ok:
                 raise
-
-    def create_empty_head(self):
-        self.run_git_command('commit', '--allow-empty', '-m', 'Initialized')
 
     def get_ignore_globs(self, which=constants.IGNORE_FILE):
         all_globs = [
@@ -402,6 +405,12 @@ class TicketFolder(object):
                     comm.write('    %s\n' % line)
                 comm.write('\n')
 
+        # If no `new_comment.jira.txt` file exists, let's create one
+        comment_path = self.get_local_path(constants.TICKET_NEW_COMMENT)
+        if not os.path.exists(comment_path):
+            with open(comment_path, 'w') as out:
+                out.write('')
+
         self.run_git_command('add', '-A')
         self.run_git_command(
             'commit', '-m', 'Pulled remote changes', failure_ok=True
@@ -450,7 +459,7 @@ class TicketFolder(object):
             )
             self.issue.update(**collected_updates)
 
-        self.run_git_command('add', '-A')
+        self.run_git_command('add', '-A', failure_ok=True)
         self.run_git_command(
             'commit', '-m', 'Pushed local changes', failure_ok=True
         )

@@ -26,27 +26,22 @@ Cloning a few issues
 
 You'll need to have a local copy of the JIRA issues you'd like to edit
 before you can update the contents of issues, so you will wand to find
-a place that you'll use to hold the issues you've cloned.
+a place that you can "clone" (create a text-file based copy of) the
+issue you're concerned about, then run the following (replacing
+``MYISSUE-1024`` with the issue number you are concerned about)::
 
-First, create a folder that you'll be cloning your JIRA issues into, and
-``cd`` into it::
-
-    mkdir my_jira_issues
-    cd my_jira_issues
-
-Then, you can clone any relevant issues by running (replacing ``MYISSUE-1024``
-with an actual JIRA issue number in your issue tracking system)::
-
-    jirafs get MYISSUE-1024
+    jirafs clone MYISSUE-1024
 
 The first time you run this command, it will ask you for a series of details
 that it will use for communicating with JIRA; don't worry: although all of this
 information will be stored in plaintext at ``~/.jirafs_config``, Jirafs will
 not store your password unless you give it permission to do so.
 
-Once the command runs successfully, it will download all assets currently
-attached to the issue and create a few text files that allow you to see and
-edit the issue's contents.  These files include:
+Once the command runs successfully, it will create a new folder named after
+the issue you've cloned, and inside that folder it will place a series of
+text files and copies of all assets currently attached to the issue in JIRA.
+
+The following text files are created:
 
 * ``details.jira.rst``:  This file will show all currently-set field values
   for this JIRA issue.  You *can* change field values here by editing the
@@ -82,6 +77,11 @@ get an idea of what is about to happen, you can list all of the pending
 changes by running::
 
     jirafs status
+
+Please consider the above to be just a simple overview -- there are a
+variety of other commands you can run to have finer-grained control
+over how the issue folder is synchronized with JIRA; see `Commands`_
+for more details.
 
 
 Configuration
@@ -161,7 +161,7 @@ already been storing issue-specific files on your filesystem.
 From within an issue folder, will report any changes that would take place
 were you to run ``jirafs sync``.
 
-``get MYISSUE-1024``
+``clone MYISSUE-1024``
 ~~~~~~~~~~~~~~~~~~~~
 
 Create a new issue folder for ``MYISSUE-1024`` (replace ``MYISSUE-1024`` with

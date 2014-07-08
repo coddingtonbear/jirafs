@@ -19,12 +19,15 @@ logger = logging.getLogger(__name__)
 COMMANDS = {}
 
 
-def command(desc, name=None, try_subfolders=True):
+def command(desc, name=None, try_subfolders=True, aliases=None):
     def decorator(func):
         func_name = name or func.__name__
         func.description = desc
         func.try_subfolders = try_subfolders
         COMMANDS[func_name] = func
+        if aliases:
+            for alias in aliases:
+                COMMANDS[alias] = func
         return func
     return decorator
 
@@ -61,8 +64,7 @@ def init(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
-    folder = TicketFolder.initialize_ticket_folder(path, jira)
-    folder.create_empty_head()
+    TicketFolder.initialize_ticket_folder(path, jira)
 
 
 @command('Get the status of the current folder', try_subfolders=True)
@@ -100,8 +102,11 @@ def status(args, jira, path, **kwargs):
                 print('')
 
 
-@command('Get a new ticket folder for the specified ticket number')
-def get(args, jira, path, **kwargs):
+@command(
+    'Clone a new ticket folder for the specified ticket number',
+    aliases=['get'],
+)
+def clone(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'ticket',
