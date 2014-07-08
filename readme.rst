@@ -172,6 +172,12 @@ already been storing issue-specific files on your filesystem.
 From within an issue folder, will report any changes that would take place
 were you to run ``jirafs sync``.
 
+``diff``
+~~~~~~~~
+
+From within an issue folder, will display any local changes that you have
+made.
+
 ``log``
 ~~~~~~~
 

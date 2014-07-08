@@ -184,6 +184,10 @@ class TicketFolder(object):
             constants.TICKET_COMMENTS,
             constants.TICKET_NEW_COMMENT,
         ]
+        for field in constants.FILE_FIELDS:
+            all_globs.append(
+                constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field)
+            )
 
         def get_globs_from_file(input_file):
             globs = []
@@ -318,7 +322,7 @@ class TicketFolder(object):
                     ).format(field_name=field)
                     if os.path.exists(file_field_path):
                         with open(file_field_path, 'r') as file_field:
-                            values[field] = file_field.read()
+                            values[field] = file_field.read().strip()
 
                 return values
         except IOError:
@@ -342,7 +346,7 @@ class TicketFolder(object):
                     file_field_path,
                     self.git_head,
                     failure_ok=False
-                )
+                ).strip()
             except subprocess.CalledProcessError:
                 # This file did not exist in head
                 pass
@@ -361,17 +365,17 @@ class TicketFolder(object):
         local_fields = self.get_local_fields()
         original_values = self.get_original_values()
 
-        differing = []
+        differing = {}
         for k, v in original_values.items():
             if local_fields[k] != v:
-                differing.append(k)
+                differing[k] = (v, local_fields[k], )
 
         return differing
 
     def get_remote_differing_fields(self):
         original_values = self.get_original_values()
 
-        differing = []
+        differing = {}
         for k in self.issue.raw['fields'].keys():
             v = getattr(self.issue.fields, k)
             if isinstance(v, six.string_types):
@@ -381,7 +385,10 @@ class TicketFolder(object):
             elif k in constants.NO_DETAIL_FIELDS:
                 continue
             if original_values.get(k, '') != six.text_type(v).strip():
-                differing.append(k)
+                differing[k] = (
+                    original_values.get(k, ''),
+                    six.text_type(v).strip()
+                )
 
         return differing
 
@@ -420,8 +427,8 @@ class TicketFolder(object):
 
         values = self.get_original_values()
 
-        for field in status['remote_differs']:
-            values[field] = getattr(self.issue.fields, field)
+        for field, diff_values in status['remote_differs'].items():
+            values[field] = diff_values[1]
 
         with open(self.get_local_path(constants.TICKET_DETAILS), 'w') as dets:
             for field, value in sorted(six.iteritems(values)):
@@ -437,6 +444,7 @@ class TicketFolder(object):
                     ).format(field_name=field)
                     with open(file_field_path, 'w') as file_field_file:
                         file_field_file.write(value)
+                        file_field_file.write('\n')  # For unix' sake
                 else:
                     # Normal fields, though, just go into the standard
                     # fields file.
@@ -499,12 +507,11 @@ class TicketFolder(object):
             self.jira.add_comment(self.ticket_number, comment)
 
         values = self.get_original_values()
-        local_values = self.get_local_fields()
 
         collected_updates = {}
-        for field in status['local_differs']:
-            collected_updates[field] = local_values[field]
-            values[field] = local_values[field]
+        for field, diff_values in status['local_differs'].items():
+            collected_updates[field] = diff_values[1]
+            values[field] = diff_values[1]
 
         if collected_updates:
             self.log(

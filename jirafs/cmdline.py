@@ -116,7 +116,7 @@ def status(args, jira, path, **kwargs):
                     v = v.split('\n')
                 print(human_heading + ':\n')
                 for item in v:
-                    print('\t' + item)
+                    print('\t{item}'.format(item=item))
                 print('')
 
 
@@ -140,14 +140,23 @@ def clone(args, jira, path, **kwargs):
 
 @command('Open this ticket in JIRA', try_subfolders=True)
 def open(args, jira, path, **kwargs):
-    jira = kwargs.get('jira', get_jira())
-
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
     folder = TicketFolder(path, jira)
 
     webbrowser.open(folder.issue.permalink())
+
+
+@command('Show local issue changes')
+def diff(args, jira, path, **kwargs):
+    parser = argparse.ArgumentParser()
+    parser.parse_args(args)
+
+    folder = TicketFolder(path, jira)
+    result = folder.run_git_command('diff')
+    if result.strip():
+        print(result)
 
 
 def main():
