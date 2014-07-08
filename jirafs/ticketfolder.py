@@ -191,6 +191,8 @@ class TicketFolder(object):
                 continue
             if not os.path.isfile(os.path.join(self.path, filename)):
                 continue
+            if filename.startswith('.'):
+                continue
             assets.append(filename)
         return assets
 

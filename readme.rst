@@ -83,3 +83,63 @@ changes by running::
 
     jirafs status
 
+
+Configuration
+-------------
+
+Settings affecting all issues are set in the following files:
+
+* ``~/.jirafs_config``: Global configuration values affecting all issues.
+* ``~/.jirafs_ignore``: Global list of patterns to ignore when looking through
+  issue directories for files to upload to JIRA.  See `Ignore File Format`_
+  for details.
+* ``~/.jirafs_remote_ignore``: A list of patterns to ignore when looking
+  through files attached to a JIRA issue.  Files matching any of these
+  patterns will not be downloaded.  See `Ignore File Format`_ for details.
+
+You may also add any of the below files into any issue directory (in this
+example, ``MYISSUE-1024``):
+
+* ``MYISSUE-1024/.jirafs_ignore``: A list of patterns to ignore when looking
+  through this specific issue directory.  This list of patterns is in
+  addition to patterns entered into ``~/.jirafs_ignore`` above.  See
+  `Ignore File Format`_ for details.
+* ``MYISSUE-1024/.jirafs_remote_ignore``: A list of patterns to ignore
+  when looking through files attached to this specific JIRA issue.  Files
+  matching any of these patterns will not be downloaded.  These patterns
+  are in addition to the patterns entered into ``~/.jirafs_remote_ignore``
+  above.  See `Ignore File Format`_ for details.
+
+
+Important Details
+-----------------
+
+Ignore File Format
+~~~~~~~~~~~~~~~~~~
+
+The files ``.jirafs_ignore`` and ``.jirafs_remote_ignore`` use a subset
+of the globbing functionality supported by ``git``'s ``gitignore`` file
+syntax.  Specifically, you can have comments, blank lines, and 
+globbing patterns of files that you would not like to upload.
+
+For example, if you'd like to ignore files having a ``.diff`` extension,
+and would like to add a comment indicating why those are ignored, you
+could enter the following into any ``*_ignore`` file::
+
+    # Hide diffs I've generated for posting to reviewboard
+    *.diff
+
+Directory Structure
+~~~~~~~~~~~~~~~~~~~
+
+Each issue folder includes a hidden folder named ``.jirafs`` that
+stores metadata used by ``jirafs`` for this issue.  There may be
+many things in this folder, but two highlights include the following
+files/folders:
+
+* ``git``: The issue folder is tracked by a git repository to enable
+  future features, provide for a way of easily rolling-back or reviewing
+  an issue's previous state.
+* ``operation.log``: This file logs all operations engaged in on this
+  specific issue folder.  You can review this log to see what ``jirafs``
+  has done in the past.
