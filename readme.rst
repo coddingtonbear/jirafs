@@ -166,7 +166,7 @@ Directory Structure
 ~~~~~~~~~~~~~~~~~~~
 
 Each issue folder includes a hidden folder named ``.jirafs`` that
-stores metadata used by ``jirafs`` for this issue.  There may be
+stores metadata used by JiraFS for this issue.  There may be
 many things in this folder, but two highlights include the following
 files/folders:
 
