@@ -63,6 +63,14 @@ def init(args):
 
 @command('Get the status of the current folder')
 def status(args):
+    human_readable = {
+        'to_download': 'Files ready to be downloaded from JIRA',
+        'to_upload': 'Files ready to be uploaded to JIRA',
+        'local_differs': 'The following fields have been changed locally',
+        'remote_differs': 'The following fields have been changed in JIRA',
+        'new_comment': 'The following comment is ready to be posted to JIRA',
+    }
+
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
@@ -70,7 +78,16 @@ def status(args):
 
     folder = TicketFolder(os.getcwd(), jira)
     for k, v in folder.status().items():
-        print("%s: %s" % (k, v, ))
+        human_heading = human_readable.get(k, k)  # Default to key name
+        if v:
+            if isinstance(v, six.string_types):
+                if not v:
+                    continue
+                v = v.split('\n')
+            print(human_heading + ':\n')
+            for item in v:
+                print('\t' + item)
+            print('')
 
 
 @command('Get a new ticket folder for the specified ticket number')

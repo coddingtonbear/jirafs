@@ -132,11 +132,10 @@ class TicketFolder(object):
         cmd.extend(args)
         self.log('Executing git command %s', cmd, logging.DEBUG)
         try:
-            return subprocess.check_call(
+            return subprocess.check_output(
                 cmd,
-                stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
-            )
+            ).decode('utf-8').strip()
         except subprocess.CalledProcessError:
             if not failure_ok:
                 raise
@@ -145,6 +144,7 @@ class TicketFolder(object):
         all_globs = [
             constants.TICKET_DETAILS,
             constants.TICKET_COMMENTS,
+            constants.TICKET_NEW_COMMENT,
         ]
 
         def get_globs_from_file(input_file):
@@ -200,23 +200,81 @@ class TicketFolder(object):
                 assets.append(attachment.filename)
         return assets
 
-    def get_local_fields(self):
-        fields = {}
+    def get_field_data_from_string(self, string):
+        """ Gets field data from an incoming string.
 
+        0 | FIELD_NAME::
+        1 |
+        2 |     VALUE
+
+        """
+        FIELD_DECLARED = 0
+        PREAMBLE = 1
+        VALUE = 2
+
+        state = None
+
+        data = {}
+        field_name = ''
+        value = ''
+        lines = string.split('\n')
+        for idx, line in enumerate(lines):
+            line = line.replace('\t', '    ')
+            if state == FIELD_DECLARED and not line:
+                state = PREAMBLE
+            elif state == PREAMBLE and line:
+                state = VALUE
+                value = value + '\n' + line[4:]  # Remove first indentation
+            elif (
+                (state == VALUE or state is None)
+                and re.match('^(\w+)::', line)
+            ):
+                if value:
+                    data[field_name] = value.strip()
+                    value = ''
+                state = FIELD_DECLARED
+                field_name = re.match('^(\w+)::', line).group(1)
+                if not field_name:
+                    raise ValueError(
+                        "Syntax error on line %s" % idx
+                    )
+        if value:
+            data[field_name] = value.strip()
+
+        return data
+
+    def get_local_fields(self):
         try:
             with open(
                 self.get_local_path(constants.TICKET_DETAILS), 'r'
             ) as current_status:
-                pass
+                return self.get_field_data_from_string(current_status.read())
         except IOError:
             pass
 
-        return fields
-
-    def get_original_values(self):
         return {}
 
+    def get_original_values(self):
+        head = self.run_git_command(
+            'rev-parse', 'HEAD'
+        )
+        original_file = self.run_git_command(
+            'show', '%s:%s' % (
+                head,
+                constants.TICKET_DETAILS
+            )
+        )
+        return self.get_field_data_from_string(original_file)
+
     def get_local_differing_fields(self):
+        """ Get fields that differ between local and the last sync
+
+        .. warning::
+
+           Does not support setting fields that were not set originally
+           in a sync operation!
+
+        """
         local_fields = self.get_local_fields()
         original_values = self.get_original_values()
 
@@ -231,11 +289,29 @@ class TicketFolder(object):
         original_values = self.get_original_values()
 
         differing = []
-        for k, v in self.issue.raw['fields'].items():
-            if original_values.get(k, '') != v:
+        for k in self.issue.raw['fields'].keys():
+            v = getattr(self.issue.fields, k)
+            if isinstance(v, six.string_types):
+                v = v.replace('\r\n', '\n').strip()
+            elif v is None:
+                v = ''
+            elif k in constants.NO_DETAIL_FIELDS:
+                continue
+            if original_values.get(k, '') != six.text_type(v):
                 differing.append(k)
 
         return differing
+
+    def get_new_comment(self, clear=False):
+        with open(
+            self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
+        ) as c:
+            comment = c.read().strip()
+            if clear:
+                c.seek(0)
+                c.truncate()
+
+        return comment
 
     def sync(self):
         status = self.status()
@@ -245,25 +321,43 @@ class TicketFolder(object):
                 if attachment.filename == filename:
                     with open(self.get_local_path(filename), 'wb') as download:
                         self.log(
-                            'Fetching file from %s',
-                            (attachment.content, ),
+                            'Download file "%s"',
+                            (attachment.filename, ),
                             logging.DEBUG
                         )
                         download.write(attachment.get())
 
         for filename in status['to_upload']:
             with open(self.get_local_path(filename), 'r') as upload:
+                self.log(
+                    'Uploading file "%s"',
+                    (filename, ),
+                    logging.DEBUG
+                )
                 self.jira.add_attachment(
                     self.ticket_number,
                     upload
                 )
 
+        comment = self.get_new_comment(clear=True)
+        if comment:
+            self.log('Adding comment "%s"' % comment)
+            self.jira.add_comment(self.ticket_number, comment)
+
         values = self.get_original_values()
         local_values = self.get_local_fields()
 
+        collected_updates = {}
         for field in status['local_differs']:
-            # TODO Upload local changes
+            collected_updates[field] = local_values[field]
             values[field] = local_values[field]
+
+        if collected_updates:
+            self.log(
+                'Updating fields "%s"',
+                (collected_updates, )
+            )
+            self.issue.update(**collected_updates)
 
         for field in status['remote_differs']:
             values[field] = getattr(self.issue.fields, field)
@@ -297,21 +391,12 @@ class TicketFolder(object):
         remote_assets = set(self.get_remote_assets())
 
         status = {
-            'to_download': remote_assets - local_assets,
-            'to_upload': local_assets - remote_assets,
+            'to_download': list(remote_assets - local_assets),
+            'to_upload': list(local_assets - remote_assets),
             'local_differs': self.get_local_differing_fields(),
             'remote_differs': self.get_remote_differing_fields(),
+            'new_comment': self.get_new_comment()
         }
-
-        for key, item in status.items():
-            self.log(
-                'Current status; %s: %s',
-                (
-                    key,
-                    item
-                ),
-                logging.DEBUG
-            )
 
         return status
 
@@ -325,5 +410,13 @@ class TicketFolder(object):
                     datetime.datetime.utcnow().isoformat(),
                     logging.getLevelName(level),
                     (message % args).replace('\n', '\\n')
+                )
+            )
+        if level >= logging.INFO:
+            print(
+                "[%s %s] %s" % (
+                    logging.getLevelName(level),
+                    self.issue,
+                    message % args
                 )
             )
