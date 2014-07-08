@@ -114,33 +114,36 @@ example, ``MYISSUE-1024``):
 Commands
 --------
 
-``sync``
-~~~~~~~~
+.. note::
+
+   Commands marked with an asterisk can be ran from either an issue
+   folder, or from within a folder containing many issue folders.
+
+   In the latter case, the command will be ran for every subordinate
+   issue folder.
+
+``sync`` *
+~~~~~~~~~~
 
 From within an issue folder, synchronizes the issue with JIRA.
 
 Internally, this command first runs ``jirafs push`` followed by
 a ``jirafs pull``.
 
-.. note::
-
-   Can also be used within a folder containing issue folders, in which
-   case all issue folders in said folder will be synchronized.
-
-``pull``
-~~~~~~~~
+``pull`` *
+~~~~~~~~~~
 
 From within an issue folder, fetches remote changes from JIRA and applies
 the remote changes to your local copy.
 
-``push``
-~~~~~~~~
+``push`` *
+~~~~~~~~~~
 
 From within an issue folder, discovers any local changes, and pushes your
 local changes to JIRA.
 
-``open``
-~~~~~~~~
+``open`` *
+~~~~~~~~~~
 
 From within an issue folder, opens the current JIRA issue in your
 webbrowser.
@@ -152,8 +155,8 @@ From within a folder named after an issue, converts the existing
 folder into a JiraFS issue folder.  This can be useful if you have
 already been storing issue-specific files on your filesystem.
 
-``status``
-~~~~~~~~~~
+``status`` *
+~~~~~~~~~~~~
 
 From within an issue folder, will report any changes that would take place
 were you to run ``jirafs sync``.
