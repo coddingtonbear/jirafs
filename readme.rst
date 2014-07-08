@@ -39,9 +39,14 @@ with an actual JIRA issue number in your issue tracking system)::
 
     jirafs get MYISSUE-1084
 
-Once you run this command, it will download all assets currently attached to
-the issue and create a few text files that allow you to see and edit the
-issue's contents.  These files include:
+The first time you run this command, it will ask you for a series of details
+that it will use for communicating with JIRA; don't worry: although all of this
+information will be stored in plaintext at ``~/.jirafs_config``, JiraFS will
+not store your password unless you give it permission to do so.
+
+Once the command runs successfully, it will download all assets currently
+attached to the issue and create a few text files that allow you to see and
+edit the issue's contents.  These files include:
 
 * ``details.jira.rst``:  This file will show all currently-set field values
   for this JIRA issue.  You *can* change field values here by editing the
