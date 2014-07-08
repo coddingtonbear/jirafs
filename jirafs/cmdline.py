@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 import time
 import webbrowser
 
@@ -29,53 +30,43 @@ def command(desc, name=None, try_subfolders=True):
 
 
 @command('Synchronize folder(s) with JIRA', try_subfolders=True)
-def sync(args, **kwargs):
-    jira = kwargs.get('jira', get_jira())
-
+def sync(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
-    folder = TicketFolder(os.getcwd(), jira)
+    folder = TicketFolder(path, jira)
     folder.sync()
 
 
 @command('Fetch and apply remote changes locally', try_subfolders=True)
-def pull(args, **kwargs):
-    jira = kwargs.get('jira', get_jira())
-
+def pull(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
-    folder = TicketFolder(os.getcwd(), jira)
+    folder = TicketFolder(path, jira)
     folder.pull()
 
 
 @command('Push local changes to JIRA', try_subfolders=True)
-def push(args, **kwargs):
-    jira = kwargs.get('jira', get_jira())
-
+def push(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
-    folder = TicketFolder(os.getcwd(), jira)
+    folder = TicketFolder(path, jira)
     folder.push()
 
 
 @command('Create a new ticket folder at your current path')
-def init(args, **kwargs):
-    jira = kwargs.get('jira', get_jira())
-
+def init(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
-    folder = TicketFolder.initialize_ticket_folder(os.getcwd(), jira)
+    folder = TicketFolder.initialize_ticket_folder(path, jira)
     folder.create_empty_head()
 
 
-@command('Get the status of the current folder')
-def status(args, **kwargs):
-    jira = kwargs.get('jira', get_jira())
-
+@command('Get the status of the current folder', try_subfolders=True)
+def status(args, jira, path, **kwargs):
     human_readable = {
         'to_download': 'Files ready to be downloaded from JIRA',
         'to_upload': 'Files ready to be uploaded to JIRA',
@@ -92,7 +83,7 @@ def status(args, **kwargs):
     )
     args = parser.parse_args(args)
 
-    folder = TicketFolder(os.getcwd(), jira)
+    folder = TicketFolder(path, jira)
     if args.format == 'json':
         print(json.dumps(folder.status()))
     else:
@@ -110,9 +101,7 @@ def status(args, **kwargs):
 
 
 @command('Get a new ticket folder for the specified ticket number')
-def get(args, **kwargs):
-    jira = kwargs.get('jira', get_jira())
-
+def get(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'ticket',
@@ -126,14 +115,14 @@ def get(args, **kwargs):
     folder.sync()
 
 
-@command('Open this ticket in JIRA')
-def open(args, **kwargs):
+@command('Open this ticket in JIRA', try_subfolders=True)
+def open(args, jira, path, **kwargs):
     jira = kwargs.get('jira', get_jira())
 
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
-    folder = TicketFolder(os.getcwd(), jira)
+    folder = TicketFolder(path, jira)
 
     webbrowser.open(folder.issue.permalink())
 
@@ -158,7 +147,37 @@ def main():
         command_name,
         extra
     )
-    fn(extra)
+    jira = get_jira()
+    try:
+        fn(extra, jira=jira, path=os.getcwd())
+    except NotTicketFolderException:
+        if not fn.try_subfolders:
+            print(
+                "The command '%s' must be ran from within an issue folder." % (
+                    command_name
+                )
+            )
+            sys.exit(1)
+        count_runs = 0
+        for folder in os.listdir(os.getcwd()):
+            try:
+                fn(
+                    extra,
+                    jira=jira,
+                    path=os.path.join(
+                        os.getcwd(),
+                        folder,
+                    ),
+                )
+                count_runs += 1
+            except NotTicketFolderException:
+                pass
+        if count_runs == 0:
+            print(
+                "No subfolders of the current folder are issue folders."
+            )
+            sys.exit(1)
+
     logger.debug(
         'Command %s(%s) finished in %s seconds',
         command_name,
