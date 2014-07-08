@@ -124,6 +124,12 @@ From within an issue folder, synchronizes the issue with JIRA.
    Can also be used within a folder containing issue folders, in which
    case all issue folders in said folder will be synchronized.
 
+``open``
+~~~~~~~~
+
+From within an issue folder, opens the current JIRA issue in your
+webbrowser.
+
 ``init``
 ~~~~~~~~
 

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import time
+import webbrowser
 
 import six
 
@@ -114,6 +115,17 @@ def get(args):
 
     folder = TicketFolder.create_ticket_folder(ticket_number, jira)
     folder.sync()
+
+
+@command('Open this ticket in JIRA')
+def open(args):
+    parser = argparse.ArgumentParser()
+    parser.parse_args(args)
+
+    jira = get_jira()
+    folder = TicketFolder(os.getcwd(), jira)
+
+    webbrowser.open(folder.issue.permalink())
 
 
 def main():
