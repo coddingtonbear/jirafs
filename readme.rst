@@ -168,8 +168,8 @@ Create a new issue folder for ``MYISSUE-1024`` (replace ``MYISSUE-1024`` with
 an actual JIRA issue number), and download any assets attached to said issue.
 
 
-Important Details
------------------
+Interesting Details
+-------------------
 
 Ignore File Format
 ~~~~~~~~~~~~~~~~~~
