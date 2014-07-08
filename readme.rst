@@ -34,10 +34,10 @@ First, create a folder that you'll be cloning your JIRA issues into, and
     mkdir my_jira_issues
     cd my_jira_issues
 
-Then, you can clone any relevant issues by running (replacing ``MYISSUE-1084``
+Then, you can clone any relevant issues by running (replacing ``MYISSUE-1024``
 with an actual JIRA issue number in your issue tracking system)::
 
-    jirafs get MYISSUE-1084
+    jirafs get MYISSUE-1024
 
 The first time you run this command, it will ask you for a series of details
 that it will use for communicating with JIRA; don't worry: although all of this
@@ -63,7 +63,8 @@ make the change to a field in ``details.jira.rst``, write a comment into
 
     jirafs sync
 
-Running this command will do the following things:
+from within the folder ``jirafs`` created earlier.  Running this command
+will do the following things:
 
 * Upload any assets in your folder that are not currently attached to this
   JIRA issue.

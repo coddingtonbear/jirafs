@@ -112,7 +112,10 @@ class TicketFolder(object):
         ))
 
         instance = cls(path, jira)
-        instance.log('Ticket folder created')
+        instance.log(
+            'Ticket folder for issue %s created at %s',
+            (instance.ticket_number, instance.path, )
+        )
         return instance
 
     @classmethod
