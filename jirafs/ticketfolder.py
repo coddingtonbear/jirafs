@@ -155,7 +155,7 @@ class TicketFolder(object):
             for line in input_file.readlines():
                 if line.startswith('#') or not line.strip():
                     continue
-                globs.append(line)
+                globs.append(line.strip())
             return globs
 
         try:
