@@ -6,3 +6,4 @@ dist/*
 include/*
 .Python
 *egg*
+share/*
