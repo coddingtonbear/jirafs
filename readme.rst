@@ -43,7 +43,7 @@ text files and copies of all assets currently attached to the issue in JIRA.
 
 The following text files are created:
 
-* ``details.jira.rst``:  This file will show all currently-set field values
+* ``fields.jira.rst``:  This file will show all currently-set field values
   for this JIRA issue.  You *can* change field values here by editing the
   field values displayed here, but this functionality has only been tested
   for fields storing text data.
@@ -53,7 +53,7 @@ The following text files are created:
   would like to add a new comment, simply enter some text into this field.
 
 In order to update any of the above data or upload an asset, either
-make the change to a field in ``details.jira.rst``, write a comment into
+make the change to a field in ``fields.jira.rst``, write a comment into
 ``new_comment.jira.rst``, or copy a new asset into this folder, then run::
 
     jirafs sync
@@ -65,7 +65,7 @@ will do the following things:
   JIRA issue.
 * Download any assets that are currently attached to this JIRA issue, but are
   not stored locally.
-* Update the JIRA issue to reflect any changes to ``details.jira.rst`` that
+* Update the JIRA issue to reflect any changes to ``fields.jira.rst`` that
   you have made.
 * If you entered text into the ``new_comment.jira.rst`` file it will post
   a new comment to the JIRA issue using the text you entered.
@@ -122,6 +122,12 @@ Commands
    In the latter case, the command will be ran for every subordinate
    issue folder.
 
+``clone MYISSUE-1024``
+~~~~~~~~~~~~~~~~~~~~
+
+Create a new issue folder for ``MYISSUE-1024`` (replace ``MYISSUE-1024`` with
+an actual JIRA issue number), and download any assets attached to said issue.
+
 ``sync`` *
 ~~~~~~~~~~
 
@@ -161,11 +167,19 @@ already been storing issue-specific files on your filesystem.
 From within an issue folder, will report any changes that would take place
 were you to run ``jirafs sync``.
 
-``clone MYISSUE-1024``
-~~~~~~~~~~~~~~~~~~~~
+``log``
+~~~~~~~
 
-Create a new issue folder for ``MYISSUE-1024`` (replace ``MYISSUE-1024`` with
-an actual JIRA issue number), and download any assets attached to said issue.
+From within an issue folder, will print out the log file recording actions
+jirafs has performed for this ticket folder.
+
+``git``
+~~~~~~~
+
+From within an issue folder, will provide direct access to this issue folder's
+internal git repository.  This interface is not intended for non-developer
+use; please make sure you know what you're doing before performing git
+operations directly.
 
 
 Interesting Details

@@ -67,6 +67,24 @@ def init(args, jira, path, **kwargs):
     TicketFolder.initialize_ticket_folder(path, jira)
 
 
+@command('Run a command in this issue\'s git repository')
+def git(args, jira, path, **kwargs):
+    parser = argparse.ArgumentParser()
+    _, extra = parser.parse_known_args(args)
+
+    folder = TicketFolder(path, jira)
+    print(folder.run_git_command(*extra))
+
+
+@command('Print the log for this issue')
+def log(args, jira, path, **kwargs):
+    parser = argparse.ArgumentParser()
+    parser.parse_known_args(args)
+
+    folder = TicketFolder(path, jira)
+    print(folder.get_log())
+
+
 @command('Get the status of the current folder', try_subfolders=True)
 def status(args, jira, path, **kwargs):
     human_readable = {

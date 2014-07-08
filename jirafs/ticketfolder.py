@@ -279,7 +279,7 @@ class TicketFolder(object):
                     raise ValueError(
                         "Syntax error on line %s" % idx
                     )
-            elif (state == PREAMBLE or state == VALUE) and line:
+            elif (state == PREAMBLE or state == VALUE):
                 state = VALUE
                 value = value + '\n' + line[4:]  # Remove first indentation
         if value:
@@ -361,8 +361,9 @@ class TicketFolder(object):
         except IOError:
             return ''
 
-    def pull(self):
-        status = self.status()
+    def pull(self, status=None):
+        if status is None:
+            status = self.status()
 
         file_meta = self.get_remote_file_metadata()
 
@@ -416,8 +417,9 @@ class TicketFolder(object):
             'commit', '-m', 'Pulled remote changes', failure_ok=True
         )
 
-    def push(self):
-        status = self.status()
+    def push(self, status=None):
+        if status is None:
+            status = self.status()
 
         file_meta = self.get_remote_file_metadata()
 
@@ -465,8 +467,9 @@ class TicketFolder(object):
         )
 
     def sync(self):
-        self.push()
-        self.pull()
+        status = self.status()
+        self.push(status=status)
+        self.pull(status=status)
 
     def status(self):
         locally_changed = self.get_locally_changed()
@@ -502,3 +505,7 @@ class TicketFolder(object):
                     message % args
                 )
             )
+
+    def get_log(self):
+        with open(self.log_path, 'r') as log_file:
+            return log_file.read()

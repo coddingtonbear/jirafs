@@ -1,5 +1,5 @@
 # Metadata filenames
-TICKET_DETAILS = 'details.jira.rst'
+TICKET_DETAILS = 'fields.jira.rst'
 TICKET_COMMENTS = 'comments.read_only.jira.rst'
 TICKET_NEW_COMMENT = 'new_comment.jira.rst'
 
