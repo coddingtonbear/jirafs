@@ -58,6 +58,12 @@ class TicketFolder(object):
             constants.METADATA_DIR,
         )
 
+    @property
+    def git_head(self):
+        return self.run_git_command(
+            'rev-parse', 'HEAD'
+        )
+
     def get_metadata_path(self, filename):
         return os.path.join(
             self.metadata_dir,
@@ -163,6 +169,15 @@ class TicketFolder(object):
             if not failure_ok:
                 raise
 
+    def get_local_file_at_revision(self, path, revision, failure_ok=True):
+        return self.run_git_command(
+            'show', '%s:%s' % (
+                revision,
+                path,
+            ),
+            failure_ok=failure_ok
+        )
+
     def get_ignore_globs(self, which=constants.IGNORE_FILE):
         all_globs = [
             constants.TICKET_DETAILS,
@@ -245,9 +260,12 @@ class TicketFolder(object):
     def get_field_data_from_string(self, string):
         """ Gets field data from an incoming string.
 
-        0 | FIELD_NAME::
-        1 |
-        2 |     VALUE
+        Parses through the string using the following RST-derived
+        pattern::
+
+            0 | FIELD_NAME::
+            1 |
+            2 |     VALUE
 
         """
         FIELD_DECLARED = 0
@@ -292,24 +310,44 @@ class TicketFolder(object):
             with open(
                 self.get_local_path(constants.TICKET_DETAILS), 'r'
             ) as current_status:
-                return self.get_field_data_from_string(current_status.read())
+                values = self.get_field_data_from_string(current_status.read())
+
+                for field in constants.FILE_FIELDS:
+                    file_field_path = self.get_local_path(
+                        constants.TICKET_FILE_FIELD_TEMPLATE
+                    ).format(field_name=field)
+                    if os.path.exists(file_field_path):
+                        with open(file_field_path, 'r') as file_field:
+                            values[field] = file_field.read()
+
+                return values
         except IOError:
             pass
 
         return {}
 
     def get_original_values(self):
-        head = self.run_git_command(
-            'rev-parse', 'HEAD'
+        values = self.get_field_data_from_string(
+            self.get_local_file_at_revision(
+                constants.TICKET_DETAILS,
+                self.git_head
+            )
         )
-        original_file = self.run_git_command(
-            'show', '%s:%s' % (
-                head,
-                constants.TICKET_DETAILS
-            ),
-            failure_ok=True
-        )
-        return self.get_field_data_from_string(original_file)
+        for field in constants.FILE_FIELDS:
+            file_field_path = (
+                constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field)
+            )
+            try:
+                values[field] = self.get_local_file_at_revision(
+                    file_field_path,
+                    self.git_head,
+                    failure_ok=False
+                )
+            except subprocess.CalledProcessError:
+                # This file did not exist in head
+                pass
+
+        return values
 
     def get_local_differing_fields(self):
         """ Get fields that differ between local and the last sync
@@ -387,16 +425,30 @@ class TicketFolder(object):
 
         with open(self.get_local_path(constants.TICKET_DETAILS), 'w') as dets:
             for field, value in sorted(six.iteritems(values)):
-                if value is None:
-                    continue
-                elif field in constants.NO_DETAIL_FIELDS:
-                    continue
-                elif not isinstance(value, six.string_types):
+                if not isinstance(value, six.string_types):
                     value = six.text_type(value)
-                dets.write('%s::\n\n' % field)
-                for line in value.replace('\r\n', '\n').split('\n'):
-                    dets.write('    %s\n' % line)
-                dets.write('\n')
+
+                if field in constants.FILE_FIELDS:
+                    # Write specific fields to their own files without
+                    # significant alteration
+
+                    file_field_path = self.get_local_path(
+                        constants.TICKET_FILE_FIELD_TEMPLATE
+                    ).format(field_name=field)
+                    with open(file_field_path, 'w') as file_field_file:
+                        file_field_file.write(value)
+                else:
+                    # Normal fields, though, just go into the standard
+                    # fields file.
+                    if value is None:
+                        continue
+                    elif field in constants.NO_DETAIL_FIELDS:
+                        continue
+
+                    dets.write('%s::\n\n' % field)
+                    for line in value.replace('\r\n', '\n').split('\n'):
+                        dets.write('    %s\n' % line)
+                    dets.write('\n')
 
         with open(self.get_local_path(constants.TICKET_COMMENTS), 'w') as comm:
             for comment in self.issue.fields.comment.comments:

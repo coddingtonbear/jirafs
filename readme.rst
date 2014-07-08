@@ -44,17 +44,22 @@ text files and copies of all assets currently attached to the issue in JIRA.
 The following text files are created:
 
 * ``fields.jira.rst``:  This file will show all currently-set field values
-  for this JIRA issue.  You *can* change field values here by editing the
+  for this JIRA issue (except fields written to their own files, including
+  description).  You *can* change field values here by editing the
   field values displayed here, but this functionality has only been tested
   for fields storing text data.
+* ``description.jira.rst``: This file will show the issue's current
+  description.  You *can* change the issue's description by editing
+  the contents of this file.
 * ``comments.read_only.jira.rst``: This file shows all comments currently
   posted to this issue.  Note that you cannot edit the comments in this file.
 * ``new_comment.jira.rst``: This file should be empty right now, but if you
   would like to add a new comment, simply enter some text into this field.
 
 In order to update any of the above data or upload an asset, either
-make the change to a field in ``fields.jira.rst``, write a comment into
-``new_comment.jira.rst``, or copy a new asset into this folder, then run::
+make the change to a field in ``fields.jira.rst``, the issue's description
+in ``description.jira.rst``, write a comment into ``new_comment.jira.rst``,
+or copy a new asset into this folder, then run::
 
     jirafs sync
 
@@ -171,7 +176,7 @@ were you to run ``jirafs sync``.
 ~~~~~~~
 
 From within an issue folder, will print out the log file recording actions
-jirafs has performed for this ticket folder.
+Jirafs has performed for this ticket folder.
 
 ``git``
 ~~~~~~~

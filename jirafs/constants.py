@@ -2,6 +2,7 @@
 TICKET_DETAILS = 'fields.jira.rst'
 TICKET_COMMENTS = 'comments.read_only.jira.rst'
 TICKET_NEW_COMMENT = 'new_comment.jira.rst'
+TICKET_FILE_FIELD_TEMPLATE = '{field_name}.jira.rst'
 
 # Generic settings
 IGNORE_FILE = '.jirafs_ignore'
@@ -13,8 +14,10 @@ GLOBAL_CONFIG = '.jirafs_config'
 # Config sections
 CONFIG_JIRA = 'jira'
 
-# No-detail Fields
 NO_DETAIL_FIELDS = [
     'comment',
     'watches',
+]
+FILE_FIELDS = [
+    'description',
 ]
