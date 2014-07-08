@@ -12,8 +12,8 @@ Getting Started
 Installing the library
 ~~~~~~~~~~~~~~~~~~~~~~
 
-I recommend installing the program using ``pip`` (while within a Python 3
-virtualenv);  you can install using ``pip`` by running::
+I recommend installing the program using ``pip`` while in a Python 3
+virtualenv;  you can install using ``pip`` by running::
 
     pip install jirafs
 
