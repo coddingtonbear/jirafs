@@ -174,7 +174,10 @@ def main():
                 pass
         if count_runs == 0:
             print(
-                "No subfolders of the current folder are issue folders."
+                "The command '%s' must be ran from within an issue folder "
+                "or from within a folder containing issue folders." % (
+                    command_name
+                )
             )
             sys.exit(1)
 
