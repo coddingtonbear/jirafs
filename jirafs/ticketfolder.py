@@ -122,7 +122,8 @@ class TicketFolder(object):
         folder = cls.initialize_ticket_folder(path, jira)
         return folder
 
-    def run_git_command(self, *args):
+    def run_git_command(self, *args, **kwargs):
+        failure_ok = kwargs.get('failure_ok', False)
         cmd = [
             'git',
             '--work-tree=%s' % self.path,
@@ -130,7 +131,15 @@ class TicketFolder(object):
         ]
         cmd.extend(args)
         self.log('Executing git command %s', cmd, logging.DEBUG)
-        return subprocess.check_call(cmd)
+        try:
+            return subprocess.check_call(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+        except subprocess.CalledProcessError:
+            if not failure_ok:
+                raise
 
     def get_ignore_globs(self, which=constants.IGNORE_FILE):
         all_globs = [
@@ -281,7 +290,7 @@ class TicketFolder(object):
                 comm.write('\n')
 
         self.run_git_command('add', '-A')
-        self.run_git_command('commit', '-m', 'Synchronized')
+        self.run_git_command('commit', '-m', 'Synchronized', failure_ok=True)
 
     def status(self):
         local_assets = set(self.get_local_assets())
