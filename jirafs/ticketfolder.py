@@ -23,7 +23,7 @@ class TicketFolder(object):
         self.path = os.path.realpath(
             os.path.expanduser(path)
         )
-        self.jira = jira
+        self.get_jira = jira
 
         if not os.path.isdir(self.metadata_dir):
             raise NotTicketFolderException(
@@ -34,16 +34,11 @@ class TicketFolder(object):
 
         self.ticket_number = self.infer_ticket_number()
 
-    def infer_ticket_number(self):
-        raw_number = self.path.split('/')[-1:][0].upper()
-        if not re.match('^\w+-\d+$', raw_number):
-            raise CannotInferTicketNumberFromFolderName(
-                "Cannot infer ticket number from folder %s. Please name "
-                "ticket folders after the ticket they represent." % (
-                    self.path,
-                )
-            )
-        return raw_number
+    @property
+    def jira(self):
+        if not hasattr(self, '_jira'):
+            self._jira = self.get_jira()
+        return self._jira
 
     @property
     def issue(self):
@@ -63,6 +58,17 @@ class TicketFolder(object):
         return self.run_git_command(
             'rev-parse', 'HEAD'
         )
+
+    def infer_ticket_number(self):
+        raw_number = self.path.split('/')[-1:][0].upper()
+        if not re.match('^\w+-\d+$', raw_number):
+            raise CannotInferTicketNumberFromFolderName(
+                "Cannot infer ticket number from folder %s. Please name "
+                "ticket folders after the ticket they represent." % (
+                    self.path,
+                )
+            )
+        return raw_number
 
     def get_metadata_path(self, filename):
         return os.path.join(

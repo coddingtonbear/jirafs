@@ -103,3 +103,7 @@ def get_jira():
         config.write(global_config)
 
     return jira
+
+
+def lazy_get_jira():
+    return lambda: get_jira()

@@ -10,7 +10,7 @@ import six
 
 from .exceptions import NotTicketFolderException
 from .ticketfolder import TicketFolder
-from .utils import get_jira
+from .utils import lazy_get_jira
 
 
 logger = logging.getLogger(__name__)
@@ -189,7 +189,7 @@ def main():
         command_name,
         extra
     )
-    jira = get_jira()
+    jira = lazy_get_jira()
     try:
         fn(extra, jira=jira, path=os.getcwd())
     except NotTicketFolderException:
