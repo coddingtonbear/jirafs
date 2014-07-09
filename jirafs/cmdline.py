@@ -107,9 +107,17 @@ def status(args, jira, path, **kwargs):
     if args.format == 'json':
         print(json.dumps(folder.status()))
     else:
+        print(
+            "# On ticket {ticket} ({url})".format(
+                ticket=folder.ticket_number,
+                url=folder.issue.permalink(),
+            )
+        )
+        printed_changes = False
         for k, v in folder.status().items():
             human_heading = human_readable.get(k, k)  # Default to key name
             if v:
+                printed_changes = True
                 if isinstance(v, six.string_types):
                     if not v:
                         continue
@@ -118,6 +126,8 @@ def status(args, jira, path, **kwargs):
                 for item in v:
                     print('\t{item}'.format(item=item))
                 print('')
+        if not printed_changes:
+            print('No changes found')
 
 
 @command(
