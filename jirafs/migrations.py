@@ -20,6 +20,7 @@ def migration_0002(repo):
         )
     ))
     repo.run_git_command('checkout', '-b', 'jira', shadow=True)
+    repo.run_git_command('commit', '--allow-empty', '-m', 'Shadow Created')
     repo.run_git_command('push', 'origin', 'jira', shadow=True)
     set_repo_version(repo, 2)
 
@@ -47,7 +48,11 @@ def migration_0004(repo):
     """ Moves remote_files.json into version control. """
     local_remote_files_path = repo.get_metadata_path('remote_files.json')
     jira_remote_files_path = repo.get_shadow_path('.jirafs/remote_files.json')
-    os.rename(local_remote_files_path, jira_remote_files_path)
+    try:
+        os.rename(local_remote_files_path, jira_remote_files_path)
+    except IOError:
+        with open(jira_remote_files_path, 'w') as out:
+            out.write('{}')
 
     repo.run_git_command('add', '-f', jira_remote_files_path, shadow=True)
     repo.run_git_command(

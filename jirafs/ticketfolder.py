@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class TicketFolder(object):
-    def __init__(self, path, jira):
+    def __init__(self, path, jira, migrate=True):
         self.path = os.path.realpath(
             os.path.expanduser(path)
         )
@@ -35,7 +35,8 @@ class TicketFolder(object):
             )
 
         self.ticket_number = self.infer_ticket_number()
-        self.run_migrations()
+        if migrate:
+            self.run_migrations()
 
         # If no `new_comment.jira.txt` file exists, let's create one
         comment_path = self.get_local_path(constants.TICKET_NEW_COMMENT)
@@ -190,7 +191,7 @@ class TicketFolder(object):
             excludes_path
         ))
 
-        instance = cls(path, jira)
+        instance = cls(path, jira, migrate=False)
         instance.log(
             'Ticket folder for issue %s created at %s',
             (instance.ticket_number, instance.path, )
@@ -529,7 +530,7 @@ class TicketFolder(object):
         self.run_git_command('push', 'origin', 'jira', shadow=True)
 
     def merge(self):
-        self.run_git_command('stash', '--include-untracked')
+        self.run_git_command('stash', '--include-untracked', failure_ok=True)
         self.run_git_command('merge', 'jira')
         self.run_git_command('stash', 'pop', failure_ok=True)
 
