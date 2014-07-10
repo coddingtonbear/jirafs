@@ -576,6 +576,16 @@ class TicketFolder(object):
             )
             self.issue.update(**collected_updates)
 
+        # Commit changes to remote copy, too, so we record remote
+        # file metadata.
+        self.run_git_command('add', '-A', shadow=True)
+        self.run_git_command(
+            'commit', '-m', 'Pulled remote changes',
+            failure_ok=True, shadow=True
+        )
+        self.run_git_command('push', 'origin', 'jira', shadow=True)
+
+        # Commit local copy
         self.run_git_command('add', '-A', failure_ok=True)
         self.run_git_command(
             'commit', '-m', 'Pushed local changes', failure_ok=True
