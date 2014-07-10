@@ -128,7 +128,7 @@ def status(args, jira, path, **kwargs):
         print(
             "# On ticket {ticket} ({url})".format(
                 ticket=folder.ticket_number,
-                url=folder.issue.permalink(),
+                url=folder.cached_issue.permalink(),
             )
         )
         printed_changes = False
@@ -173,7 +173,7 @@ def open(args, jira, path, **kwargs):
 
     folder = TicketFolder(path, jira)
 
-    webbrowser.open(folder.issue.permalink())
+    webbrowser.open(folder.cached_issue.permalink())
 
 
 @command('Show local issue changes')

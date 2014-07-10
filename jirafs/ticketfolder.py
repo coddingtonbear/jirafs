@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 
+from jira.resources import Issue
 import six
 
 from . import constants
@@ -53,6 +54,34 @@ class TicketFolder(object):
         if not hasattr(self, '_issue'):
             self._issue = self.jira.issue(self.ticket_number)
         return self._issue
+
+    def store_cached_issue(self):
+        storable = {
+            'options': self.issue._options,
+            'raw': self.issue.raw
+        }
+        with open(self.get_metadata_path('issue.json'), 'w') as out:
+            out.write(json.dumps(storable))
+
+    @property
+    def cached_issue(self):
+        if not hasattr(self, '_cached_issue'):
+            try:
+                issue_path = self.get_metadata_path('issue.json')
+                with open(issue_path, 'r') as _in:
+                    storable = json.loads(_in.read())
+                    self._cached_issue = Issue(
+                        storable['options'],
+                        None,
+                        storable['raw'],
+                    )
+            except IOError:
+                self.log(
+                    'Error encountered while loading cached issue!',
+                    level=logging.ERROR,
+                )
+                self._cached_issue = self.issue
+        return self._cached_issue
 
     @property
     def metadata_dir(self):
@@ -201,7 +230,7 @@ class TicketFolder(object):
         ]
         cmd.extend(args)
 
-        self.log('Executing git command %s', cmd, logging.DEBUG)
+        self.log('Executing git command %s', (cmd, ), logging.DEBUG)
         try:
             return subprocess.check_output(
                 cmd,
@@ -490,6 +519,8 @@ class TicketFolder(object):
                     comm.write('    %s\n' % line)
                 comm.write('\n')
 
+        self.store_cached_issue()
+
         self.run_git_command('add', '-A', shadow=True)
         self.run_git_command(
             'commit', '-m', 'Pulled remote changes',
@@ -570,11 +601,9 @@ class TicketFolder(object):
 
     def status(self):
         locally_changed = self.get_locally_changed()
-        remotely_changed = self.get_remotely_changed()
 
         status = {
             'to_upload': locally_changed,
-            'to_download': remotely_changed,
             'local_differs': self.get_local_differing_fields(),
             'new_comment': self.get_new_comment()
         }

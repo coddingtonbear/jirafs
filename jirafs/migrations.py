@@ -1,4 +1,3 @@
-import json
 import os
 import subprocess
 
@@ -27,10 +26,9 @@ def migration_0002(repo):
 def migration_0003(repo):
     """ Creates a shadow copy of the issue. """
     os.mkdir(repo.get_shadow_path('.jirafs'))
-    issue_json = repo.get_shadow_path('.jirafs/issue.json')
-    with open(issue_json, 'w') as out:
-        out.write(json.dumps(repo.issue.raw))
-    repo.run_git_command('add', '-f', issue_json, shadow=True)
+    repo.store_cached_issue()
+    issue_pickle_path = repo.get_shadow_path('.jirafs/issue.json')
+    repo.run_git_command('add', '-f', issue_pickle_path, shadow=True)
     repo.run_git_command(
         'commit', '-m', 'Completing migration_0003', shadow=True
     )
