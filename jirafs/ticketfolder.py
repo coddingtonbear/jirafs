@@ -1,7 +1,6 @@
 import datetime
 import fnmatch
 import json
-import importlib
 import logging
 import os
 import re
@@ -54,13 +53,6 @@ class TicketFolder(object):
         if not hasattr(self, '_issue'):
             self._issue = self.jira.issue(self.ticket_number)
         return self._issue
-
-    @property
-    def live_issue(self):
-        if not hasattr(self, '_live_issue'):
-            self._live_issue = self.jira.issue(self.ticket_number)
-        return self._live_issue
-
 
     @property
     def metadata_dir(self):
@@ -302,7 +294,7 @@ class TicketFolder(object):
         metadata = self.get_remote_file_metadata()
 
         assets = []
-        for attachment in self.live_issue.fields.attachment:
+        for attachment in self.issue.fields.attachment:
             matches_globs = (
                 self.file_matches_globs(attachment.filename, ignore_globs)
             )
@@ -422,26 +414,6 @@ class TicketFolder(object):
 
         return differing
 
-    def get_remote_differing_fields(self):
-        original_values = self.get_original_values()
-
-        differing = {}
-        for k in self.issue.raw['fields'].keys():
-            v = getattr(self.issue.fields, k)
-            if isinstance(v, six.string_types):
-                v = v.replace('\r\n', '\n').strip()
-            elif v is None:
-                v = ''
-            elif k in constants.NO_DETAIL_FIELDS:
-                continue
-            if original_values.get(k, '') != six.text_type(v).strip():
-                differing[k] = (
-                    original_values.get(k, ''),
-                    six.text_type(v).strip()
-                )
-
-        return differing
-
     def get_new_comment(self, clear=False):
         try:
             with open(
@@ -460,7 +432,7 @@ class TicketFolder(object):
         file_meta = self.get_remote_file_metadata()
 
         for filename in self.get_remotely_changed():
-            for attachment in self.live_issue.fields.attachment:
+            for attachment in self.issue.fields.attachment:
                 if attachment.filename == filename:
                     shadow_filename = self.get_shadow_path(filename)
                     with open(shadow_filename, 'wb') as download:
@@ -474,8 +446,8 @@ class TicketFolder(object):
         self.set_remote_file_metadata(file_meta)
 
         with open(self.get_shadow_path(constants.TICKET_DETAILS), 'w') as dets:
-            for field in sorted(self.live_issue.raw['fields'].keys()):
-                value = getattr(self.live_issue.fields, field)
+            for field in sorted(self.issue.raw['fields'].keys()):
+                value = getattr(self.issue.fields, field)
                 if isinstance(value, six.string_types):
                     value = value.replace('\r\n', '\n').strip()
                 elif value is None:
@@ -511,7 +483,7 @@ class TicketFolder(object):
 
         comments_filename = self.get_shadow_path(constants.TICKET_COMMENTS)
         with open(comments_filename, 'w') as comm:
-            for comment in self.live_issue.fields.comment.comments:
+            for comment in self.issue.fields.comment.comments:
                 comm.write('%s: %s::\n\n' % (comment.created, comment.author))
                 lines = comment.body.replace('\r\n', '\n').split('\n')
                 for line in lines:
