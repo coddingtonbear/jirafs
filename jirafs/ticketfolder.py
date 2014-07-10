@@ -555,8 +555,6 @@ class TicketFolder(object):
                 )
                 file_meta[filename] = attachment.created
 
-        self.set_remote_file_metadata(file_meta)
-
         comment = self.get_new_comment(clear=True)
         if comment:
             self.log('Adding comment "%s"' % comment)
@@ -576,20 +574,23 @@ class TicketFolder(object):
             )
             self.issue.update(**collected_updates)
 
+        # Commit local copy
+        self.run_git_command('add', '-A', failure_ok=True)
+        self.run_git_command(
+            'commit', '-m', 'Pushed local changes', failure_ok=True
+        )
+
         # Commit changes to remote copy, too, so we record remote
         # file metadata.
+        self.run_git_command('fetch', shadow=True)
+        self.run_git_command('merge', 'master')
+        self.set_remote_file_metadata(file_meta)
         self.run_git_command('add', '-A', shadow=True)
         self.run_git_command(
             'commit', '-m', 'Pulled remote changes',
             failure_ok=True, shadow=True
         )
         self.run_git_command('push', 'origin', 'jira', shadow=True)
-
-        # Commit local copy
-        self.run_git_command('add', '-A', failure_ok=True)
-        self.run_git_command(
-            'commit', '-m', 'Pushed local changes', failure_ok=True
-        )
 
     def sync(self):
         self.pull()
