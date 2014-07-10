@@ -21,3 +21,5 @@ NO_DETAIL_FIELDS = [
 FILE_FIELDS = [
     'description',
 ]
+
+CURRENT_REPO_VERSION = 3

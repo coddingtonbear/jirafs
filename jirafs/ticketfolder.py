@@ -1,6 +1,7 @@
 import datetime
 import fnmatch
 import json
+import importlib
 import logging
 import os
 import re
@@ -9,6 +10,7 @@ import subprocess
 import six
 
 from . import constants
+from . import migrations
 from .exceptions import (
     CannotInferTicketNumberFromFolderName,
     NotTicketFolderException
@@ -33,6 +35,7 @@ class TicketFolder(object):
             )
 
         self.ticket_number = self.infer_ticket_number()
+        self.run_migrations()
 
     @property
     def jira(self):
@@ -54,9 +57,9 @@ class TicketFolder(object):
         )
 
     @property
-    def git_head(self):
+    def git_merge_base(self):
         return self.run_git_command(
-            'rev-parse', 'HEAD'
+            'merge-base', 'master', 'jira',
         )
 
     def infer_ticket_number(self):
@@ -94,6 +97,20 @@ class TicketFolder(object):
             self.path,
             filename
         )
+
+    def get_shadow_path(self, filename):
+        return os.path.join(
+            self.get_metadata_path('shadow'),
+            filename,
+        )
+
+    @property
+    def version(self):
+        try:
+            with open(self.get_metadata_path('version'), 'r') as _in:
+                return int(_in.read().strip())
+        except IOError:
+            return 1
 
     @property
     def log_path(self):
@@ -146,6 +163,8 @@ class TicketFolder(object):
             'commit', '--allow-empty', '-m', 'Initialized'
         )
         comment_path = instance.get_local_path(constants.TICKET_NEW_COMMENT)
+        instance.run_migrations(silent=True)
+
         with open(comment_path, 'w') as out:
             out.write('')
         return instance
@@ -159,12 +178,22 @@ class TicketFolder(object):
 
     def run_git_command(self, *args, **kwargs):
         failure_ok = kwargs.get('failure_ok', False)
+        shadow = kwargs.get('shadow', False)
+
+        if not shadow:
+            work_tree = self.path,
+            git_dir = self.get_metadata_path('git')
+        else:
+            work_tree = self.get_metadata_path('shadow')
+            git_dir = self.get_metadata_path('shadow/.git')
+
         cmd = [
             'git',
-            '--work-tree=%s' % self.path,
-            '--git-dir=%s' % self.get_metadata_path('git'),
+            '--work-tree=%s' % work_tree,
+            '--git-dir=%s' % git_dir,
         ]
         cmd.extend(args)
+
         self.log('Executing git command %s', cmd, logging.DEBUG)
         try:
             return subprocess.check_output(
@@ -340,7 +369,7 @@ class TicketFolder(object):
         values = self.get_field_data_from_string(
             self.get_local_file_at_revision(
                 constants.TICKET_DETAILS,
-                self.git_head
+                self.git_merge_base,
             )
         )
         for field in constants.FILE_FIELDS:
@@ -350,7 +379,7 @@ class TicketFolder(object):
             try:
                 values[field] = self.get_local_file_at_revision(
                     file_field_path,
-                    self.git_head,
+                    self.git_merge_base,
                     failure_ok=False
                 ).strip()
             except subprocess.CalledProcessError:
@@ -549,6 +578,22 @@ class TicketFolder(object):
         }
 
         return status
+
+    def run_migrations(self, silent=False):
+        loglevel = logging.INFO
+        if silent:
+            loglevel = logging.DEBUG
+        while self.version < constants.CURRENT_REPO_VERSION:
+            migrator = getattr(
+                migrations,
+                'migration_%s' % str(self.version + 1).zfill(4)
+            )
+            self.migrate(migrator, loglevel=loglevel)
+
+    def migrate(self, migrator, loglevel=logging.INFO):
+        self.log('Beginning migration %s', (migrator.__name__, ), loglevel)
+        migrator(self)
+        self.log('Migration %s finished', (migrator.__name__, ), loglevel)
 
     def log(self, message, args=None, level=logging.INFO):
         if args is None:
