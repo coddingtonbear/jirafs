@@ -622,9 +622,9 @@ class TicketFolder(object):
             self.migrate(migrator, loglevel=loglevel)
 
     def migrate(self, migrator, loglevel=logging.INFO):
-        self.log('Beginning migration %s', (migrator.__name__, ), loglevel)
+        self.log('%s: Migration started', (migrator.__name__, ), loglevel)
         migrator(self)
-        self.log('Migration %s finished', (migrator.__name__, ), loglevel)
+        self.log('%s: Migration finished', (migrator.__name__, ), loglevel)
 
     def log(self, message, args=None, level=logging.INFO):
         if args is None:
