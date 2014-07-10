@@ -22,4 +22,4 @@ FILE_FIELDS = [
     'description',
 ]
 
-CURRENT_REPO_VERSION = 3
+CURRENT_REPO_VERSION = 4

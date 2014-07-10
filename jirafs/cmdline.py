@@ -41,6 +41,24 @@ def sync(args, jira, path, **kwargs):
     folder.sync()
 
 
+@command('Fetch remote changes', try_subfolders=True)
+def fetch(args, jira, path, **kwargs):
+    parser = argparse.ArgumentParser()
+    parser.parse_args(args)
+
+    folder = TicketFolder(path, jira)
+    folder.fetch()
+
+
+@command('Merge remote changes into your local copy', try_subfolders=True)
+def merge(args, jira, path, **kwargs):
+    parser = argparse.ArgumentParser()
+    parser.parse_args(args)
+
+    folder = TicketFolder(path, jira)
+    folder.merge()
+
+
 @command('Fetch and apply remote changes locally', try_subfolders=True)
 def pull(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()

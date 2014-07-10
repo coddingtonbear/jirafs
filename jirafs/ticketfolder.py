@@ -37,6 +37,12 @@ class TicketFolder(object):
         self.ticket_number = self.infer_ticket_number()
         self.run_migrations()
 
+        # If no `new_comment.jira.txt` file exists, let's create one
+        comment_path = self.get_local_path(constants.TICKET_NEW_COMMENT)
+        if not os.path.exists(comment_path):
+            with open(comment_path, 'w') as out:
+                out.write('')
+
     @property
     def jira(self):
         if not hasattr(self, '_jira'):
@@ -48,6 +54,13 @@ class TicketFolder(object):
         if not hasattr(self, '_issue'):
             self._issue = self.jira.issue(self.ticket_number)
         return self._issue
+
+    @property
+    def live_issue(self):
+        if not hasattr(self, '_live_issue'):
+            self._live_issue = self.jira.issue(self.ticket_number)
+        return self._live_issue
+
 
     @property
     def metadata_dir(self):
@@ -80,14 +93,16 @@ class TicketFolder(object):
         )
 
     def get_remote_file_metadata(self):
+        remote_files = self.get_shadow_path('.jirafs/remote_files.json')
         try:
-            with open(self.get_metadata_path('remote_files.json'), 'r') as _in:
+            with open(remote_files, 'r') as _in:
                 return json.loads(_in.read())
         except IOError:
             return {}
 
     def set_remote_file_metadata(self, data):
-        with open(self.get_metadata_path('remote_files.json'), 'w') as out:
+        remote_files = self.get_shadow_path('.jirafs/remote_files.json')
+        with open(remote_files, 'w') as out:
             out.write(
                 json.dumps(data)
             )
@@ -287,7 +302,7 @@ class TicketFolder(object):
         metadata = self.get_remote_file_metadata()
 
         assets = []
-        for attachment in self.issue.fields.attachment:
+        for attachment in self.live_issue.fields.attachment:
             matches_globs = (
                 self.file_matches_globs(attachment.filename, ignore_globs)
             )
@@ -441,16 +456,14 @@ class TicketFolder(object):
         except IOError:
             return ''
 
-    def pull(self, status=None):
-        if status is None:
-            status = self.status()
-
+    def fetch(self):
         file_meta = self.get_remote_file_metadata()
 
-        for filename in status['to_download']:
-            for attachment in self.issue.fields.attachment:
+        for filename in self.get_remotely_changed():
+            for attachment in self.live_issue.fields.attachment:
                 if attachment.filename == filename:
-                    with open(self.get_local_path(filename), 'wb') as download:
+                    shadow_filename = self.get_shadow_path(filename)
+                    with open(shadow_filename, 'wb') as download:
                         self.log(
                             'Download file "%s"',
                             (attachment.filename, ),
@@ -460,61 +473,69 @@ class TicketFolder(object):
 
         self.set_remote_file_metadata(file_meta)
 
-        values = self.get_original_values()
+        with open(self.get_shadow_path(constants.TICKET_DETAILS), 'w') as dets:
+            for field in sorted(self.live_issue.raw['fields'].keys()):
+                value = getattr(self.live_issue.fields, field)
+                if isinstance(value, six.string_types):
+                    value = value.replace('\r\n', '\n').strip()
+                elif value is None:
+                    value = ''
+                elif field in constants.NO_DETAIL_FIELDS:
+                    continue
 
-        for field, diff_values in status['remote_differs'].items():
-            values[field] = diff_values[1]
-
-        with open(self.get_local_path(constants.TICKET_DETAILS), 'w') as dets:
-            for field, value in sorted(six.iteritems(values)):
                 if not isinstance(value, six.string_types):
                     value = six.text_type(value)
 
-                if field in constants.FILE_FIELDS:
-                    # Write specific fields to their own files without
-                    # significant alteration
+                    if field in constants.FILE_FIELDS:
+                        # Write specific fields to their own files without
+                        # significant alteration
 
-                    file_field_path = self.get_local_path(
-                        constants.TICKET_FILE_FIELD_TEMPLATE
-                    ).format(field_name=field)
-                    with open(file_field_path, 'w') as file_field_file:
-                        file_field_file.write(value)
-                        file_field_file.write('\n')  # For unix' sake
-                else:
-                    # Normal fields, though, just go into the standard
-                    # fields file.
-                    if value is None:
-                        continue
-                    elif field in constants.NO_DETAIL_FIELDS:
-                        continue
+                        file_field_path = self.get_shadow_path(
+                            constants.TICKET_FILE_FIELD_TEMPLATE
+                        ).format(field_name=field)
+                        with open(file_field_path, 'w') as file_field_file:
+                            file_field_file.write(value)
+                            file_field_file.write('\n')  # For unix' sake
+                    else:
+                        # Normal fields, though, just go into the standard
+                        # fields file.
+                        if value is None:
+                            continue
+                        elif field in constants.NO_DETAIL_FIELDS:
+                            continue
 
-                    dets.write('%s::\n\n' % field)
-                    for line in value.replace('\r\n', '\n').split('\n'):
-                        dets.write('    %s\n' % line)
-                    dets.write('\n')
+                        dets.write('%s::\n\n' % field)
+                        for line in value.replace('\r\n', '\n').split('\n'):
+                            dets.write('    %s\n' % line)
+                        dets.write('\n')
 
-        with open(self.get_local_path(constants.TICKET_COMMENTS), 'w') as comm:
-            for comment in self.issue.fields.comment.comments:
+        comments_filename = self.get_shadow_path(constants.TICKET_COMMENTS)
+        with open(comments_filename, 'w') as comm:
+            for comment in self.live_issue.fields.comment.comments:
                 comm.write('%s: %s::\n\n' % (comment.created, comment.author))
                 lines = comment.body.replace('\r\n', '\n').split('\n')
                 for line in lines:
                     comm.write('    %s\n' % line)
                 comm.write('\n')
 
-        # If no `new_comment.jira.txt` file exists, let's create one
-        comment_path = self.get_local_path(constants.TICKET_NEW_COMMENT)
-        if not os.path.exists(comment_path):
-            with open(comment_path, 'w') as out:
-                out.write('')
-
-        self.run_git_command('add', '-A')
+        self.run_git_command('add', '-A', shadow=True)
         self.run_git_command(
-            'commit', '-m', 'Pulled remote changes', failure_ok=True
+            'commit', '-m', 'Pulled remote changes',
+            failure_ok=True, shadow=True
         )
+        self.run_git_command('push', 'origin', 'jira', shadow=True)
 
-    def push(self, status=None):
-        if status is None:
-            status = self.status()
+    def merge(self):
+        self.run_git_command('stash', '--include-untracked')
+        self.run_git_command('merge', 'jira')
+        self.run_git_command('stash', 'pop', failure_ok=True)
+
+    def pull(self):
+        self.fetch()
+        self.merge()
+
+    def push(self):
+        status = self.status()
 
         file_meta = self.get_remote_file_metadata()
 
@@ -561,9 +582,8 @@ class TicketFolder(object):
         )
 
     def sync(self):
-        status = self.status()
-        self.push(status=status)
-        self.pull(status=status)
+        self.pull()
+        self.push()
 
     def status(self):
         locally_changed = self.get_locally_changed()
@@ -573,7 +593,6 @@ class TicketFolder(object):
             'to_upload': locally_changed,
             'to_download': remotely_changed,
             'local_differs': self.get_local_differing_fields(),
-            'remote_differs': self.get_remote_differing_fields(),
             'new_comment': self.get_new_comment()
         }
 

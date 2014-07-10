@@ -37,3 +37,18 @@ def migration_0003(repo):
     repo.run_git_command('push', 'origin', 'jira', shadow=True)
     repo.run_git_command('merge', 'jira')
     set_repo_version(repo, 3)
+
+
+def migration_0004(repo):
+    """ Moves remote_files.json into version control. """
+    local_remote_files_path = repo.get_metadata_path('remote_files.json')
+    jira_remote_files_path = repo.get_shadow_path('.jirafs/remote_files.json')
+    os.rename(local_remote_files_path, jira_remote_files_path)
+
+    repo.run_git_command('add', '-f', jira_remote_files_path, shadow=True)
+    repo.run_git_command(
+        'commit', '-m', 'Completing migration_0004', shadow=True
+    )
+    repo.run_git_command('push', 'origin', 'jira', shadow=True)
+    repo.run_git_command('merge', 'jira')
+    set_repo_version(repo, 4)
