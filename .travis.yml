@@ -6,4 +6,6 @@ before_install:
   - pip install -r requirements.txt
   - pip install pytest mock pretend freezegun
   - pip install -e .
+  - git config --global user.email "gitbot@adamcoddington.net"
+  - git config --global user.name "I'm a Robot"
 script: py.test
