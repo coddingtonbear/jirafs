@@ -17,6 +17,7 @@ CONFIG_JIRA = 'jira'
 NO_DETAIL_FIELDS = [
     'comment',
     'watches',
+    'attachment'
 ]
 FILE_FIELDS = [
     'description',
