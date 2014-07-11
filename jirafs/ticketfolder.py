@@ -212,6 +212,7 @@ class TicketFolder(object):
         path = os.path.realpath(path)
         os.mkdir(path)
         folder = cls.initialize_ticket_folder(path, jira)
+        folder.sync()
         return folder
 
     def run_git_command(self, *args, **kwargs):

@@ -34,7 +34,7 @@ class BaseTestCase(TestCase):
         )
 
 
-class TestTicketFolderClone(BaseTestCase):
+class TestTicketFolder(BaseTestCase):
     def setUp(self):
         self.arbitrary_ticket_number = 'ALPHA-123'
         self.root_folder = tempfile.mkdtemp()
@@ -42,19 +42,19 @@ class TestTicketFolderClone(BaseTestCase):
         self.mock_jira.issue.return_value = self.rehydrate_issue('basic.json')
         self.mock_get_jira = lambda: self.mock_jira
 
-    @patch('jirafs.ticketfolder.TicketFolder.get_remotely_changed')
-    def test_clone_issue(self, get_remotely_changed):
-        issue = TicketFolder.clone(
-            os.path.join(
-                self.root_folder,
-                self.arbitrary_ticket_number
-            ),
-            jira=self.mock_get_jira
-        )
+        with patch(
+            'jirafs.ticketfolder.TicketFolder.get_remotely_changed'
+        ) as get_remotely_changed:
+            get_remotely_changed.return_value = []
+            self.ticketfolder = TicketFolder.clone(
+                os.path.join(
+                    self.root_folder,
+                    self.arbitrary_ticket_number,
+                ),
+                jira=self.mock_get_jira
+            )
 
-        get_remotely_changed.return_value = []
-        issue.sync()
-
+    def test_cloned_issue_successfully(self):
         paths = [
             'comments.read_only.jira.rst',
             'fields.jira.rst',
@@ -69,10 +69,22 @@ class TestTicketFolderClone(BaseTestCase):
         for path in paths:
             self.assertTrue(
                 os.path.isfile(
-                    issue.get_local_path(path)
+                    self.ticketfolder.get_local_path(path)
                 ),
                 '%s does not exist' % path
             )
+
+    def test_get_local_fields(self):
+        actual_result = self.ticketfolder.get_local_fields()
+
+        expected_result = json.loads(
+            self.get_asset_contents('basic_status.json', 'r')
+        )
+
+        self.assertEquals(
+            actual_result,
+            expected_result
+        )
 
     def tearDown(self):
         shutil.rmtree(self.root_folder)

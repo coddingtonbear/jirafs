@@ -162,8 +162,7 @@ def clone(args, jira, path, **kwargs):
     args = parser.parse_args(args)
     ticket_number = args.ticket[0].upper()
 
-    folder = TicketFolder.clone(ticket_number, jira)
-    folder.sync()
+    TicketFolder.clone(ticket_number, jira)
 
 
 @command('Open this ticket in JIRA', try_subfolders=True)
