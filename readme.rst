@@ -1,6 +1,15 @@
 Jirafs
 ======
 
+.. image:: https://travis-ci.org/coddingtonbear/jirafs.svg?branch=master
+    :target: https://travis-ci.org/coddingtonbear/jirafs
+
+.. image:: https://badge.fury.io/py/jirafs.png
+    :target: http://badge.fury.io/py/jirafs
+
+.. image:: https://pypip.in/d/jirafs/badge.png
+    :target: https://pypi.python.org/pypi/jirafs
+
 Pronounced like 'giraffes', but totally unrelated to wildlife, this
 library lets you stay out of JIRA as much as possible by letting
 you edit your JIRA issues as text files using an interface
