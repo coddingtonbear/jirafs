@@ -7,3 +7,4 @@ include/*
 .Python
 *egg*
 share/*
+.tox/*

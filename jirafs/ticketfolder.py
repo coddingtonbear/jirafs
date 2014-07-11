@@ -199,15 +199,16 @@ class TicketFolder(object):
         instance.run_git_command(
             'commit', '--allow-empty', '-m', 'Initialized'
         )
-        comment_path = instance.get_local_path(constants.TICKET_NEW_COMMENT)
         instance.run_migrations(silent=True)
 
+        comment_path = instance.get_local_path(constants.TICKET_NEW_COMMENT)
         with open(comment_path, 'w') as out:
             out.write('')
+
         return instance
 
     @classmethod
-    def create_ticket_folder(cls, path, jira):
+    def clone(cls, path, jira):
         path = os.path.realpath(path)
         os.mkdir(path)
         folder = cls.initialize_ticket_folder(path, jira)
@@ -488,28 +489,28 @@ class TicketFolder(object):
                 if not isinstance(value, six.string_types):
                     value = six.text_type(value)
 
-                    if field in constants.FILE_FIELDS:
-                        # Write specific fields to their own files without
-                        # significant alteration
+                if field in constants.FILE_FIELDS:
+                    # Write specific fields to their own files without
+                    # significant alteration
 
-                        file_field_path = self.get_shadow_path(
-                            constants.TICKET_FILE_FIELD_TEMPLATE
-                        ).format(field_name=field)
-                        with open(file_field_path, 'w') as file_field_file:
-                            file_field_file.write(value)
-                            file_field_file.write('\n')  # For unix' sake
-                    else:
-                        # Normal fields, though, just go into the standard
-                        # fields file.
-                        if value is None:
-                            continue
-                        elif field in constants.NO_DETAIL_FIELDS:
-                            continue
+                    file_field_path = self.get_shadow_path(
+                        constants.TICKET_FILE_FIELD_TEMPLATE
+                    ).format(field_name=field)
+                    with open(file_field_path, 'w') as file_field_file:
+                        file_field_file.write(value)
+                        file_field_file.write('\n')  # For unix' sake
+                else:
+                    # Normal fields, though, just go into the standard
+                    # fields file.
+                    if value is None:
+                        continue
+                    elif field in constants.NO_DETAIL_FIELDS:
+                        continue
 
-                        dets.write('%s::\n\n' % field)
-                        for line in value.replace('\r\n', '\n').split('\n'):
-                            dets.write('    %s\n' % line)
-                        dets.write('\n')
+                    dets.write('%s::\n\n' % field)
+                    for line in value.replace('\r\n', '\n').split('\n'):
+                        dets.write('    %s\n' % line)
+                    dets.write('\n')
 
         comments_filename = self.get_shadow_path(constants.TICKET_COMMENTS)
         with open(comments_filename, 'w') as comm:

@@ -50,7 +50,7 @@ def migration_0004(repo):
     jira_remote_files_path = repo.get_shadow_path('.jirafs/remote_files.json')
     try:
         os.rename(local_remote_files_path, jira_remote_files_path)
-    except IOError:
+    except (IOError, OSError):
         with open(jira_remote_files_path, 'w') as out:
             out.write('{}')
 

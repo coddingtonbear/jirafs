@@ -1,5 +1,7 @@
 import os
 from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
+import sys
 
 from jirafs import __version__ as version_string
 
@@ -23,6 +25,18 @@ except ImportError:
         ]
 
 
+class Tox(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+    def run_tests(self):
+        #import here, cause outside the eggs aren't loaded
+        import tox
+        errno = tox.cmdline(self.test_args)
+        sys.exit(errno)
+
+
 setup(
     name='jirafs',
     version=version_string,
@@ -38,10 +52,13 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     install_requires=requirements,
+    tests_require=['tox'],
+    cmdclass = {'test': Tox},
     packages=find_packages(),
     entry_points={
         'console_scripts': [
             'jirafs = jirafs.cmdline:main'
         ]
     },
+
 )
