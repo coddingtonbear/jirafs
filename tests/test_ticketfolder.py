@@ -98,5 +98,24 @@ class TestTicketFolder(BaseTestCase):
 
         self.assertEqual(actual_result, expected_result)
 
+    def test_push(self):
+        changed_field = 'description'
+        changed_value = 'Something Else'
+        status = {
+            'to_upload': [],
+            'local_differs': {
+                changed_field: ('Something', changed_value, )
+            },
+        }
+        with patch.object(self.ticketfolder, 'status') as status_method:
+            status_method.return_value = status
+            with patch.object(self.ticketfolder.issue, 'update') as out:
+                self.ticketfolder.push()
+                out.assert_called_with(
+                    **{
+                        'description': changed_value
+                    }
+                )
+
     def tearDown(self):
         shutil.rmtree(self.root_folder)

@@ -569,12 +569,9 @@ class TicketFolder(object):
             self.log('Adding comment "%s"' % comment)
             self.jira.add_comment(self.ticket_number, comment)
 
-        values = self.get_original_values()
-
         collected_updates = {}
         for field, diff_values in status['local_differs'].items():
             collected_updates[field] = diff_values[1]
-            values[field] = diff_values[1]
 
         if collected_updates:
             self.log(
