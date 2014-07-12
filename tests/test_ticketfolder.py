@@ -86,5 +86,17 @@ class TestTicketFolder(BaseTestCase):
             expected_result
         )
 
+    def test_fetch(self):
+        self.ticketfolder._issue = (
+            self.rehydrate_issue('test_fetch/fetched.json')
+        )
+        self.ticketfolder.fetch()
+
+        expected_result = self.get_asset_contents('test_fetch/fetched.rst')
+        with open(self.ticketfolder.get_shadow_path('fields.jira.rst')) as _in:
+            actual_result = _in.read()
+
+        self.assertEqual(actual_result, expected_result)
+
     def tearDown(self):
         shutil.rmtree(self.root_folder)
