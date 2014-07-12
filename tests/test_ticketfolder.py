@@ -39,7 +39,9 @@ class TestTicketFolder(BaseTestCase):
         self.arbitrary_ticket_number = 'ALPHA-123'
         self.root_folder = tempfile.mkdtemp()
         self.mock_jira = mock.MagicMock()
-        self.mock_jira.issue.return_value = self.rehydrate_issue('basic.json')
+        self.mock_jira.issue.return_value = self.rehydrate_issue(
+            'basic.issue.json'
+        )
         self.mock_get_jira = lambda: self.mock_jira
 
         with patch(
@@ -78,7 +80,7 @@ class TestTicketFolder(BaseTestCase):
         actual_result = self.ticketfolder.get_local_fields()
 
         expected_result = json.loads(
-            self.get_asset_contents('basic_status.json')
+            self.get_asset_contents('basic.status.json')
         )
 
         self.assertEquals(
