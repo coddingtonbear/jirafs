@@ -10,15 +10,18 @@ def set_repo_version(repo, version):
 
 def migration_0002(repo):
     """ Creates shadow repository used for storing remote values """
-    subprocess.check_call((
-        'git',
-        'clone',
-        '--shared',
-        repo.get_metadata_path('git'),
-        os.path.join(
-            repo.get_metadata_path('shadow')
-        )
-    ))
+    subprocess.check_call(
+        (
+            'git',
+            'clone',
+            '--shared',
+            repo.get_metadata_path('git'),
+            os.path.join(
+                repo.get_metadata_path('shadow')
+            )
+        ),
+        stdout=subprocess.PIPE
+    )
     repo.run_git_command('checkout', '-b', 'jira', shadow=True)
     repo.run_git_command('commit', '--allow-empty', '-m', 'Shadow Created')
     repo.run_git_command('push', 'origin', 'jira', shadow=True)

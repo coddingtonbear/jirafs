@@ -170,15 +170,18 @@ class TicketFolder(object):
                 '%s\n' % constants.METADATA_DIR,
             )
 
-        subprocess.check_call((
-            'git',
-            '--bare',
-            'init',
-            os.path.join(
-                metadata_path,
+        subprocess.check_call(
+            (
                 'git',
-            )
-        ))
+                '--bare',
+                'init',
+                os.path.join(
+                    metadata_path,
+                    'git',
+                )
+            ),
+            stdout=subprocess.PIPE
+        )
         subprocess.check_call((
             'git',
             'config',
