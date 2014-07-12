@@ -155,5 +155,21 @@ class TestTicketFolder(BaseTestCase):
 
         self.assertEqual(expected_output, actual_output)
 
+    def test_status_new_comment(self):
+        arbitrary_comment = 'New Comment'
+
+        comment = self.ticketfolder.get_local_path('new_comment.jira.rst')
+        with open(comment, 'w') as out:
+            out.write(arbitrary_comment)
+
+        expected_output = {
+            'to_upload': [],
+            'local_differs': {},
+            'new_comment': arbitrary_comment
+        }
+        actual_output = self.ticketfolder.status()
+
+        self.assertEqual(expected_output, actual_output)
+
     def tearDown(self):
         shutil.rmtree(self.root_folder)
