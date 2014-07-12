@@ -19,14 +19,14 @@ class BaseTestCase(TestCase):
             filename
         )
 
-    def get_asset_contents(self, filename, mode='rb'):
+    def get_asset_contents(self, filename, mode='r'):
         path = self.get_asset_path(filename)
 
         with open(path, mode) as r:
             return r.read()
 
     def rehydrate_issue(self, filename):
-        stored = json.loads(self.get_asset_contents(filename, mode='r'))
+        stored = json.loads(self.get_asset_contents(filename))
         return Issue(
             stored['options'],
             None,
@@ -78,7 +78,7 @@ class TestTicketFolder(BaseTestCase):
         actual_result = self.ticketfolder.get_local_fields()
 
         expected_result = json.loads(
-            self.get_asset_contents('basic_status.json', 'r')
+            self.get_asset_contents('basic_status.json')
         )
 
         self.assertEquals(
