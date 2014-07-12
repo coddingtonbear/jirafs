@@ -117,5 +117,41 @@ class TestTicketFolder(BaseTestCase):
                     }
                 )
 
+    def test_status_new_file(self):
+        src_path = self.get_asset_path('test_status_local_changes/alpha.svg')
+        dst_path = self.ticketfolder.get_local_path('alpha.svg')
+        shutil.copyfile(
+            src_path,
+            dst_path,
+        )
+
+        expected_output = {
+            'to_upload': ['alpha.svg'],
+            'local_differs': {},
+            'new_comment': '',
+        }
+        actual_output = self.ticketfolder.status()
+
+        self.assertEqual(expected_output, actual_output)
+
+    def test_status_local_changes(self):
+        src_path = self.get_asset_path('test_fetch/fetched.rst')
+        dst_path = self.ticketfolder.get_local_path('fields.jira.rst')
+        shutil.copyfile(
+            src_path,
+            dst_path,
+        )
+
+        expected_output = {
+            'to_upload': [],
+            'local_differs': {
+                'assignee': ('', 'Coddington, Adam (ArbitraryCorp-Atlantis)')
+            },
+            'new_comment': '',
+        }
+        actual_output = self.ticketfolder.status()
+
+        self.assertEqual(expected_output, actual_output)
+
     def tearDown(self):
         shutil.rmtree(self.root_folder)
