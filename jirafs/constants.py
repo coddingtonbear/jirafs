@@ -22,5 +22,9 @@ NO_DETAIL_FIELDS = [
 FILE_FIELDS = [
     'description',
 ]
+FILE_FIELD_BLACKLIST = [
+    'new_comment',
+    'fields'
+]
 
 CURRENT_REPO_VERSION = 4

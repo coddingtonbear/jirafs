@@ -15,6 +15,7 @@ from .exceptions import (
     CannotInferTicketNumberFromFolderName,
     NotTicketFolderException
 )
+from .rstfieldmanager import RSTFieldManager
 
 
 logger = logging.getLogger(__name__)
@@ -338,97 +339,17 @@ class TicketFolder(object):
                 assets.append(attachment.filename)
         return assets
 
-    def get_field_data_from_string(self, string):
-        """ Gets field data from an incoming string.
-
-        Parses through the string using the following RST-derived
-        pattern::
-
-            0 | FIELD_NAME::
-            1 |
-            2 |     VALUE
-
-        """
-        FIELD_DECLARED = 0
-        PREAMBLE = 1
-        VALUE = 2
-
-        state = None
-
-        data = {}
-        field_name = ''
-        value = ''
-        if not string:
-            return data
-        lines = string.split('\n')
-        for idx, line in enumerate(lines):
-            line = line.replace('\t', '    ')
-            if state == FIELD_DECLARED and not line:
-                state = PREAMBLE
-            elif (
-                (state == VALUE or state is None)
-                and re.match('^(\w+)::', line)
-            ):
-                if value:
-                    data[field_name] = value.strip()
-                    value = ''
-                state = FIELD_DECLARED
-                field_name = re.match('^(\w+)::', line).group(1)
-                if not field_name:
-                    raise ValueError(
-                        "Syntax error on line %s" % idx
-                    )
-            elif (state == PREAMBLE or state == VALUE):
-                state = VALUE
-                value = value + '\n' + line[4:]  # Remove first indentation
-        if value:
-            data[field_name] = value.strip()
-
-        return data
-
     def get_local_fields(self):
-        try:
-            with open(
-                self.get_local_path(constants.TICKET_DETAILS), 'r'
-            ) as current_status:
-                values = self.get_field_data_from_string(current_status.read())
-
-                for field in constants.FILE_FIELDS:
-                    file_field_path = self.get_local_path(
-                        constants.TICKET_FILE_FIELD_TEMPLATE
-                    ).format(field_name=field)
-                    if os.path.exists(file_field_path):
-                        with open(file_field_path, 'r') as file_field:
-                            values[field] = file_field.read().strip()
-
-                return values
-        except IOError:
-            pass
-
-        return {}
+        return RSTFieldManager.create(
+            self,
+            path=self.path,
+        )
 
     def get_original_values(self):
-        values = self.get_field_data_from_string(
-            self.get_local_file_at_revision(
-                constants.TICKET_DETAILS,
-                self.git_merge_base,
-            )
+        return RSTFieldManager.create(
+            self,
+            revision=self.git_merge_base,
         )
-        for field in constants.FILE_FIELDS:
-            file_field_path = (
-                constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field)
-            )
-            try:
-                values[field] = self.get_local_file_at_revision(
-                    file_field_path,
-                    self.git_merge_base,
-                    failure_ok=False
-                ).strip()
-            except subprocess.CalledProcessError:
-                # This file did not exist in head
-                pass
-
-        return values
 
     def get_local_differing_fields(self):
         """ Get fields that differ between local and the last sync
@@ -444,8 +365,8 @@ class TicketFolder(object):
 
         differing = {}
         for k, v in original_values.items():
-            if local_fields[k] != v:
-                differing[k] = (v, local_fields[k], )
+            if local_fields.get(k) != v:
+                differing[k] = (v, local_fields.get(k), )
 
         return differing
 
