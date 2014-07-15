@@ -13,6 +13,7 @@ from . import constants
 from . import migrations
 from .exceptions import (
     CannotInferTicketNumberFromFolderName,
+    LocalCopyOutOfDate,
     NotTicketFolderException
 )
 from .rstfieldmanager import RSTFieldManager
@@ -464,8 +465,30 @@ class TicketFolder(object):
         self.fetch()
         self.merge()
 
+    def commit(self, message='Local changes committed'):
+        # Commit local copy
+        self.run_git_command('add', '-A', failure_ok=False)
+        self.run_git_command(
+            'commit', '-m', message, failure_ok=False
+        )
+
+    def _is_up_to_date(self):
+        jira_commit = self.run_git_command('rev-parse', 'jira')
+        master_commit = self.run_git_command('rev-parse', 'master')
+
+        try:
+            self.run_git_command(
+                'merge-base', '--is-ancestor', jira_commit, master_commit,
+            )
+        except subprocess.CalledProcessError:
+            return False
+        return True
+
     def push(self):
         status = self.status()
+
+        if not self._is_up_to_date():
+            raise LocalCopyOutOfDate()
 
         file_meta = self.get_remote_file_metadata()
 

@@ -4,3 +4,7 @@ class NotTicketFolderException(Exception):
 
 class CannotInferTicketNumberFromFolderName(Exception):
     pass
+
+
+class LocalCopyOutOfDate(Exception):
+    pass

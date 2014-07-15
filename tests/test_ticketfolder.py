@@ -8,6 +8,7 @@ import mock
 from mock import patch
 from jira.resources import Issue
 
+from jirafs import exceptions
 from jirafs.ticketfolder import TicketFolder
 
 
@@ -118,6 +119,24 @@ class TestTicketFolder(BaseTestCase):
                         'description': changed_value
                     }
                 )
+
+    def test_push_rejected_if_updated(self):
+        src_path = self.get_asset_path('test_fetch/fetched.rst')
+        dst_path = self.ticketfolder.get_shadow_path('fields.jira.rst')
+        shutil.copyfile(
+            src_path,
+            dst_path,
+        )
+
+        self.ticketfolder.run_git_command('add', '-A', shadow=True)
+        self.ticketfolder.run_git_command(
+            'commit', '-m', 'Changed', shadow=True
+        )
+        self.ticketfolder.run_git_command(
+            'push', 'origin', 'jira', shadow=True
+        )
+        with self.assertRaises(exceptions.LocalCopyOutOfDate):
+            self.ticketfolder.push()
 
     def test_status_new_file(self):
         src_path = self.get_asset_path('test_status_local_changes/alpha.svg')

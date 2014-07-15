@@ -2,13 +2,17 @@ import argparse
 import json
 import logging
 import os
+import subprocess
 import sys
 import time
 import webbrowser
 
 import six
 
-from .exceptions import NotTicketFolderException
+from .exceptions import (
+    LocalCopyOutOfDate,
+    NotTicketFolderException
+)
 from .ticketfolder import TicketFolder
 from .utils import lazy_get_jira
 
@@ -68,13 +72,36 @@ def pull(args, jira, path, **kwargs):
     folder.pull()
 
 
+@command('Commit local changes for later pushing to JIRA')
+def commit(args, jira, path, **kwargs):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--message', default=None)
+    args = parser.parse_args(args)
+
+    kwargs = {}
+    if args.message:
+        kwargs['message'] = args.message
+
+    folder = TicketFolder(path, jira)
+    try:
+        folder.commit(**kwargs)
+    except subprocess.CalledProcessError:
+        print("No changes to commit")
+
+
 @command('Push local changes to JIRA', try_subfolders=True)
 def push(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
     folder = TicketFolder(path, jira)
-    folder.push()
+    try:
+        folder.push()
+    except LocalCopyOutOfDate:
+        print(
+            "Your local copy is out-of-date; please run "
+            "`jirafs merge` to merge changes from JIRA."
+        )
 
 
 @command('Create a new ticket folder at your current path')
