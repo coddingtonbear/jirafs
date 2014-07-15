@@ -510,7 +510,7 @@ class TicketFolder(object):
         # Commit changes to remote copy, too, so we record remote
         # file metadata.
         self.run_git_command('fetch', shadow=True)
-        self.run_git_command('merge', 'master')
+        self.run_git_command('merge', 'master', shadow=True)
         self.set_remote_file_metadata(file_meta)
         self.run_git_command('add', '-A', shadow=True)
         self.run_git_command(
