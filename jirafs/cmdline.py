@@ -75,8 +75,8 @@ def pull(args, jira, path, **kwargs):
 @command('Commit local changes for later pushing to JIRA')
 def commit(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--message', default=None)
-    args = parser.parse_args(args)
+    parser.add_argument('-m', '--message', default='Untitled')
+    args, extra = parser.parse_args(args)
 
     kwargs = {}
     if args.message:
@@ -84,7 +84,7 @@ def commit(args, jira, path, **kwargs):
 
     folder = TicketFolder(path, jira)
     try:
-        folder.commit(**kwargs)
+        folder.commit(args.message, *extra)
     except subprocess.CalledProcessError:
         print("No changes to commit")
 

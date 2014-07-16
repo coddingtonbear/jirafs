@@ -465,11 +465,9 @@ class TicketFolder(object):
         self.fetch()
         self.merge()
 
-    def commit(self, message='Local changes committed'):
-        # Commit local copy
-        self.run_git_command('add', '-A', failure_ok=False)
+    def commit(self, message, *args):
         self.run_git_command(
-            'commit', '-m', message, failure_ok=False
+            'commit', '-m', message, *args, failure_ok=False
         )
 
     def _is_up_to_date(self):
