@@ -72,6 +72,15 @@ def pull(args, jira, path, **kwargs):
     folder.pull()
 
 
+@command('Add a file to be committed to JIRA')
+def add(args, jira, path, **kwargs):
+    parser = argparse.ArgumentParser()
+    _, extra = parser.parse_args(args)
+
+    folder = TicketFolder(path, jira)
+    folder.add(*extra)
+
+
 @command('Commit local changes for later pushing to JIRA')
 def commit(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()

@@ -465,6 +465,11 @@ class TicketFolder(object):
         self.fetch()
         self.merge()
 
+    def add(self, *args):
+        self.run_git_command(
+            'add', *args, failure_ok=False
+        )
+
     def commit(self, message, *args):
         self.run_git_command(
             'commit', '-m', message, *args, failure_ok=False
