@@ -31,6 +31,12 @@ After the program successfully installs, you'll have access to the ``jirafs``
 command that you can use for both downloading attachments and files from JIRA
 as well as updating issues and adding comments.
 
+.. warning::
+
+   `master` is still very turblent right now; please rely upon the versions
+   released on PyPI unless you have a compelling desire to experience
+   breaking changes.
+
 Cloning a JIRA issue
 ~~~~~~~~~~~~~~~~~~~~
 
