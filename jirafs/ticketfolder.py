@@ -300,7 +300,7 @@ class TicketFolder(object):
                 return True
         return False
 
-    def get_locally_changed(self):
+    def get_unstaged_changes(self):
         ignore_globs = self.get_ignore_globs()
 
         new_files = self.run_git_command(
@@ -550,10 +550,11 @@ class TicketFolder(object):
         self.push()
 
     def status(self):
-        locally_changed = self.get_locally_changed()
+        unstaged_changes = self.get_unstaged_changes()
 
         status = {
-            'to_upload': locally_changed,
+            'unstaged': unstaged_changes,
+            'to_upload': [],
             'local_differs': self.get_local_differing_fields(),
             'new_comment': self.get_new_comment()
         }

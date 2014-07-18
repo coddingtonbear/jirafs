@@ -106,6 +106,7 @@ class TestTicketFolder(BaseTestCase):
         changed_value = 'Something Else'
         status = {
             'to_upload': [],
+            'unstaged': [],
             'local_differs': {
                 changed_field: ('Something', changed_value, )
             },
@@ -147,7 +148,8 @@ class TestTicketFolder(BaseTestCase):
         )
 
         expected_output = {
-            'to_upload': ['alpha.svg'],
+            'unstaged': ['alpha.svg'],
+            'to_upload': [],
             'local_differs': {},
             'new_comment': '',
         }
@@ -165,6 +167,7 @@ class TestTicketFolder(BaseTestCase):
 
         expected_output = {
             'to_upload': [],
+            'unstaged': [],
             'local_differs': {
                 'assignee': ('', 'Coddington, Adam (ArbitraryCorp-Atlantis)')
             },
@@ -183,6 +186,7 @@ class TestTicketFolder(BaseTestCase):
 
         expected_output = {
             'to_upload': [],
+            'unstaged': [],
             'local_differs': {},
             'new_comment': arbitrary_comment
         }
