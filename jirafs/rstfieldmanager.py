@@ -17,6 +17,14 @@ class RSTFieldManager(dict):
         self._data = self.load()
         super(RSTFieldManager, self).__init__(self._data)
 
+    def __sub__(self, other):
+        differing = {}
+        for k, v in other.items():
+            if self.get(k) != v:
+                differing[k] = (v, self.get(k), )
+
+        return differing
+
     @classmethod
     def create(cls, folder, revision=None, path=None):
         if revision and path:

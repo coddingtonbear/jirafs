@@ -34,6 +34,20 @@ class BaseTestCase(TestCase):
             stored['raw'],
         )
 
+    def get_empty_status(self):
+        return {
+            'staged': {
+                'files': [],
+                'fields': {},
+                'new_comment': '',
+            },
+            'unstaged': {
+                'files': [],
+                'fields': {},
+                'new_comment': '',
+            }
+        }
+
 
 class TestTicketFolder(BaseTestCase):
     def setUp(self):
@@ -77,8 +91,8 @@ class TestTicketFolder(BaseTestCase):
                 '%s does not exist' % path
             )
 
-    def test_get_local_fields(self):
-        actual_result = self.ticketfolder.get_local_fields()
+    def test_get_fields(self):
+        actual_result = self.ticketfolder.get_fields()
 
         expected_result = json.loads(
             self.get_asset_contents('basic.status.json')
@@ -104,13 +118,11 @@ class TestTicketFolder(BaseTestCase):
     def test_push(self):
         changed_field = 'description'
         changed_value = 'Something Else'
-        status = {
-            'to_upload': [],
-            'unstaged': [],
-            'local_differs': {
-                changed_field: ('Something', changed_value, )
-            },
-        }
+
+        status = self.get_empty_status()
+        status['staged']['fields'][changed_field] = (
+            'Something', changed_value,
+        )
         with patch.object(self.ticketfolder, 'status') as status_method:
             status_method.return_value = status
             with patch.object(self.ticketfolder.issue, 'update') as out:
@@ -147,12 +159,8 @@ class TestTicketFolder(BaseTestCase):
             dst_path,
         )
 
-        expected_output = {
-            'unstaged': ['alpha.svg'],
-            'to_upload': [],
-            'local_differs': {},
-            'new_comment': '',
-        }
+        expected_output = self.get_empty_status()
+        expected_output['unstaged']['files'] = ['alpha.svg']
         actual_output = self.ticketfolder.status()
 
         self.assertEqual(expected_output, actual_output)
@@ -165,14 +173,10 @@ class TestTicketFolder(BaseTestCase):
             dst_path,
         )
 
-        expected_output = {
-            'to_upload': [],
-            'unstaged': [],
-            'local_differs': {
-                'assignee': ('', 'Coddington, Adam (ArbitraryCorp-Atlantis)')
-            },
-            'new_comment': '',
-        }
+        expected_output = self.get_empty_status()
+        expected_output['unstaged']['fields']['assignee'] = (
+            '', 'Coddington, Adam (ArbitraryCorp-Atlantis)'
+        )
         actual_output = self.ticketfolder.status()
 
         self.assertEqual(expected_output, actual_output)
@@ -184,12 +188,8 @@ class TestTicketFolder(BaseTestCase):
         with open(comment, 'w') as out:
             out.write(arbitrary_comment)
 
-        expected_output = {
-            'to_upload': [],
-            'unstaged': [],
-            'local_differs': {},
-            'new_comment': arbitrary_comment
-        }
+        expected_output = self.get_empty_status()
+        expected_output['unstaged']['new_comment'] = arbitrary_comment
         actual_output = self.ticketfolder.status()
 
         self.assertEqual(expected_output, actual_output)

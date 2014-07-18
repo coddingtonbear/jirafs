@@ -7,6 +7,7 @@ import sys
 import time
 import webbrowser
 
+from blessings import Terminal
 import six
 
 from .exceptions import (
@@ -141,13 +142,32 @@ def log(args, jira, path, **kwargs):
 
 @command('Get the status of the current folder', try_subfolders=True)
 def status(args, jira, path, **kwargs):
-    human_readable = {
-        'to_download': 'Files ready to be downloaded from JIRA',
-        'to_upload': 'Files ready to be uploaded to JIRA',
-        'local_differs': 'The following fields have been changed locally',
-        'remote_differs': 'The following fields have been changed in JIRA',
-        'new_comment': 'The following comment is ready to be posted to JIRA',
-    }
+    t = Terminal()
+
+    def format_field_changes(changes, color):
+        lines = []
+        color = getattr(t, color)
+        normal = t.normal
+
+        for filename in changes['files']:
+            lines.append(
+                '\t' + color + filename + normal + ' (file upload)'
+            )
+        for field, value_set in changes['fields'].items():
+            lines.append(
+                '\t' + color + field + normal +
+                ' (changed from \'%s\' to \'%s\')' % value_set
+            )
+        if changes['new_comment']:
+            lines.append(
+                '\t' + color + '[New Comment]' + normal
+            )
+            for line in changes['new_comment'].split('\n'):
+                lines.append(
+                    '\t\t' + line
+                )
+
+        return '\n'.join(lines)
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -167,21 +187,36 @@ def status(args, jira, path, **kwargs):
                 url=folder.cached_issue.permalink(),
             )
         )
+
+        folder_status = folder.status()
         printed_changes = False
-        for k, v in folder.status().items():
-            human_heading = human_readable.get(k, k)  # Default to key name
-            if v:
-                printed_changes = True
-                if isinstance(v, six.string_types):
-                    if not v:
-                        continue
-                    v = v.split('\n')
-                print(human_heading + ':\n')
-                for item in v:
-                    print('\t{item}'.format(item=item))
-                print('')
+        staged = folder_status['staged']
+        if staged['files'] or staged['fields'] or staged['new_comment']:
+            printed_changes = True
+            print('')
+            print(
+                "Staged changes; use `jirafs push` to send to update JIRA."
+            )
+            print(
+                format_field_changes(staged, 'green')
+            )
+
+        unstaged = folder_status['unstaged']
+        if unstaged['files'] or unstaged['fields'] or unstaged['new_comment']:
+            printed_changes = True
+            print('')
+            print(
+                "Unstaged changes; use `jirafs add` and `jirafs commit` "
+                "to make changes."
+            )
+            print(
+                format_field_changes(unstaged, 'red')
+            )
+
         if not printed_changes:
             print('No changes found')
+        else:
+            print('')
 
 
 @command(

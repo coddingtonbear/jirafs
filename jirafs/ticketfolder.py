@@ -300,9 +300,22 @@ class TicketFolder(object):
                 return True
         return False
 
-    def get_unstaged_changes(self):
-        ignore_globs = self.get_ignore_globs()
+    def get_staged_changes(self):
+        changed_files = self.filter_ignored_files(
+            self.run_git_command(
+                'diff', '--name-only', self.git_merge_base,
+            )
+        )
 
+        return {
+            'fields': (
+                self.get_fields('HEAD') - self.get_fields(self.git_merge_base)
+            ),
+            'files': changed_files,
+            'new_comment': self.get_new_comment(staged=True)
+        }
+
+    def get_unstaged_changes(self):
         new_files = self.run_git_command(
             'ls-files', '-o', failure_ok=True
         ).split('\n')
@@ -310,12 +323,34 @@ class TicketFolder(object):
             'ls-files', '-m', failure_ok=True
         ).split('\n')
 
-        all_possible = [
-            filename for filename in new_files + modified_files if filename
-        ]
+        return {
+            'files': self.filter_ignored_files([
+                filename for filename in new_files + modified_files if filename
+            ]),
+            'fields': self.get_fields() - self.get_fields('HEAD'),
+            'new_comment': self.get_new_comment(staged=False)
+        }
+
+    def get_remotely_changed(self):
+        metadata = self.get_remote_file_metadata()
 
         assets = []
-        for filename in all_possible:
+        attachment_filenames = self.filter_ignored_files(
+            [a.filename for a in self.issue.fields.attachment],
+            constants.REMOTE_IGNORE_FILE
+        )
+        for attachment in attachment_filenames:
+            changed = metadata.get(attachment.filename) != attachment.created
+            if changed:
+                assets.append(attachment.filename)
+
+        return assets
+
+    def filter_ignored_files(self, files, which=constants.IGNORE_FILE):
+        ignore_globs = self.get_ignore_globs(which)
+
+        assets = []
+        for filename in files:
             if self.file_matches_globs(filename, ignore_globs):
                 continue
             if not os.path.isfile(os.path.join(self.path, filename)):
@@ -326,64 +361,42 @@ class TicketFolder(object):
 
         return assets
 
-    def get_remotely_changed(self):
-        ignore_globs = self.get_ignore_globs(constants.REMOTE_IGNORE_FILE)
-        metadata = self.get_remote_file_metadata()
-
-        assets = []
-        for attachment in self.issue.fields.attachment:
-            matches_globs = (
-                self.file_matches_globs(attachment.filename, ignore_globs)
-            )
-            changed = metadata.get(attachment.filename) != attachment.created
-            if not matches_globs and changed:
-                assets.append(attachment.filename)
-        return assets
-
-    def get_local_fields(self):
+    def get_fields(self, revision=None, path=None):
+        kwargs = {}
+        if not revision:
+            kwargs['path'] = path if path else self.path
+        else:
+            kwargs['revision'] = revision
         return RSTFieldManager.create(
             self,
-            path=self.path,
+            **kwargs
         )
 
-    def get_original_values(self):
-        return RSTFieldManager.create(
-            self,
-            revision=self.git_merge_base,
-        )
-
-    def get_local_differing_fields(self):
-        """ Get fields that differ between local and the last sync
-
-        .. warning::
-
-           Does not support setting fields that were not set originally
-           in a sync operation!
-
-        """
-        local_fields = self.get_local_fields()
-        original_values = self.get_original_values()
-
-        differing = {}
-        for k, v in original_values.items():
-            if local_fields.get(k) != v:
-                differing[k] = (v, local_fields.get(k), )
-
-        return differing
-
-    def get_new_comment(self, clear=False):
+    def get_new_comment(self, clear=False, staged=True):
         try:
             with open(
                 self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
             ) as c:
-                comment = c.read().strip()
-                if clear:
-                    c.seek(0)
+                local_contents = c.read().strip()
+            if staged:
+                contents = self.get_local_file_at_revision(
+                    constants.TICKET_NEW_COMMENT,
+                    'HEAD'
+                )
+                if contents:
+                    contents = contents.strip()
+            else:
+                contents = local_contents
+
+            if contents == local_contents and clear:
+                with open(
+                    self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
+                ) as c:
                     c.truncate()
 
-            return comment
+            return contents
         except IOError:
-            return ''
+            return None
 
     def fetch(self):
         file_meta = self.get_remote_file_metadata()
@@ -495,29 +508,34 @@ class TicketFolder(object):
 
         file_meta = self.get_remote_file_metadata()
 
-        for filename in status['to_upload']:
-            with open(self.get_local_path(filename), 'rb') as upload:
-                self.log(
-                    'Uploading file "%s"',
-                    (filename, ),
+        for filename in status['staged']['files']:
+            upload = six.StringIO(
+                self.get_local_file_at_revision(
+                    filename,
+                    'HEAD',
                 )
-                # Delete the existing issue if there is one
-                for attachment in self.issue.fields.attachment:
-                    if attachment.filename == filename:
-                        attachment.delete()
-                attachment = self.jira.add_attachment(
-                    self.ticket_number,
-                    upload
-                )
-                file_meta[filename] = attachment.created
+            )
+            self.log(
+                'Uploading file "%s"',
+                (filename, ),
+            )
+            # Delete the existing issue if there is one
+            for attachment in self.issue.fields.attachment:
+                if attachment.filename == filename:
+                    attachment.delete()
+            attachment = self.jira.add_attachment(
+                self.ticket_number,
+                upload
+            )
+            file_meta[filename] = attachment.created
 
-        comment = self.get_new_comment(clear=True)
+        comment = self.get_new_comment(clear=True, staged=True)
         if comment:
             self.log('Adding comment "%s"' % comment)
             self.jira.add_comment(self.ticket_number, comment)
 
         collected_updates = {}
-        for field, diff_values in status['local_differs'].items():
+        for field, diff_values in status['staged']['fields'].items():
             collected_updates[field] = diff_values[1]
 
         if collected_updates:
@@ -550,13 +568,9 @@ class TicketFolder(object):
         self.push()
 
     def status(self):
-        unstaged_changes = self.get_unstaged_changes()
-
         status = {
-            'unstaged': unstaged_changes,
-            'to_upload': [],
-            'local_differs': self.get_local_differing_fields(),
-            'new_comment': self.get_new_comment()
+            'unstaged': self.get_unstaged_changes(),
+            'staged': self.get_staged_changes(),
         }
 
         return status
