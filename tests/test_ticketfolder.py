@@ -36,6 +36,11 @@ class BaseTestCase(TestCase):
 
     def get_empty_status(self):
         return {
+            'ready': {
+                'files': [],
+                'fields': {},
+                'new_comment': '',
+            },
             'staged': {
                 'files': [],
                 'fields': {},
@@ -120,7 +125,7 @@ class TestTicketFolder(BaseTestCase):
         changed_value = 'Something Else'
 
         status = self.get_empty_status()
-        status['staged']['fields'][changed_field] = (
+        status['ready']['fields'][changed_field] = (
             'Something', changed_value,
         )
         with patch.object(self.ticketfolder, 'status') as status_method:

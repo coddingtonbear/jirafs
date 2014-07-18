@@ -190,12 +190,23 @@ def status(args, jira, path, **kwargs):
 
         folder_status = folder.status()
         printed_changes = False
+        ready = folder_status['ready']
+        if ready['files'] or ready['fields'] or ready['new_comment']:
+            printed_changes = True
+            print('')
+            print(
+                "Ready for upload; use `jirafs push` to update JIRA."
+            )
+            print(
+                format_field_changes(ready, 'cyan')
+            )
+
         staged = folder_status['staged']
         if staged['files'] or staged['fields'] or staged['new_comment']:
             printed_changes = True
             print('')
             print(
-                "Staged changes; use `jirafs push` to send to update JIRA."
+                "Staged changes; use `jirafs commit` to mark these for JIRA."
             )
             print(
                 format_field_changes(staged, 'green')
@@ -207,7 +218,7 @@ def status(args, jira, path, **kwargs):
             print('')
             print(
                 "Unstaged changes; use `jirafs add` and `jirafs commit` "
-                "to make changes."
+                "to make changes part of your next commit."
             )
             print(
                 format_field_changes(unstaged, 'red')

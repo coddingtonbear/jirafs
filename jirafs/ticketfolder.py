@@ -301,6 +301,13 @@ class TicketFolder(object):
         return False
 
     def get_staged_changes(self):
+        return {
+            'fields': {},
+            'files': [],
+            'new_comment': '',
+        }
+
+    def get_ready_changes(self):
         changed_files = self.filter_ignored_files(
             self.run_git_command(
                 'diff', '--name-only', self.git_merge_base,
@@ -312,7 +319,7 @@ class TicketFolder(object):
                 self.get_fields('HEAD') - self.get_fields(self.git_merge_base)
             ),
             'files': changed_files,
-            'new_comment': self.get_new_comment(staged=True)
+            'new_comment': self.get_new_comment(ready=True)
         }
 
     def get_unstaged_changes(self):
@@ -328,7 +335,7 @@ class TicketFolder(object):
                 filename for filename in new_files + modified_files if filename
             ]),
             'fields': self.get_fields() - self.get_fields('HEAD'),
-            'new_comment': self.get_new_comment(staged=False)
+            'new_comment': self.get_new_comment(ready=False)
         }
 
     def get_remotely_changed(self):
@@ -372,13 +379,13 @@ class TicketFolder(object):
             **kwargs
         )
 
-    def get_new_comment(self, clear=False, staged=True):
+    def get_new_comment(self, clear=False, staged=False, ready=True):
         try:
             with open(
                 self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
             ) as c:
                 local_contents = c.read().strip()
-            if staged:
+            if ready:
                 contents = self.get_local_file_at_revision(
                     constants.TICKET_NEW_COMMENT,
                     'HEAD'
@@ -508,7 +515,7 @@ class TicketFolder(object):
 
         file_meta = self.get_remote_file_metadata()
 
-        for filename in status['staged']['files']:
+        for filename in status['ready']['files']:
             upload = six.StringIO(
                 self.get_local_file_at_revision(
                     filename,
@@ -529,13 +536,13 @@ class TicketFolder(object):
             )
             file_meta[filename] = attachment.created
 
-        comment = self.get_new_comment(clear=True, staged=True)
+        comment = self.get_new_comment(clear=True, ready=True)
         if comment:
             self.log('Adding comment "%s"' % comment)
             self.jira.add_comment(self.ticket_number, comment)
 
         collected_updates = {}
-        for field, diff_values in status['staged']['fields'].items():
+        for field, diff_values in status['ready']['fields'].items():
             collected_updates[field] = diff_values[1]
 
         if collected_updates:
@@ -571,6 +578,7 @@ class TicketFolder(object):
         status = {
             'unstaged': self.get_unstaged_changes(),
             'staged': self.get_staged_changes(),
+            'ready': self.get_ready_changes(),
         }
 
         return status
