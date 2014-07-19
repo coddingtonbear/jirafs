@@ -392,6 +392,8 @@ class TicketFolder(object):
                 )
                 if contents:
                     contents = contents.strip()
+                else:
+                    contents = ''
             else:
                 contents = local_contents
 
@@ -403,7 +405,7 @@ class TicketFolder(object):
 
             return contents
         except IOError:
-            return None
+            return ''
 
     def fetch(self):
         file_meta = self.get_remote_file_metadata()
