@@ -342,11 +342,11 @@ class TicketFolder(object):
         metadata = self.get_remote_file_metadata()
 
         assets = []
-        attachment_filenames = self.filter_ignored_files(
-            [a.filename for a in self.issue.fields.attachment],
+        attachments = self.filter_ignored_files(
+            self.issue.fields.attachment,
             constants.REMOTE_IGNORE_FILE
         )
-        for attachment in attachment_filenames:
+        for attachment in attachments:
             changed = metadata.get(attachment.filename) != attachment.created
             if changed:
                 assets.append(attachment.filename)
@@ -357,14 +357,19 @@ class TicketFolder(object):
         ignore_globs = self.get_ignore_globs(which)
 
         assets = []
-        for filename in files:
+        for fileish in files:
+            # Get the actual filename; this is a little gross -- apologies.
+            filename = fileish
+            if not isinstance(fileish, six.string_types):
+                filename = fileish.filename
+
             if self.file_matches_globs(filename, ignore_globs):
                 continue
             if not os.path.isfile(os.path.join(self.path, filename)):
                 continue
             if filename.startswith('.'):
                 continue
-            assets.append(filename)
+            assets.append(fileish)
 
         return assets
 
