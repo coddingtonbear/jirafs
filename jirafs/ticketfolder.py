@@ -555,6 +555,7 @@ class TicketFolder(object):
             self.issue.update(**collected_updates)
 
         # Commit local copy
+        self.run_git_command('reset', '--soft', failure_ok=True)
         self.run_git_command('add', '.jirafs/remote_files.json')
         self.run_git_command(
             'commit', '-m', 'Pushed local changes', failure_ok=True
