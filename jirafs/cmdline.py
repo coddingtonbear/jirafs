@@ -10,6 +10,7 @@ import webbrowser
 from blessings import Terminal
 import six
 
+from . import constants
 from .exceptions import (
     LocalCopyOutOfDate,
     NotTicketFolderException
@@ -153,18 +154,26 @@ def status(args, jira, path, **kwargs):
             lines.append(
                 '\t' + color + filename + normal + ' (file upload)'
             )
+        if changes['fields']:
+            lines.append(
+                '\t' + color + constants.TICKET_DETAILS + normal
+            )
         for field, value_set in changes['fields'].items():
             lines.append(
-                '\t' + color + field + normal +
+                '\t\t' + color + field + normal +
                 ' (changed from \'%s\' to \'%s\')' % value_set
             )
         if changes['new_comment']:
             lines.append(
-                '\t' + color + '[New Comment]' + normal
+                '\t' + color + constants.TICKET_NEW_COMMENT + normal
+            )
+        if changes['new_comment']:
+            lines.append(
+                '\t\t' + color + '[New Comment]' + normal
             )
             for line in changes['new_comment'].split('\n'):
                 lines.append(
-                    '\t\t' + line
+                    '\t\t\t' + line
                 )
 
         return '\n'.join(lines)

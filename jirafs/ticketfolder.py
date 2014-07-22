@@ -10,12 +10,8 @@ from jira.resources import Issue
 import six
 
 from . import constants
+from . import exceptions
 from . import migrations
-from .exceptions import (
-    CannotInferTicketNumberFromFolderName,
-    LocalCopyOutOfDate,
-    NotTicketFolderException
-)
 from .rstfieldmanager import RSTFieldManager
 
 
@@ -30,7 +26,7 @@ class TicketFolder(object):
         self.get_jira = jira
 
         if not os.path.isdir(self.metadata_dir):
-            raise NotTicketFolderException(
+            raise exceptions.NotTicketFolderException(
                 "%s is not a synchronizable ticket folder" % (
                     path
                 )
@@ -102,7 +98,7 @@ class TicketFolder(object):
     def infer_ticket_number(self):
         raw_number = self.path.split('/')[-1:][0].upper()
         if not re.match('^\w+-\d+$', raw_number):
-            raise CannotInferTicketNumberFromFolderName(
+            raise exceptions.CannotInferTicketNumberFromFolderName(
                 "Cannot infer ticket number from folder %s. Please name "
                 "ticket folders after the ticket they represent." % (
                     self.path,
@@ -244,9 +240,12 @@ class TicketFolder(object):
                 cmd,
                 stderr=subprocess.PIPE
             ).decode('utf-8').strip()
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
             if not failure_ok:
-                raise
+                raise exceptions.GitCommandError(
+                    "Error running command `%s`" % ' '.join(cmd),
+                    inner_exception=e
+                )
 
     def get_local_file_at_revision(self, path, revision, failure_ok=True):
         return self.run_git_command(
@@ -518,7 +517,7 @@ class TicketFolder(object):
         status = self.status()
 
         if not self._is_up_to_date():
-            raise LocalCopyOutOfDate()
+            raise exceptions.LocalCopyOutOfDate()
 
         file_meta = self.get_remote_file_metadata()
 
