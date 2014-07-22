@@ -509,7 +509,7 @@ class TicketFolder(object):
             self.run_git_command(
                 'merge-base', '--is-ancestor', jira_commit, master_commit,
             )
-        except subprocess.CalledProcessError:
+        except exceptions.GitCommandError:
             return False
         return True
 
