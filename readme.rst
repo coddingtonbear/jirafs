@@ -31,12 +31,6 @@ After the program successfully installs, you'll have access to the ``jirafs``
 command that you can use for both downloading attachments and files from JIRA
 as well as updating issues and adding comments.
 
-.. warning::
-
-   `master` is still very turblent right now; please rely upon the versions
-   released on PyPI unless you have a compelling desire to experience
-   breaking changes.
-
 Cloning a JIRA issue
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -78,28 +72,27 @@ make the change to a field in ``fields.jira.rst``, edit the issue's
 description in ``description.jira.rst``, write a comment into
 ``new_comment.jira.rst``, or copy a new asset into this folder, then run::
 
-    jirafs sync
+    jirafs commit
 
 from within the folder ``jirafs`` created earlier.  Running this command
-will do the following things:
-
-* Upload and attach any assets in your issue folder that differ from those
-  on JIRA or do not exist on JIRA.
-* Download any attachments that either do not exist or have changed.
-* Update the JIRA issue to reflect any changes to ``fields.jira.rst`` that
-  you have made.
-* If you have edited ``description.jira.rst``, the JIRA issue will be
-  updated with the description you've entered.
-* If you entered text into the ``new_comment.jira.rst`` file it will post
-  a new comment to the JIRA issue using the text you entered.
-* Update ``comments.read_only.jira.rst`` to show any comments that are now
-  associated with this JIRA issue.
-
-Since there are quite a lot of things going on there, and you might want to
-get an idea of what is about to happen, you can get an overview of the 
-pending changes by running::
+will mark the changes you've made as ready for submission to JIRA.  At
+any time, you can run::
 
     jirafs status
+
+to see both what changes you've marked as ready for being submitted
+to JIRA as well as which changes you have made, but not yet committed.
+
+Once you're satisfied with the changes that are about to be submitted to
+JIRA, run::
+
+    jirafs push
+
+Please keep in mind that updates that others have made in JIRA outside of 
+Jirafs won't be available in your local copy until you pull them in by
+running::
+
+    jirafs pull
 
 Please consider the above to be just a simple overview -- there are a
 variety of other commands you can run to have finer-grained control
@@ -151,13 +144,11 @@ Commands
 Create a new issue folder for ``MYISSUE-1024`` (replace ``MYISSUE-1024`` with
 an actual JIRA issue number), and download any assets attached to said issue.
 
-``sync`` *
+``commit``
 ~~~~~~~~~~
 
-From within an issue folder, synchronizes the issue with JIRA.
-
-Internally, this command first runs ``jirafs push`` followed by
-a ``jirafs pull``.
+From within an issue folder, commits local changes and marks them for
+submission to JIRA next time ``push`` is run.
 
 ``pull`` *
 ~~~~~~~~~~
@@ -188,7 +179,7 @@ already been storing issue-specific files on your filesystem.
 ~~~~~~~~~~~~
 
 From within an issue folder, will report any changes that would take place
-were you to run ``jirafs sync``.
+were you to run ``jirafs push``.
 
 ``diff``
 ~~~~~~~~

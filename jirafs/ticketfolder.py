@@ -12,6 +12,7 @@ import six
 from . import constants
 from . import exceptions
 from . import migrations
+from .decorators import stash_local_changes
 from .rstfieldmanager import RSTFieldManager
 
 
@@ -54,13 +55,21 @@ class TicketFolder(object):
             self._issue = self.jira.issue(self.ticket_number)
         return self._issue
 
-    def store_cached_issue(self):
+    def store_cached_issue(self, shadow=True):
         storable = {
             'options': self.issue._options,
             'raw': self.issue.raw
         }
-        with open(self.get_metadata_path('issue.json'), 'w') as out:
-            out.write(json.dumps(storable))
+        with open(
+            self.get_path('.jirafs/issue.json', shadow=shadow), 'w'
+        ) as out:
+            out.write(
+                json.dumps(
+                    storable,
+                    indent=4,
+                    sort_keys=True,
+                )
+            )
 
     @property
     def cached_issue(self):
@@ -112,19 +121,29 @@ class TicketFolder(object):
             filename
         )
 
-    def get_remote_file_metadata(self):
-        remote_files = self.get_shadow_path('.jirafs/remote_files.json')
+    def get_remote_file_metadata(self, shadow=True):
+        remote_files = self.get_path(
+            '.jirafs/remote_files.json',
+            shadow=shadow
+        )
         try:
             with open(remote_files, 'r') as _in:
                 return json.loads(_in.read())
         except IOError:
             return {}
 
-    def set_remote_file_metadata(self, data):
-        remote_files = self.get_shadow_path('.jirafs/remote_files.json')
+    def set_remote_file_metadata(self, data, shadow=True):
+        remote_files = self.get_path(
+            '.jirafs/remote_files.json',
+            shadow=shadow
+        )
         with open(remote_files, 'w') as out:
             out.write(
-                json.dumps(data)
+                json.dumps(
+                    data,
+                    indent=4,
+                    sort_keys=True,
+                )
             )
 
     def get_local_path(self, filename):
@@ -138,6 +157,11 @@ class TicketFolder(object):
             self.get_metadata_path('shadow'),
             filename,
         )
+
+    def get_path(self, filename, shadow=False):
+        if shadow:
+            return self.get_shadow_path(filename)
+        return self.get_local_path(filename)
 
     @property
     def version(self):
@@ -213,12 +237,13 @@ class TicketFolder(object):
         path = os.path.realpath(path)
         os.mkdir(path)
         folder = cls.initialize_ticket_folder(path, jira)
-        folder.sync()
+        folder.pull()
         return folder
 
     def run_git_command(self, *args, **kwargs):
         failure_ok = kwargs.get('failure_ok', False)
         shadow = kwargs.get('shadow', False)
+        binary = kwargs.get('binary', False)
 
         if not shadow:
             work_tree = self.path,
@@ -236,10 +261,13 @@ class TicketFolder(object):
 
         self.log('Executing git command %s', (cmd, ), logging.DEBUG)
         try:
-            return subprocess.check_output(
+            result = subprocess.check_output(
                 cmd,
                 stderr=subprocess.PIPE
-            ).decode('utf-8').strip()
+            )
+            if not binary:
+                return result.decode('utf-8').strip()
+            return result
         except subprocess.CalledProcessError as e:
             if not failure_ok:
                 raise exceptions.GitCommandError(
@@ -247,13 +275,16 @@ class TicketFolder(object):
                     inner_exception=e
                 )
 
-    def get_local_file_at_revision(self, path, revision, failure_ok=True):
+    def get_local_file_at_revision(
+        self, path, revision, failure_ok=True, binary=False
+    ):
         return self.run_git_command(
             'show', '%s:%s' % (
                 revision,
                 path,
             ),
-            failure_ok=failure_ok
+            failure_ok=failure_ok,
+            binary=binary,
         )
 
     def get_ignore_globs(self, which=constants.IGNORE_FILE):
@@ -299,18 +330,11 @@ class TicketFolder(object):
                 return True
         return False
 
-    def get_staged_changes(self):
-        return {
-            'fields': {},
-            'files': [],
-            'new_comment': '',
-        }
-
     def get_ready_changes(self):
         changed_files = self.filter_ignored_files(
             self.run_git_command(
                 'diff', '--name-only', self.git_merge_base,
-            )
+            ).split('\n')
         )
 
         return {
@@ -321,7 +345,7 @@ class TicketFolder(object):
             'new_comment': self.get_new_comment(ready=True)
         }
 
-    def get_unstaged_changes(self):
+    def get_uncommitted_changes(self):
         new_files = self.run_git_command(
             'ls-files', '-o', failure_ok=True
         ).split('\n')
@@ -338,7 +362,7 @@ class TicketFolder(object):
         }
 
     def get_remotely_changed(self):
-        metadata = self.get_remote_file_metadata()
+        metadata = self.get_remote_file_metadata(shadow=True)
 
         assets = []
         attachments = self.filter_ignored_files(
@@ -359,12 +383,17 @@ class TicketFolder(object):
         for fileish in files:
             # Get the actual filename; this is a little gross -- apologies.
             filename = fileish
+            attachment = False
             if not isinstance(fileish, six.string_types):
                 filename = fileish.filename
+                attachment = True
 
             if self.file_matches_globs(filename, ignore_globs):
                 continue
-            if not os.path.isfile(os.path.join(self.path, filename)):
+            if (
+                not attachment
+                and not os.path.isfile(os.path.join(self.path, filename))
+            ):
                 continue
             if filename.startswith('.'):
                 continue
@@ -401,6 +430,9 @@ class TicketFolder(object):
             else:
                 contents = local_contents
 
+            if not ready and contents == self.get_new_comment(ready=True):
+                contents = ''
+
             if contents == local_contents and clear:
                 with open(
                     self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
@@ -412,7 +444,7 @@ class TicketFolder(object):
             return ''
 
     def fetch(self):
-        file_meta = self.get_remote_file_metadata()
+        file_meta = self.get_remote_file_metadata(shadow=True)
 
         for filename in self.get_remotely_changed():
             for attachment in self.issue.fields.attachment:
@@ -426,7 +458,7 @@ class TicketFolder(object):
                         file_meta[filename] = attachment.created
                         download.write(attachment.get())
 
-        self.set_remote_file_metadata(file_meta)
+        self.set_remote_file_metadata(file_meta, shadow=True)
 
         with open(self.get_shadow_path(constants.TICKET_DETAILS), 'w') as dets:
             for field in sorted(self.issue.raw['fields'].keys()):
@@ -482,26 +514,23 @@ class TicketFolder(object):
         )
         self.run_git_command('push', 'origin', 'jira', shadow=True)
 
+    @stash_local_changes
     def merge(self):
-        self.run_git_command('stash', '--include-untracked', failure_ok=True)
         self.run_git_command('merge', 'jira')
-        self.run_git_command('stash', 'pop', failure_ok=True)
 
     def pull(self):
         self.fetch()
         self.merge()
 
-    def add(self, *args):
-        self.run_git_command(
-            'add', *args, failure_ok=False
-        )
-
     def commit(self, message, *args):
+        self.run_git_command(
+            'add', '-A', failure_ok=False
+        )
         self.run_git_command(
             'commit', '-m', message, *args, failure_ok=False
         )
 
-    def _is_up_to_date(self):
+    def is_up_to_date(self):
         jira_commit = self.run_git_command('rev-parse', 'jira')
         master_commit = self.run_git_command('rev-parse', 'master')
 
@@ -513,19 +542,21 @@ class TicketFolder(object):
             return False
         return True
 
+    @stash_local_changes
     def push(self):
         status = self.status()
 
-        if not self._is_up_to_date():
+        if not self.is_up_to_date():
             raise exceptions.LocalCopyOutOfDate()
 
-        file_meta = self.get_remote_file_metadata()
+        file_meta = self.get_remote_file_metadata(shadow=False)
 
         for filename in status['ready']['files']:
-            upload = six.StringIO(
+            upload = six.BytesIO(
                 self.get_local_file_at_revision(
                     filename,
                     'HEAD',
+                    binary=True
                 )
             )
             self.log(
@@ -538,9 +569,12 @@ class TicketFolder(object):
                     attachment.delete()
             attachment = self.jira.add_attachment(
                 self.ticket_number,
-                upload
+                upload,
+                filename=filename,
             )
             file_meta[filename] = attachment.created
+
+        self.set_remote_file_metadata(file_meta, shadow=False)
 
         comment = self.get_new_comment(clear=True, ready=True)
         if comment:
@@ -560,7 +594,12 @@ class TicketFolder(object):
 
         # Commit local copy
         self.run_git_command('reset', '--soft', failure_ok=True)
-        self.run_git_command('add', '.jirafs/remote_files.json')
+        self.run_git_command(
+            'add', '.jirafs/remote_files.json', failure_ok=True
+        )
+        self.run_git_command(
+            'add', constants.TICKET_NEW_COMMENT, failure_ok=True
+        )
         self.run_git_command(
             'commit', '-m', 'Pushed local changes', failure_ok=True
         )
@@ -568,8 +607,7 @@ class TicketFolder(object):
         # Commit changes to remote copy, too, so we record remote
         # file metadata.
         self.run_git_command('fetch', shadow=True)
-        self.run_git_command('merge', 'master', shadow=True)
-        self.set_remote_file_metadata(file_meta)
+        self.run_git_command('merge', 'origin/master', shadow=True)
         self.run_git_command('add', '-A', shadow=True)
         self.run_git_command(
             'commit', '-m', 'Pulled remote changes',
@@ -577,15 +615,11 @@ class TicketFolder(object):
         )
         self.run_git_command('push', 'origin', 'jira', shadow=True)
 
-    def sync(self):
-        self.pull()
-        self.push()
-
     def status(self):
         status = {
-            'unstaged': self.get_unstaged_changes(),
-            'staged': self.get_staged_changes(),
+            'uncommitted': self.get_uncommitted_changes(),
             'ready': self.get_ready_changes(),
+            'up_to_date': self.is_up_to_date(),
         }
 
         return status

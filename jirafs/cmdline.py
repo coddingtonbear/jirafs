@@ -10,7 +10,6 @@ import webbrowser
 from blessings import Terminal
 import six
 
-from . import constants
 from .exceptions import (
     LocalCopyOutOfDate,
     NotTicketFolderException
@@ -38,15 +37,6 @@ def command(desc, name=None, try_subfolders=True, aliases=None):
     return decorator
 
 
-@command('Synchronize folder(s) with JIRA', try_subfolders=True)
-def sync(args, jira, path, **kwargs):
-    parser = argparse.ArgumentParser()
-    parser.parse_args(args)
-
-    folder = TicketFolder(path, jira)
-    folder.sync()
-
-
 @command('Fetch remote changes', try_subfolders=True)
 def fetch(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
@@ -72,15 +62,6 @@ def pull(args, jira, path, **kwargs):
 
     folder = TicketFolder(path, jira)
     folder.pull()
-
-
-@command('Add a file to be committed to JIRA')
-def add(args, jira, path, **kwargs):
-    parser = argparse.ArgumentParser()
-    _, extra = parser.parse_known_args(args)
-
-    folder = TicketFolder(path, jira)
-    folder.add(*extra)
 
 
 @command('Commit local changes for later pushing to JIRA')
@@ -154,26 +135,18 @@ def status(args, jira, path, **kwargs):
             lines.append(
                 '\t' + color + filename + normal + ' (file upload)'
             )
-        if changes['fields']:
-            lines.append(
-                '\t' + color + constants.TICKET_DETAILS + normal
-            )
         for field, value_set in changes['fields'].items():
             lines.append(
-                '\t\t' + color + field + normal +
-                ' (changed from \'%s\' to \'%s\')' % value_set
+                '\t' + color + field + normal +
+                ' (field changed from \'%s\' to \'%s\')' % value_set
             )
         if changes['new_comment']:
             lines.append(
-                '\t' + color + constants.TICKET_NEW_COMMENT + normal
-            )
-        if changes['new_comment']:
-            lines.append(
-                '\t\t' + color + '[New Comment]' + normal
+                '\t' + color + '[New Comment]' + normal
             )
             for line in changes['new_comment'].split('\n'):
                 lines.append(
-                    '\t\t\t' + line
+                    '\t\t' + line
                 )
 
         return '\n'.join(lines)
@@ -191,13 +164,19 @@ def status(args, jira, path, **kwargs):
         print(json.dumps(folder.status()))
     else:
         print(
-            "# On ticket {ticket} ({url})".format(
+            "On ticket {ticket} ({url})".format(
                 ticket=folder.ticket_number,
                 url=folder.cached_issue.permalink(),
             )
         )
-
         folder_status = folder.status()
+        if not folder_status['up_to_date']:
+            print(
+                t.magenta + "Warning: unmerged upstream changes exist; "
+                "run `jirafs merge` to merge them into your local copy." +
+                t.normal
+            )
+
         printed_changes = False
         ready = folder_status['ready']
         if ready['files'] or ready['fields'] or ready['new_comment']:
@@ -207,30 +186,19 @@ def status(args, jira, path, **kwargs):
                 "Ready for upload; use `jirafs push` to update JIRA."
             )
             print(
-                format_field_changes(ready, 'cyan')
+                format_field_changes(ready, 'green')
             )
 
-        staged = folder_status['staged']
+        staged = folder_status['uncommitted']
         if staged['files'] or staged['fields'] or staged['new_comment']:
             printed_changes = True
             print('')
             print(
-                "Staged changes; use `jirafs commit` to mark these for JIRA."
+                "Uncommitted changes; use `jirafs commit` to mark these "
+                "for JIRA."
             )
             print(
-                format_field_changes(staged, 'green')
-            )
-
-        unstaged = folder_status['unstaged']
-        if unstaged['files'] or unstaged['fields'] or unstaged['new_comment']:
-            printed_changes = True
-            print('')
-            print(
-                "Unstaged changes; use `jirafs add` and `jirafs commit` "
-                "to make changes part of your next commit."
-            )
-            print(
-                format_field_changes(unstaged, 'red')
+                format_field_changes(staged, 'red')
             )
 
         if not printed_changes:

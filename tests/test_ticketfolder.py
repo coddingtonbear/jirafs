@@ -41,16 +41,12 @@ class BaseTestCase(TestCase):
                 'fields': {},
                 'new_comment': '',
             },
-            'staged': {
+            'uncommitted': {
                 'files': [],
                 'fields': {},
                 'new_comment': '',
             },
-            'unstaged': {
-                'files': [],
-                'fields': {},
-                'new_comment': '',
-            }
+            'up_to_date': True,
         }
 
 
@@ -165,7 +161,7 @@ class TestTicketFolder(BaseTestCase):
         )
 
         expected_output = self.get_empty_status()
-        expected_output['unstaged']['files'] = ['alpha.svg']
+        expected_output['uncommitted']['files'] = ['alpha.svg']
         actual_output = self.ticketfolder.status()
 
         self.assertEqual(expected_output, actual_output)
@@ -179,7 +175,7 @@ class TestTicketFolder(BaseTestCase):
         )
 
         expected_output = self.get_empty_status()
-        expected_output['unstaged']['fields']['assignee'] = (
+        expected_output['uncommitted']['fields']['assignee'] = (
             '', 'Coddington, Adam (ArbitraryCorp-Atlantis)'
         )
         actual_output = self.ticketfolder.status()
@@ -194,7 +190,7 @@ class TestTicketFolder(BaseTestCase):
             out.write(arbitrary_comment)
 
         expected_output = self.get_empty_status()
-        expected_output['unstaged']['new_comment'] = arbitrary_comment
+        expected_output['uncommitted']['new_comment'] = arbitrary_comment
         actual_output = self.ticketfolder.status()
 
         self.assertEqual(expected_output, actual_output)
