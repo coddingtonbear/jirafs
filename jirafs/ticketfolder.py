@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import sys
 import subprocess
 
 from jira.resources import Issue
@@ -224,7 +225,7 @@ class TicketFolder(object):
         instance.run_git_command(
             'commit', '--allow-empty', '-m', 'Initialized'
         )
-        instance.run_migrations(silent=True)
+        instance.run_migrations(init=True)
 
         comment_path = instance.get_local_path(constants.TICKET_NEW_COMMENT)
         with open(comment_path, 'w') as out:
@@ -624,10 +625,21 @@ class TicketFolder(object):
         return status
 
     @stash_local_changes
-    def run_migrations(self, silent=False):
+    def run_migrations(self, init=False):
         loglevel = logging.INFO
-        if silent:
+        if init:
             loglevel = logging.DEBUG
+        else:
+            if self.version < constants.MINIMUM_REPO_VERSION:
+                print(
+                    "This ticket folder is too old for this version of "
+                    "Jirafs; please delete this folder and re-clone this "
+                    "ticket using `jirafs clone %s`." % (
+                        self.ticket_number
+                    )
+                )
+                sys.exit(1)
+
         while self.version < constants.CURRENT_REPO_VERSION:
             migrator = getattr(
                 migrations,
