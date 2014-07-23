@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import subprocess
+import textwrap
 
 from jira.resources import Issue
 import six
@@ -499,8 +500,13 @@ class TicketFolder(object):
         comments_filename = self.get_shadow_path(constants.TICKET_COMMENTS)
         with open(comments_filename, 'w') as comm:
             for comment in self.issue.fields.comment.comments:
-                comm.write('%s: %s::\n\n' % (comment.created, comment.author))
-                lines = comment.body.replace('\r\n', '\n').split('\n')
+                comm.write(
+                    '* At %s, %s wrote:\n\n' % (
+                        comment.created,
+                        comment.author
+                    )
+                )
+                lines = textwrap.wrap(comment.body.replace('\r\n', '\n'), 80)
                 for line in lines:
                     comm.write('    %s\n' % line)
                 comm.write('\n')
