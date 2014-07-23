@@ -1,5 +1,10 @@
-Jirafs
-======
+.. Jirafs documentation master file, created by
+   sphinx-quickstart on Wed Jul 23 16:31:07 2014.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to Jirafs's documentation!
+==================================
 
 .. image:: https://travis-ci.org/coddingtonbear/jirafs.svg?branch=master
     :target: https://travis-ci.org/coddingtonbear/jirafs
@@ -15,10 +20,19 @@ library lets you stay out of JIRA as much as possible by letting
 you edit your JIRA issues as text files using an interface
 modeled off of ``git`` and ``hg``.
 
-- Documentation for Jirafs is available on
-  `ReadTheDocs <http://jirafs.readthedocs.org/>`_.
-- Please post issues on
-  `Github <http://github.com/coddingtonbear/jirafs/issues>`_.
-- Test status available on
-  `Travis-CI <https://travis-ci.org/coddingtonbear/jirafs>`_.
+.. toctree::
+   :maxdepth: 2
+
+   getting_started
+   commands
+   advanced_commands
+   configuration
+   details
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
