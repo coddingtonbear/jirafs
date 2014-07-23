@@ -1,6 +1,9 @@
 import json
 import os
+import shutil
 import subprocess
+
+from .decorators import stash_local_changes
 
 
 def set_repo_version(repo, version):
@@ -8,7 +11,7 @@ def set_repo_version(repo, version):
         out.write(str(version))
 
 
-def migration_0002(repo):
+def migration_0002(repo, **kwargs):
     """ Creates shadow repository used for storing remote values """
     subprocess.check_call(
         (
@@ -29,7 +32,7 @@ def migration_0002(repo):
     set_repo_version(repo, 2)
 
 
-def migration_0003(repo):
+def migration_0003(repo, **kwargs):
     """ Creates a shadow copy of the issue. """
     os.mkdir(repo.get_shadow_path('.jirafs'))
     storable = {
@@ -48,7 +51,7 @@ def migration_0003(repo):
     set_repo_version(repo, 3)
 
 
-def migration_0004(repo):
+def migration_0004(repo, **kwargs):
     """ Moves remote_files.json into version control. """
     local_remote_files_path = repo.get_metadata_path('remote_files.json')
     jira_remote_files_path = repo.get_shadow_path('.jirafs/remote_files.json')
@@ -67,7 +70,7 @@ def migration_0004(repo):
     set_repo_version(repo, 4)
 
 
-def migration_0005(repo):
+def migration_0005(repo, init=False, **kwargs):
     """ Dummy migration for RST->Jira format change.
 
     Note: TicketFolders older than version 5 cannot be upgraded past
@@ -76,4 +79,33 @@ def migration_0005(repo):
     not quite important enough.
 
     """
+    if init:
+        set_repo_version(repo, 5)
+        return
+
+    repo_path = repo.path
+    temp_path = os.path.normpath(
+        os.path.join(
+            repo_path,
+            '../',
+            repo.path.split('/')[-1] + '.tmp'
+        )
+    )
+
+    repo.clone(
+        repo.issue_url,
+        repo.get_jira,
+        temp_path,
+    )
+    temp_dir = os.listdir(temp_path)
+    for filename in os.listdir(repo_path):
+        if filename not in temp_dir and not filename.endswith('.jira.rst'):
+            shutil.copyfile(
+                os.path.join(repo_path, filename),
+                os.path.join(temp_path, filename),
+            )
+
+    os.rename(temp_path, repo_path)
+    shutil.rmtree(repo_path)
+
     set_repo_version(repo, 5)

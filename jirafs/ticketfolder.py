@@ -682,33 +682,11 @@ class TicketFolder(object):
 
         return status
 
-    @stash_local_changes
     def run_migrations(self, init=False):
         loglevel = logging.INFO
         if init:
             loglevel = logging.DEBUG
         else:
-            # These only run if you're upgrading a previously-created repo.
-            if self.version < constants.MINIMUM_REPO_VERSION:
-                version = self.version
-                # Find the latest version able to open this file.
-                while version < constants.CURRENT_REPO_VERSION:
-                    if version in constants.VERSION_CEILINGS:
-                        maximum_version = constants.VERSION_CEILINGS[version]
-                    # We might not have a mapping for this exact repo
-                    # version, but we may for one of the versions after it
-                    version += 1
-                print(
-                    "This ticket folder is too old for the version of "
-                    "Jirafs you are using.\nPlease either use Jirafs version "
-                    "%s for accessing this ticket folder, or delete and "
-                    "re-clone this ticket folder using `jirafs clone %s`." % (
-                        maximum_version,
-                        self.ticket_number
-                    )
-                )
-                sys.exit(1)
-
             if self.version < constants.CURRENT_REPO_VERSION:
                 print(
                     "Your ticket folder is out-of-date and must be updated."
@@ -723,11 +701,11 @@ class TicketFolder(object):
                 migrations,
                 'migration_%s' % str(self.version + 1).zfill(4)
             )
-            self.migrate(migrator, loglevel=loglevel)
+            self.migrate(migrator, loglevel=loglevel, init=init)
 
-    def migrate(self, migrator, loglevel=logging.INFO):
+    def migrate(self, migrator, loglevel=logging.INFO, init=False):
         self.log('%s: Migration started', (migrator.__name__, ), loglevel)
-        migrator(self)
+        migrator(self, init=init)
         self.log('%s: Migration finished', (migrator.__name__, ), loglevel)
 
     def log(self, message, args=None, level=logging.INFO):
