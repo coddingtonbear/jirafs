@@ -239,8 +239,8 @@ operations directly.
 ~~~~~~~~~
 
 From within an issue folder, will open up a python shell having access
-to a variable named ``ticketfolder`` holding the Python object
-representing the ticket folder you are currently within.
+to a variable named ``folder`` holding the Python object representing
+the ticket folder you are currently within.
 
 
 Interesting Details
