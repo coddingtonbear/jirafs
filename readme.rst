@@ -53,24 +53,24 @@ text files and copies of all attachments currently attached to the issue in JIRA
 
 The following text files are created:
 
-* ``fields.jira.rst``:  This file will show all currently-set field values
+* ``fields.jira``:  This file will show all currently-set field values
   for this JIRA issue (except fields written to their own files; see
-  ``description.jira.rst`` below).  You *can* change field values here
+  ``description.jira`` below).  You *can* change field values here
   by editing the field values in the file, but this functionality has
   only been tested for fields storing text data.
-* ``description.jira.rst``: This file will show the issue's current
+* ``description.jira``: This file will show the issue's current
   description.  You *can* change the issue's description by editing
   the contents of this file.
-* ``comments.read_only.jira.rst``: This file shows all comments currently
+* ``comments.read_only.jira``: This file shows all comments currently
   posted to this issue.  Note that you **cannot** edit the comments in
   this file.
-* ``new_comment.jira.rst``: This file starts out empty, but if you would
+* ``new_comment.jira``: This file starts out empty, but if you would
   like to add a new comment, simply enter some text into this file.
 
 In order to update any of the above data or upload an asset, either
-make the change to a field in ``fields.jira.rst``, edit the issue's
-description in ``description.jira.rst``, write a comment into
-``new_comment.jira.rst``, or copy a new asset into this folder, then run::
+make the change to a field in ``fields.jira``, edit the issue's
+description in ``description.jira``, write a comment into
+``new_comment.jira``, or copy a new asset into this folder, then run::
 
     jirafs commit
 
