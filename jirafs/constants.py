@@ -1,8 +1,8 @@
 # Metadata filenames
-TICKET_DETAILS = 'fields.jira.rst'
-TICKET_COMMENTS = 'comments.read_only.jira.rst'
-TICKET_NEW_COMMENT = 'new_comment.jira.rst'
-TICKET_FILE_FIELD_TEMPLATE = '{field_name}.jira.rst'
+TICKET_DETAILS = 'fields.jira'
+TICKET_COMMENTS = 'comments.read_only.jira'
+TICKET_NEW_COMMENT = 'new_comment.jira'
+TICKET_FILE_FIELD_TEMPLATE = '{field_name}.jira'
 
 # Generic settings
 IGNORE_FILE = '.jirafs_ignore'
@@ -27,4 +27,4 @@ FILE_FIELD_BLACKLIST = [
     'fields'
 ]
 
-CURRENT_REPO_VERSION = 4
+CURRENT_REPO_VERSION = 5

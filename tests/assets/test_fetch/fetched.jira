@@ -1,88 +1,44 @@
-assignee::
-
+* assignee:
     Coddington, Adam (ArbitraryCorp-Atlantis)
-
-components::
-
+* components:
     []
-
-created::
-
+* created:
     2014-07-07T22:32:27.000-0400
-
-duedate::
-
+* duedate:
     
-
-environment::
-
+* environment:
     
-
-fixVersions::
-
+* fixVersions:
     []
-
-issuelinks::
-
+* issuelinks:
     []
-
-issuetype::
-
+* issuetype:
     Story
-
-labels::
-
+* labels:
     []
-
-lastViewed::
-
+* lastViewed:
     2014-07-10T01:44:18.539-0400
-
-priority::
-
+* priority:
     Not a priority
-
-project::
-
+* project:
     ALPHA
-
-reporter::
-
+* reporter:
     Coddington, Adam (ArbitraryCorp-Atlantis)
-
-resolution::
-
+* resolution:
     
-
-resolutiondate::
-
+* resolutiondate:
     
-
-status::
-
+* status:
     Open
-
-subtasks::
-
+* subtasks:
     []
-
-summary::
-
+* summary:
     Test Issue
-
-updated::
-
+* updated:
     2014-07-10T01:44:18.000-0400
-
-versions::
-
+* versions:
     []
-
-votes::
-
+* votes:
     0
-
-workratio::
-
+* workratio:
     -1
-

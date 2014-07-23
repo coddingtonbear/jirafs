@@ -4,7 +4,7 @@ import re
 from jirafs import constants
 
 
-class RSTFieldManager(dict):
+class JiraFieldManager(dict):
     FIELD_MATCHER = re.compile(
         '^%s$' % (
             constants.TICKET_FILE_FIELD_TEMPLATE.replace(
@@ -15,7 +15,7 @@ class RSTFieldManager(dict):
 
     def __init__(self):
         self._data = self.load()
-        super(RSTFieldManager, self).__init__(self._data)
+        super(JiraFieldManager, self).__init__(self._data)
 
     def __sub__(self, other):
         differing = {}
@@ -33,9 +33,9 @@ class RSTFieldManager(dict):
             )
 
         if revision:
-            return GitRevisionRSTFieldManager(folder, revision)
+            return GitRevisionJiraFieldManager(folder, revision)
         else:
-            return LocalFileRSTFieldManager(folder, path)
+            return LocalFileJiraFieldManager(folder, path)
 
     def get_requested_per_ticket_fields(self):
         return constants.FILE_FIELDS
@@ -49,17 +49,11 @@ class RSTFieldManager(dict):
         Parses through the string using the following RST-derived
         pattern::
 
-            0 | FIELD_NAME::
-            1 |
-            2 |     VALUE
+            0 | * Field
+            1 |     VALUE
+            2 |     MORE VALUE
 
         """
-        FIELD_DECLARED = 0
-        PREAMBLE = 1
-        VALUE = 2
-
-        state = None
-
         data = {}
         field_name = ''
         value = ''
@@ -67,25 +61,13 @@ class RSTFieldManager(dict):
             return data
         lines = string.split('\n')
         for idx, line in enumerate(lines):
-            line = line.replace('\t', '    ')
-            if state == FIELD_DECLARED and not line:
-                state = PREAMBLE
-            elif (
-                (state == VALUE or state is None)
-                and re.match('^(\w+)::', line)
-            ):
+            if line.startswith('*'):
                 if value:
                     data[field_name] = value.strip()
                     value = ''
-                state = FIELD_DECLARED
-                field_name = re.match('^(\w+)::', line).group(1)
-                if not field_name:
-                    raise ValueError(
-                        "Syntax error on line %s" % idx
-                    )
-            elif (state == PREAMBLE or state == VALUE):
-                state = VALUE
-                value = value + '\n' + line[4:]  # Remove first indentation
+                field_name = re.match('^\* (\w+):$', line).group(1)
+            elif field_name:
+                value = value + '\n' + line.strip()
         if value:
             data[field_name] = value.strip()
 
@@ -113,11 +95,11 @@ class RSTFieldManager(dict):
         return fields
 
 
-class LocalFileRSTFieldManager(RSTFieldManager):
+class LocalFileJiraFieldManager(JiraFieldManager):
     def __init__(self, folder, path):
         self.folder = folder
         self.path = path
-        super(LocalFileRSTFieldManager, self).__init__()
+        super(LocalFileJiraFieldManager, self).__init__()
 
     def get_file_contents(self, path):
         full_path = os.path.join(self.path, path)
@@ -141,11 +123,11 @@ class LocalFileRSTFieldManager(RSTFieldManager):
         raise NotImplementedError()
 
 
-class GitRevisionRSTFieldManager(RSTFieldManager):
+class GitRevisionJiraFieldManager(JiraFieldManager):
     def __init__(self, folder, revision):
         self.folder = folder
         self.revision = revision
-        super(GitRevisionRSTFieldManager, self).__init__()
+        super(GitRevisionJiraFieldManager, self).__init__()
 
     def get_file_contents(self, path):
         return self.folder.get_local_file_at_revision(

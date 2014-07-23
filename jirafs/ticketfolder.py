@@ -13,7 +13,7 @@ from . import constants
 from . import exceptions
 from . import migrations
 from .decorators import stash_local_changes
-from .rstfieldmanager import RSTFieldManager
+from .jirafieldmanager import JiraFieldManager
 
 
 logger = logging.getLogger(__name__)
@@ -407,7 +407,7 @@ class TicketFolder(object):
             kwargs['path'] = path if path else self.path
         else:
             kwargs['revision'] = revision
-        return RSTFieldManager.create(
+        return JiraFieldManager.create(
             self,
             **kwargs
         )
@@ -491,10 +491,9 @@ class TicketFolder(object):
                     elif field in constants.NO_DETAIL_FIELDS:
                         continue
 
-                    dets.write('%s::\n\n' % field)
+                    dets.write('* %s:\n' % field)
                     for line in value.replace('\r\n', '\n').split('\n'):
                         dets.write('    %s\n' % line)
-                    dets.write('\n')
 
         comments_filename = self.get_shadow_path(constants.TICKET_COMMENTS)
         with open(comments_filename, 'w') as comm:
@@ -624,6 +623,7 @@ class TicketFolder(object):
 
         return status
 
+    @stash_local_changes
     def run_migrations(self, silent=False):
         loglevel = logging.INFO
         if silent:

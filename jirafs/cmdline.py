@@ -8,6 +8,7 @@ import time
 import webbrowser
 
 from blessings import Terminal
+import ipdb
 import six
 
 from .exceptions import (
@@ -120,6 +121,12 @@ def log(args, jira, path, **kwargs):
 
     folder = TicketFolder(path, jira)
     print(folder.get_log())
+
+
+@command('Open debug console')
+def debug(args, jira, path, **kwargs):
+    folder = TicketFolder(path, jira)
+    ipdb.set_trace()
 
 
 @command('Get the status of the current folder', try_subfolders=True)

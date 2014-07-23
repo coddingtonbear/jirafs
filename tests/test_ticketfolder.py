@@ -74,10 +74,10 @@ class TestTicketFolder(BaseTestCase):
 
     def test_cloned_issue_successfully(self):
         paths = [
-            'comments.read_only.jira.rst',
-            'fields.jira.rst',
-            'description.jira.rst',
-            'new_comment.jira.rst',
+            'comments.read_only.jira',
+            'fields.jira',
+            'description.jira',
+            'new_comment.jira',
             '.jirafs/gitignore',
             '.jirafs/issue.json',
             '.jirafs/operation.log',
@@ -110,8 +110,8 @@ class TestTicketFolder(BaseTestCase):
         )
         self.ticketfolder.fetch()
 
-        expected_result = self.get_asset_contents('test_fetch/fetched.rst')
-        with open(self.ticketfolder.get_shadow_path('fields.jira.rst')) as _in:
+        expected_result = self.get_asset_contents('test_fetch/fetched.jira')
+        with open(self.ticketfolder.get_shadow_path('fields.jira')) as _in:
             actual_result = _in.read()
 
         self.assertEqual(actual_result, expected_result)
@@ -135,8 +135,8 @@ class TestTicketFolder(BaseTestCase):
                 )
 
     def test_push_rejected_if_updated(self):
-        src_path = self.get_asset_path('test_fetch/fetched.rst')
-        dst_path = self.ticketfolder.get_shadow_path('fields.jira.rst')
+        src_path = self.get_asset_path('test_fetch/fetched.jira')
+        dst_path = self.ticketfolder.get_shadow_path('fields.jira')
         shutil.copyfile(
             src_path,
             dst_path,
@@ -167,8 +167,8 @@ class TestTicketFolder(BaseTestCase):
         self.assertEqual(expected_output, actual_output)
 
     def test_status_local_changes(self):
-        src_path = self.get_asset_path('test_fetch/fetched.rst')
-        dst_path = self.ticketfolder.get_local_path('fields.jira.rst')
+        src_path = self.get_asset_path('test_fetch/fetched.jira')
+        dst_path = self.ticketfolder.get_local_path('fields.jira')
         shutil.copyfile(
             src_path,
             dst_path,
@@ -185,7 +185,7 @@ class TestTicketFolder(BaseTestCase):
     def test_status_new_comment(self):
         arbitrary_comment = 'New Comment'
 
-        comment = self.ticketfolder.get_local_path('new_comment.jira.rst')
+        comment = self.ticketfolder.get_local_path('new_comment.jira')
         with open(comment, 'w') as out:
             out.write(arbitrary_comment)
 
