@@ -105,7 +105,7 @@ def migration_0005(repo, init=False, **kwargs):
                 os.path.join(temp_path, filename),
             )
 
-    os.rename(temp_path, repo_path)
     shutil.rmtree(repo_path)
+    os.rename(temp_path, repo_path)
 
     set_repo_version(repo, 5)
