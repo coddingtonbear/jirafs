@@ -506,8 +506,22 @@ class TicketFolder(object):
                         comment.author
                     )
                 )
-                lines = textwrap.wrap(comment.body.replace('\r\n', '\n'), 80)
+                final_lines = []
+                lines = comment.body.replace('\r\n', '\n').split('\n')
                 for line in lines:
+                    if not line:
+                        final_lines.append('')
+                    else:
+                        final_lines.extend(
+                            textwrap.wrap(
+                                line,
+                                width=70,
+                                expand_tabs=False,
+                                replace_whitespace=False,
+                                break_long_words=False,
+                            )
+                        )
+                for line in final_lines:
                     comm.write('    %s\n' % line)
                 comm.write('\n')
 
