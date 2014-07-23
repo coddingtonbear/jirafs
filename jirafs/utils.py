@@ -73,15 +73,11 @@ def get_default_jira_server():
 
 
 def get_jira(domain=None):
-    # Must happen before loading config; we may be making changes
-    default_domain = get_default_jira_server()
     config = get_config()
 
     login_data = {}
 
     if domain is None:
-        section = constants.CONFIG_JIRA
-    elif default_domain == domain:
         section = constants.CONFIG_JIRA
     else:
         section = domain
@@ -92,7 +88,9 @@ def get_jira(domain=None):
     if domain is not None:
         login_data['server'] = domain
     else:
-        login_data['server'] = default_domain
+        login_data['server'] = get_default_jira_server()
+        # Config may have been changed as a result of the above; reload.
+        config = get_config()
 
     if not config.has_option(section, 'username'):
         value = get_user_input(

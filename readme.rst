@@ -38,9 +38,10 @@ You'll need to have a local copy of the JIRA issues you'd like to edit
 before you can update the contents of issues, so you will want to find
 a place that you can "clone" (create a text-file based copy of) the
 issue you're concerned about, then run the following (replacing
-``MYISSUE-1024`` with the issue number you are concerned about)::
+``http://my.jira.server/browse/MYISSUE-1024`` with the issue url you
+are concerned about)::
 
-    jirafs clone MYISSUE-1024
+    jirafs clone http://my.jira.server/browse/MYISSUE-1024
 
 The first time you run this command, it will ask you for a series of details
 that it will use for communicating with JIRA; don't worry: although all of this
@@ -145,8 +146,8 @@ Commands
    In the latter case, the command will be ran for every subordinate
    issue folder.
 
-``clone MYISSUE-1024``
-~~~~~~~~~~~~~~~~~~~~~~
+``clone http://my.jira.server/browse/MYISSUE-1024``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Possible forms include:
 
