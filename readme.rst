@@ -74,9 +74,16 @@ description in ``description.jira``, write a comment into
 
     jirafs commit
 
-from within the folder ``jirafs`` created earlier.  Running this command
-will mark the changes you've made as ready for submission to JIRA.  At
-any time, you can run::
+from within the folder ``jirafs`` created earlier.
+
+.. note::
+
+   Unlike git, you need not 'stage' files using a command analogous to
+   git's "add" command when using Jirafs; all uncommitted files will
+   automatically be included in any commit made.
+
+Running this command will mark the changes you've made as ready for
+submission to JIRA.  At any time, you can run::
 
     jirafs status
 
@@ -150,11 +157,19 @@ an actual JIRA issue number), and download any assets attached to said issue.
 From within an issue folder, commits local changes and marks them for
 submission to JIRA next time ``push`` is run.
 
+.. note::
+
+   Unlike using git (but like mercurial), you need not stage files
+   (by running a command analogous to git's 'add') before committing.
+   The commit operation will automatically commit changes to all
+   un-committed files.
+
 ``pull`` *
 ~~~~~~~~~~
 
-From within an issue folder, fetches remote changes from JIRA and applies
-the remote changes to your local copy.
+From within an issue folder, fetches remote changes from JIRA and merges
+the changes into your local copy.  This command is identical to running
+``fetch`` followed by ``merge``.
 
 ``push`` *
 ~~~~~~~~~~
@@ -162,11 +177,36 @@ the remote changes to your local copy.
 From within an issue folder, discovers any local changes, and pushes your
 local changes to JIRA.
 
+``status`` *
+~~~~~~~~~~~~
+
+From within an issue folder, will report both any changes you have not
+yet committed, as well as any changes that would take place were you to
+run ``jirafs push``.
+
 ``open`` *
 ~~~~~~~~~~
 
 From within an issue folder, opens the current JIRA issue in your
-webbrowser.
+default web browser.
+
+Advanced Commands
+-----------------
+
+You will probably not have a need to use the below commands, but they
+are available for adventurous users.
+
+``fetch``
+~~~~~~~~~
+
+Fetch upstream changes from JIRA, but do not apply them to your local
+copy.  To apply the fetched changes to your local copy, run ``merge``.
+
+``merge``
+~~~~~~~~~
+
+From within an issue folder, merges previously-fetched but unmerged changes
+into your local copy.
 
 ``init``
 ~~~~~~~~
@@ -174,12 +214,6 @@ webbrowser.
 From within a folder named after an issue, converts the existing
 folder into a Jirafs issue folder.  This can be useful if you have
 already been storing issue-specific files on your filesystem.
-
-``status`` *
-~~~~~~~~~~~~
-
-From within an issue folder, will report any changes that would take place
-were you to run ``jirafs push``.
 
 ``diff``
 ~~~~~~~~
@@ -200,6 +234,13 @@ From within an issue folder, will provide direct access to this issue folder's
 internal git repository.  This interface is not intended for non-developer
 use; please make sure you know what you're doing before performing git
 operations directly.
+
+``debug``
+~~~~~~~~~
+
+From within an issue folder, will open up a python shell having access
+to a variable named ``ticketfolder`` holding the Python object
+representing the ticket folder you are currently within.
 
 
 Interesting Details
