@@ -107,6 +107,10 @@ class TicketFolder(object):
         )
 
     def infer_ticket_number(self):
+        if os.path.isfile(self.get_metadata_path('issue_number')):
+            with open(self.get_metadata_path('issue_number'), 'r') as in_:
+                return in_.read().strip()
+
         raw_number = self.path.split('/')[-1:][0].upper()
         if not re.match('^\w+-\d+$', raw_number):
             raise exceptions.CannotInferTicketNumberFromFolderName(
@@ -178,7 +182,7 @@ class TicketFolder(object):
         return self.get_metadata_path(constants.TICKET_OPERATION_LOG)
 
     @classmethod
-    def initialize_ticket_folder(cls, path, jira):
+    def initialize_ticket_folder(cls, ticket_number, path, jira):
         path = os.path.realpath(path)
 
         metadata_path = os.path.join(
@@ -186,6 +190,9 @@ class TicketFolder(object):
             constants.METADATA_DIR,
         )
         os.mkdir(metadata_path)
+
+        with open(os.path.join(metadata_path, 'issue_number'), 'w') as out:
+            out.write(ticket_number)
 
         # Create bare git repository so we can easily detect changes.
         excludes_path = os.path.join(metadata_path, 'gitignore')
@@ -235,10 +242,12 @@ class TicketFolder(object):
         return instance
 
     @classmethod
-    def clone(cls, path, jira):
+    def clone(cls, ticket_number, jira, path=None):
+        if not path:
+            path = ticket_number
         path = os.path.realpath(path)
         os.mkdir(path)
-        folder = cls.initialize_ticket_folder(path, jira)
+        folder = cls.initialize_ticket_folder(ticket_number, path, jira)
         folder.pull()
         return folder
 

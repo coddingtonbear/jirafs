@@ -225,10 +225,20 @@ def clone(args, jira, path, **kwargs):
         nargs=1,
         type=six.text_type
     )
+    parser.add_argument(
+        'path',
+        nargs='*',
+        type=six.text_type,
+    )
     args = parser.parse_args(args)
     ticket_number = args.ticket[0].upper()
+    path = args.path[0] if args.path else None
 
-    TicketFolder.clone(ticket_number, jira)
+    TicketFolder.clone(
+        path=path,
+        ticket_number=ticket_number,
+        jira=jira,
+    )
 
 
 @command('Open this ticket in JIRA', try_subfolders=True)
