@@ -631,10 +631,20 @@ class TicketFolder(object):
             loglevel = logging.DEBUG
         else:
             if self.version < constants.MINIMUM_REPO_VERSION:
+                version = self.version
+                # Find the latest version able to open this file.
+                while version < constants.CURRENT_REPO_VERSION:
+                    if version in constants.VERSION_CEILINGS:
+                        maximum_version = constants.VERSION_CEILINGS[version]
+                    # We might not have a mapping for this exact repo
+                    # version, but we may for one of the versions after it
+                    version += 1
                 print(
-                    "This ticket folder is too old for this version of "
-                    "Jirafs; please delete this folder and re-clone this "
-                    "ticket using `jirafs clone %s`." % (
+                    "This ticket folder is too old for the version of "
+                    "Jirafs you are using.\nPlease either use Jirafs version "
+                    "%s for accessing this ticket folder, or delete and "
+                    "re-clone this ticket folder using `jirafs clone %s`." % (
+                        maximum_version,
                         self.ticket_number
                     )
                 )
