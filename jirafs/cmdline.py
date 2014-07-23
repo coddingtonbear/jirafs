@@ -10,13 +10,14 @@ import webbrowser
 from blessings import Terminal
 import ipdb
 import six
+from six.moves.urllib import parse
 
 from .exceptions import (
     LocalCopyOutOfDate,
     NotTicketFolderException
 )
 from .ticketfolder import TicketFolder
-from .utils import lazy_get_jira
+from .utils import lazy_get_jira, get_default_jira_server
 
 
 logger = logging.getLogger(__name__)
@@ -221,7 +222,7 @@ def status(args, jira, path, **kwargs):
 def clone(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'ticket',
+        'ticket_url',
         nargs=1,
         type=six.text_type
     )
@@ -231,12 +232,19 @@ def clone(args, jira, path, **kwargs):
         type=six.text_type,
     )
     args = parser.parse_args(args)
-    ticket_number = args.ticket[0].upper()
+    ticket_url = args.ticket_url[0]
+    ticket_url_parts = parse.urlparse(ticket_url)
+    if not ticket_url_parts.netloc:
+        default_server = get_default_jira_server()
+        ticket_url = parse.urljoin(
+            default_server,
+            'browse/' + ticket_url + '/'
+        )
     path = args.path[0] if args.path else None
 
     TicketFolder.clone(
         path=path,
-        ticket_number=ticket_number,
+        ticket_url=ticket_url,
         jira=jira,
     )
 

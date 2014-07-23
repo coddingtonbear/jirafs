@@ -52,44 +52,69 @@ def get_config(additional_configs=None):
     return parser
 
 
-def get_jira():
+def get_default_jira_server():
     config = get_config()
-
-    login_data = {}
 
     if not config.has_section(constants.CONFIG_JIRA):
         config.add_section(constants.CONFIG_JIRA)
 
     if not config.has_option(constants.CONFIG_JIRA, 'server'):
         value = get_user_input(
-            "JIRA URL: "
+            "Default JIRA URL: "
         )
-        login_data['server'] = value
         config.set(constants.CONFIG_JIRA, 'server', value)
-    else:
-        login_data['server'] = config.get(constants.CONFIG_JIRA, 'server')
 
-    if not config.has_option(constants.CONFIG_JIRA, 'username'):
+    with open(
+            os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG), 'w'
+    ) as global_config:
+        config.write(global_config)
+
+    return config.get(constants.CONFIG_JIRA, 'server')
+
+
+def get_jira(domain=None):
+    # Must happen before loading config; we may be making changes
+    default_domain = get_default_jira_server()
+    config = get_config()
+
+    login_data = {}
+
+    if domain is None:
+        section = constants.CONFIG_JIRA
+    elif default_domain == domain:
+        section = constants.CONFIG_JIRA
+    else:
+        section = domain
+
+    if not config.has_section(section):
+        config.add_section(section)
+
+    if domain is not None:
+        login_data['server'] = domain
+    else:
+        login_data['server'] = default_domain
+
+    if not config.has_option(section, 'username'):
         value = get_user_input(
-            "JIRA Username:"
+            "JIRA Username (%s):" % login_data['server']
         )
         login_data['username'] = value
-        config.set(constants.CONFIG_JIRA, 'username', value)
+        config.set(section, 'username', value)
     else:
-        login_data['username'] = config.get(constants.CONFIG_JIRA, 'username')
+        login_data['username'] = config.get(section, 'username')
 
-    if not config.has_option(constants.CONFIG_JIRA, 'password'):
+    if not config.has_option(section, 'password'):
         value = get_user_input(
-            "JIRA Password:",
+            "JIRA Password (%s):" % login_data['server'],
             password=True,
         )
         login_data['password'] = value
 
         save = get_user_input("Save JIRA Password (Y/N)?", boolean=True)
         if save:
-            config.set(constants.CONFIG_JIRA, 'password', value)
+            config.set(section, 'password', value)
     else:
-        login_data['password'] = config.get(constants.CONFIG_JIRA, 'password')
+        login_data['password'] = config.get(section, 'password')
 
     basic_auth = (
         login_data.pop('username'),
@@ -106,4 +131,4 @@ def get_jira():
 
 
 def lazy_get_jira():
-    return lambda: get_jira()
+    return lambda domain: get_jira(domain)

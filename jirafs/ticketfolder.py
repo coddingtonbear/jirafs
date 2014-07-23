@@ -10,12 +10,14 @@ import textwrap
 
 from jira.resources import Issue
 import six
+from six.moves.urllib import parse
 
 from . import constants
 from . import exceptions
 from . import migrations
 from .decorators import stash_local_changes
 from .jirafieldmanager import JiraFieldManager
+from .utils import get_default_jira_server
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +37,7 @@ class TicketFolder(object):
                 )
             )
 
-        self.ticket_number = self.infer_ticket_number()
+        self.issue_url = self.get_ticket_url()
         if migrate:
             self.run_migrations()
 
@@ -46,9 +48,27 @@ class TicketFolder(object):
                 out.write('')
 
     @property
+    def jira_base(self):
+        parts = parse.urlparse(self.issue_url)
+        return '{scheme}://{netloc}'.format(
+            scheme=parts.scheme,
+            netloc=parts.netloc,
+        )
+
+    @property
+    def ticket_number(self):
+        parts = parse.urlparse(self.issue_url)
+        match = re.match('\/browse\/(\w+-\d+)\/?.*', parts.path)
+        if not match:
+            raise ValueError(
+                "Could not infer ticket number from URL %s" % self.issue_url
+            )
+        return match.group(1)
+
+    @property
     def jira(self):
         if not hasattr(self, '_jira'):
-            self._jira = self.get_jira()
+            self._jira = self.get_jira(self.jira_base)
         return self._jira
 
     @property
@@ -106,11 +126,19 @@ class TicketFolder(object):
             'merge-base', 'master', 'jira',
         )
 
-    def infer_ticket_number(self):
-        if os.path.isfile(self.get_metadata_path('issue_number')):
-            with open(self.get_metadata_path('issue_number'), 'r') as in_:
+    def get_ticket_url(self):
+        if os.path.isfile(self.get_metadata_path('issue_url')):
+            with open(self.get_metadata_path('issue_url'), 'r') as in_:
                 return in_.read().strip()
 
+        jira_base = get_default_jira_server()
+        ticket_number = self.infer_ticket_number()
+        return parse.urljoin(
+            jira_base,
+            'browse/' + ticket_number + '/',
+        )
+
+    def infer_ticket_number(self):
         raw_number = self.path.split('/')[-1:][0].upper()
         if not re.match('^\w+-\d+$', raw_number):
             raise exceptions.CannotInferTicketNumberFromFolderName(
@@ -182,7 +210,7 @@ class TicketFolder(object):
         return self.get_metadata_path(constants.TICKET_OPERATION_LOG)
 
     @classmethod
-    def initialize_ticket_folder(cls, ticket_number, path, jira):
+    def initialize_ticket_folder(cls, ticket_url, path, jira):
         path = os.path.realpath(path)
 
         metadata_path = os.path.join(
@@ -191,8 +219,8 @@ class TicketFolder(object):
         )
         os.mkdir(metadata_path)
 
-        with open(os.path.join(metadata_path, 'issue_number'), 'w') as out:
-            out.write(ticket_number)
+        with open(os.path.join(metadata_path, 'issue_url'), 'w') as out:
+            out.write(ticket_url)
 
         # Create bare git repository so we can easily detect changes.
         excludes_path = os.path.join(metadata_path, 'gitignore')
@@ -242,12 +270,12 @@ class TicketFolder(object):
         return instance
 
     @classmethod
-    def clone(cls, ticket_number, jira, path=None):
+    def clone(cls, ticket_url, jira, path=None):
         if not path:
-            path = ticket_number
+            path = re.match('.*\/browse\/(\w+-\d+)\/?', ticket_url).group(1)
         path = os.path.realpath(path)
         os.mkdir(path)
-        folder = cls.initialize_ticket_folder(ticket_number, path, jira)
+        folder = cls.initialize_ticket_folder(ticket_url, path, jira)
         folder.pull()
         return folder
 
