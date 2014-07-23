@@ -11,13 +11,14 @@ import textwrap
 from jira.resources import Issue
 import six
 from six.moves.urllib import parse
+from six.moves import input
 
 from . import constants
 from . import exceptions
 from . import migrations
 from .decorators import stash_local_changes
 from .jirafieldmanager import JiraFieldManager
-from .utils import get_default_jira_server
+from .utils import get_default_jira_server, convert_to_boolean
 
 
 logger = logging.getLogger(__name__)
@@ -687,6 +688,7 @@ class TicketFolder(object):
         if init:
             loglevel = logging.DEBUG
         else:
+            # These only run if you're upgrading a previously-created repo.
             if self.version < constants.MINIMUM_REPO_VERSION:
                 version = self.version
                 # Find the latest version able to open this file.
@@ -707,6 +709,15 @@ class TicketFolder(object):
                 )
                 sys.exit(1)
 
+            if self.version < constants.CURRENT_REPO_VERSION:
+                print(
+                    "Your ticket folder is out-of-date and must be updated."
+                    "Migrations are not necessarily lossless; please record "
+                    "your current changes before proceeding with migrations."
+                )
+                result = convert_to_boolean(input("Proceed? (N/y)"))
+                if not result:
+                    sys.exit(1)
         while self.version < constants.CURRENT_REPO_VERSION:
             migrator = getattr(
                 migrations,

@@ -1,9 +1,6 @@
 import json
 import os
-import re
 import subprocess
-
-from . import constants
 
 
 def set_repo_version(repo, version):
