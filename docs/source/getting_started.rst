@@ -87,7 +87,7 @@ running::
 
 Please consider the above to be just a simple overview -- there are a
 variety of other commands you can run to have finer-grained control
-over how the issue folder is synchronized with JIRA; see `Commands`_
+over how the issue folder is synchronized with JIRA; see :doc:`commands`
 for more details.
 
 .. note::

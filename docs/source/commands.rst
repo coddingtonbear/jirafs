@@ -1,6 +1,10 @@
 Common Commands
 ===============
 
+The following commands are sure to be commonly used.  Be sure to 
+check out :doc:`advanced_commands` if you are curious about
+less-commonly-used functionality.
+
 .. note::
 
    Commands marked with an asterisk can be ran from either an issue
@@ -8,6 +12,7 @@ Common Commands
 
    In the latter case, the command will be ran for every subordinate
    issue folder.
+
 
 ``clone http://my.jira.server/browse/MYISSUE-1024``
 ---------------------------------------------------
