@@ -582,11 +582,14 @@ class TicketFolder(object):
 
     def commit(self, message, *args):
         self.run_git_command(
-            'add', '-A', failure_ok=False
+            'add', '-A'
         )
-        self.run_git_command(
-            'commit', '-m', message, *args, failure_ok=False
-        )
+        try:
+            self.run_git_command(
+                'commit', '-m', message, *args
+            )
+        except exceptions.GitCommandError:
+            print("Nothing to commit")
 
     def is_up_to_date(self):
         jira_commit = self.run_git_command('rev-parse', 'jira')
