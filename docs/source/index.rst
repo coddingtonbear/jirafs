@@ -29,10 +29,3 @@ modeled off of ``git`` and ``hg``.
    configuration
    details
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
