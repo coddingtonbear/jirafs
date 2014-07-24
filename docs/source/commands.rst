@@ -35,8 +35,8 @@ submission to JIRA next time ``push`` is run.
 
 .. note::
 
-   Unlike using git (but like mercurial), you need not stage files
-   (by running a command analogous to git's 'add') before committing.
+   Unlike git (but like mercurial), you do not need to stage files
+   by running a command analogous to git's 'add' before committing.
    The commit operation will automatically commit changes to all
    un-committed files.
 

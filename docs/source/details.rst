@@ -31,6 +31,8 @@ files/folders:
   specific issue folder.  You can review this log to see what ``jirafs``
   has done in the past.
 
+.. _vim-plugin:
+
 VIM Plugin
 ----------
 
