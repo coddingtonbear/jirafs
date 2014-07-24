@@ -98,14 +98,6 @@ def push(args, jira, path, **kwargs):
         )
 
 
-@command('Create a new ticket folder at your current path')
-def init(args, jira, path, **kwargs):
-    parser = argparse.ArgumentParser()
-    parser.parse_args(args)
-
-    TicketFolder.initialize_ticket_folder(path, jira)
-
-
 @command('Run a command in this issue\'s git repository')
 def git(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()

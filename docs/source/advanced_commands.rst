@@ -16,13 +16,6 @@ copy.  To apply the fetched changes to your local copy, run ``merge``.
 From within an issue folder, merges previously-fetched but unmerged changes
 into your local copy.
 
-``init``
---------
-
-From within a folder named after an issue, converts the existing
-folder into a Jirafs issue folder.  This can be useful if you have
-already been storing issue-specific files on your filesystem.
-
 ``diff``
 --------
 
