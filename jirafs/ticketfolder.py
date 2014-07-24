@@ -16,9 +16,9 @@ from six.moves import input
 from . import constants
 from . import exceptions
 from . import migrations
+from . import utils
 from .decorators import stash_local_changes
 from .jirafieldmanager import JiraFieldManager
-from .utils import get_default_jira_server, convert_to_boolean
 
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,32 @@ class TicketFolder(object):
             with open(comment_path, 'w') as out:
                 out.write('')
 
+    def get_config(self):
+        local_config_file = self.get_metadata_path('config')
+        additional_configs = []
+        if os.path.exists(local_config_file):
+            additional_configs.append(
+                local_config_file
+            )
+
+        return utils.get_config(additional_configs)
+
+    def set_config_value(self, section, key, value):
+        local_config_file = self.get_metadata_path('config')
+
+        config = utils.get_config(
+            additional_configs=[
+                local_config_file,
+            ],
+            include_global=False,
+        )
+        if not config.has_section(section):
+            config.add_section(section)
+        config.set(section, key, value)
+
+        with open(local_config_file, 'w') as out:
+            config.write(out)
+
     @property
     def jira_base(self):
         parts = parse.urlparse(self.issue_url)
@@ -69,7 +95,10 @@ class TicketFolder(object):
     @property
     def jira(self):
         if not hasattr(self, '_jira'):
-            self._jira = self.get_jira(self.jira_base)
+            self._jira = self.get_jira(
+                self.jira_base,
+                config=self.get_config()
+            )
         return self._jira
 
     @property
@@ -132,7 +161,7 @@ class TicketFolder(object):
             with open(self.get_metadata_path('issue_url'), 'r') as in_:
                 return in_.read().strip()
 
-        jira_base = get_default_jira_server()
+        jira_base = utils.get_default_jira_server()
         ticket_number = self.infer_ticket_number()
         return parse.urljoin(
             jira_base,
@@ -696,7 +725,7 @@ class TicketFolder(object):
                     "Migrations are not necessarily lossless; please record "
                     "your current changes before proceeding with migrations."
                 )
-                result = convert_to_boolean(input("Proceed? (N/y)"))
+                result = utils.convert_to_boolean(input("Proceed? (N/y)"))
                 if not result:
                     sys.exit(1)
         while self.version < constants.CURRENT_REPO_VERSION:

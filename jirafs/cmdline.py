@@ -10,14 +10,16 @@ import webbrowser
 from blessings import Terminal
 import ipdb
 import six
+from six.moves import configparser
 from six.moves.urllib import parse
 
+from . import constants
+from . import utils
 from .exceptions import (
     LocalCopyOutOfDate,
     NotTicketFolderException
 )
 from .ticketfolder import TicketFolder
-from .utils import lazy_get_jira, get_default_jira_server
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +28,7 @@ logger = logging.getLogger(__name__)
 COMMANDS = {}
 
 
-def command(desc, name=None, try_subfolders=True, aliases=None):
+def command(desc, name=None, try_subfolders=False, aliases=None):
     def decorator(func):
         func_name = name or func.__name__
         func.description = desc
@@ -37,6 +39,15 @@ def command(desc, name=None, try_subfolders=True, aliases=None):
                 COMMANDS[alias] = func
         return func
     return decorator
+
+
+def short_status_line(folder):
+    return (
+        "On ticket {ticket} ({url})".format(
+            ticket=folder.ticket_number,
+            url=folder.cached_issue.permalink(),
+        )
+    )
 
 
 @command('Fetch remote changes', try_subfolders=True)
@@ -163,12 +174,7 @@ def status(args, jira, path, **kwargs):
     if args.format == 'json':
         print(json.dumps(folder.status()))
     else:
-        print(
-            "On ticket {ticket} ({url})".format(
-                ticket=folder.ticket_number,
-                url=folder.cached_issue.permalink(),
-            )
-        )
+        print(short_status_line(folder))
         folder_status = folder.status()
         if not folder_status['up_to_date']:
             print(
@@ -227,7 +233,7 @@ def clone(args, jira, path, **kwargs):
     ticket_url = args.ticket_url[0]
     ticket_url_parts = parse.urlparse(ticket_url)
     if not ticket_url_parts.netloc:
-        default_server = get_default_jira_server()
+        default_server = utils.get_default_jira_server()
         ticket_url = parse.urljoin(
             default_server,
             'browse/' + ticket_url + '/'
@@ -262,6 +268,88 @@ def diff(args, jira, path, **kwargs):
         print(result)
 
 
+@command('Get or set configuration values')
+def config(args, jira, path, **kwargs):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--list', action='store_true')
+    parser.add_argument('--get', action='store_true')
+    parser.add_argument('--set', action='store_true')
+    parser.add_argument('--global', dest='global_config', action='store_true')
+    parser.add_argument('params', nargs='*')
+    args = parser.parse_args(args)
+    if not args.list and not args.get and not args.set:
+        parser.error(
+            'Please specify action using either --list, '
+            '--set, or --get.'
+        )
+
+    if args.global_config:
+        config = utils.get_config()
+    else:
+        try:
+            folder = TicketFolder(path, jira)
+            config = folder.get_config()
+        except NotTicketFolderException:
+            config = utils.get_config()
+
+    if args.list:
+        if len(args.params) != 0:
+            parser.error(
+                "--list requires no parameters."
+            )
+        for section in config.sections():
+            parameters = config.items(section)
+            for key, value in parameters:
+                line = (
+                    "{section}.{key}={value}".format(
+                        section=section,
+                        key=key,
+                        value=value
+                    )
+                )
+                print(line)
+    elif args.get:
+        if len(args.params) != 1:
+            parser.error(
+                "--get requires exactly one parameter, the configuration "
+                "value to display."
+            )
+        section, key = args.params[0].rsplit('.', 1)
+        try:
+            print(config.get(section, key))
+        except configparser.Error:
+            pass
+    elif args.set:
+        if len(args.params) != 2:
+            parser.error(
+                "--set requires exactly two parameters, the configuration "
+                "key, and the configuration value."
+            )
+        section, key = args.params[0].rsplit('.', 1)
+        value = args.params[1]
+
+        if args.global_config:
+            config = utils.get_config()
+            if not config.has_section(section):
+                config.add_section(section)
+            config.set(section, key, value)
+            with open(
+                os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG)
+            ) as out:
+                config.write(out)
+        else:
+            try:
+                folder = TicketFolder(path, jira)
+                folder.set_config_value(
+                    section, key, value
+                )
+            except NotTicketFolderException:
+                parser.error(
+                    "Not currently within a ticket folder.  To set a "
+                    "global configuration value, use the --global option."
+                )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Edit Jira issues locally from your filesystem',
@@ -282,7 +370,7 @@ def main():
         command_name,
         extra
     )
-    jira = lazy_get_jira()
+    jira = utils.lazy_get_jira()
     try:
         fn(extra, jira=jira, path=os.getcwd())
     except NotTicketFolderException:

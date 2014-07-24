@@ -28,6 +28,21 @@ made.
 From within an issue folder, will print out the log file recording actions
 Jirafs has performed for this ticket folder.
 
+``config``
+----------
+
+Get, set, or list configuration values.  Requires use of one of the following
+sub-options:
+
+* ``--get <SETTING_NAME>``: Get the value of this specific parameter name.
+* ``--set <SETTING_NAME> <VALUE>``: Set the value of this specific parameter.
+* ``--list``: List all settings currently configured in the current context.
+  When used within an issue folder, will list this issue's settings, but when
+  used outside of an issue folder, will display only global configuration.
+
+You may also use the ``--global`` argument to ensure that configuration
+changes or lists use or affect only the global configuration.
+
 ``git``
 -------
 

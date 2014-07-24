@@ -40,12 +40,14 @@ def get_user_input(message, options=None, boolean=False, password=False):
     return value
 
 
-def get_config(additional_configs=None):
-    filenames = [
-        os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG)
-    ]
+def get_config(additional_configs=None, include_global=True):
+    filenames = []
+    if include_global:
+        filenames.append(
+            os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG)
+        )
     if additional_configs:
-        filenames.append(additional_configs)
+        filenames.extend(additional_configs)
 
     parser = configparser.ConfigParser()
     parser.read(filenames)
@@ -72,8 +74,9 @@ def get_default_jira_server():
     return config.get(constants.CONFIG_JIRA, 'server')
 
 
-def get_jira(domain=None):
-    config = get_config()
+def get_jira(domain=None, config=None):
+    if config is None:
+        config = get_config()
 
     login_data = {}
 
@@ -129,4 +132,4 @@ def get_jira(domain=None):
 
 
 def lazy_get_jira():
-    return lambda domain: get_jira(domain)
+    return lambda domain, config=None: get_jira(domain, config)

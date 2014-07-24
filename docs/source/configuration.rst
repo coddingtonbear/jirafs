@@ -14,6 +14,9 @@ Settings affecting all issues are set in the following files:
 You may also add any of the below files into any issue directory (in this
 example, ``MYISSUE-1024``):
 
+* ``MYISSUE-1024/.jirafs/config``: Configuration overrides for this specific
+  issue folder.  Settings set in this file will override -- for this folder
+  only -- any values you have set in ``~/.jirafs_config``.
 * ``MYISSUE-1024/.jirafs_ignore``: A list of patterns to ignore when looking
   through this specific issue directory.  This list of patterns is in
   addition to patterns entered into ``~/.jirafs_ignore`` above.  See
