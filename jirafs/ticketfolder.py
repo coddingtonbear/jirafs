@@ -29,6 +29,7 @@ class TicketFolder(object):
         self.path = os.path.realpath(
             os.path.expanduser(path)
         )
+        self.plugins = self.load_plugins()
         self.get_jira = jira
 
         if not os.path.isdir(self.metadata_dir):
@@ -47,6 +48,23 @@ class TicketFolder(object):
         if not os.path.exists(comment_path):
             with open(comment_path, 'w') as out:
                 out.write('')
+
+    def load_plugins(self):
+        config = self.get_config()
+        plugins = []
+
+        if not config.has_section(constants.CONFIG_PLUGINS):
+            return plugins
+
+        installed_plugins = utils.get_installed_plugins()
+
+        for name, status in config.items(constants.CONFIG_PLUGINS):
+            if utils.convert_to_boolean(status):
+                plugins.append(
+                    installed_plugins[name](self)
+                )
+
+        return plugins
 
     def get_config(self):
         local_config_file = self.get_metadata_path('config')

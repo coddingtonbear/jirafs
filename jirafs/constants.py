@@ -18,6 +18,7 @@ GIT_AUTHOR = 'Jirafs %s <jirafs@adamcoddington.net>' % (
 
 # Config sections
 CONFIG_JIRA = 'jira'
+CONFIG_PLUGINS = 'plugins'
 
 NO_DETAIL_FIELDS = [
     'comment',

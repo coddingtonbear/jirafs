@@ -1,16 +1,18 @@
 import getpass
 import os
+import pkg_resources
 
 from jira.client import JIRA
 from six.moves import configparser, input
 
 from . import constants
+from .plugin import Plugin
 
 
 def convert_to_boolean(string):
-    if string.upper().strip() in ['Y', 'YES']:
+    if string.upper().strip() in ['Y', 'YES', 'ON', 'ENABLED']:
         return True
-    elif string.upper().strip() in ['N', 'NO']:
+    elif string.upper().strip() in ['N', 'NO', 'OFF', 'DISABLED']:
         return False
     return None
 
@@ -38,6 +40,19 @@ def get_user_input(message, options=None, boolean=False, password=False):
             print("Please enter a response")
 
     return value
+
+
+def get_installed_plugins():
+    possible_plugins = {}
+    for entry_point in (
+        pkg_resources.iter_entry_points(group='jirafs_plugins')
+    ):
+        loaded_class = entry_point.load()
+        if not issubclass(loaded_class, Plugin):
+            continue
+        possible_plugins[entry_point.name] = loaded_class
+
+    return possible_plugins
 
 
 def get_config(additional_configs=None, include_global=True):
