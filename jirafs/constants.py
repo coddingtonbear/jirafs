@@ -1,3 +1,5 @@
+from jirafs import __version__ as version
+
 # Metadata filenames
 TICKET_DETAILS = 'fields.jira'
 TICKET_COMMENTS = 'comments.read_only.jira'
@@ -10,6 +12,9 @@ REMOTE_IGNORE_FILE = '.jirafs_remote_ignore'
 TICKET_OPERATION_LOG = 'operation.log'
 METADATA_DIR = '.jirafs'
 GLOBAL_CONFIG = '.jirafs_config'
+GIT_AUTHOR = 'Jirafs %s <jirafs@adamcoddington.net>' % (
+    version
+)
 
 # Config sections
 CONFIG_JIRA = 'jira'

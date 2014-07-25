@@ -309,10 +309,12 @@ class TicketFolder(object):
         folder.pull()
         return folder
 
-    def run_git_command(self, *args, **kwargs):
+    def run_git_command(self, command, *args, **kwargs):
         failure_ok = kwargs.get('failure_ok', False)
         shadow = kwargs.get('shadow', False)
         binary = kwargs.get('binary', False)
+
+        args = list(args)
 
         if not shadow:
             work_tree = self.path,
@@ -326,6 +328,11 @@ class TicketFolder(object):
             '--work-tree=%s' % work_tree,
             '--git-dir=%s' % git_dir,
         ]
+        cmd.append(command)
+        if command == 'commit':
+            args.append(
+                "--author='%s'" % constants.GIT_AUTHOR
+            )
         cmd.extend(args)
 
         self.log('Executing git command %s', (cmd, ), logging.DEBUG)
