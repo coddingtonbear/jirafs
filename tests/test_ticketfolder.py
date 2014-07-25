@@ -58,7 +58,7 @@ class TestTicketFolder(BaseTestCase):
         self.mock_jira.issue.return_value = self.rehydrate_issue(
             'basic.issue.json'
         )
-        self.mock_get_jira = lambda _: self.mock_jira
+        self.mock_get_jira = lambda _, config=None: self.mock_jira
 
         with patch(
             'jirafs.ticketfolder.TicketFolder.get_remotely_changed'
