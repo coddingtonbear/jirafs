@@ -1,6 +1,8 @@
 Interesting Details
 ===================
 
+.. _ignore-file-format:
+
 Ignore File Format
 ------------------
 
