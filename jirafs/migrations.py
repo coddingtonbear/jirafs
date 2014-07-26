@@ -112,6 +112,15 @@ def migration_0005(repo, init=False, **kwargs):
 
 
 def migration_0006(repo, init=False, **kwargs):
+    """ Fix a glitch preventing folders from being completely portable.
+
+    Early versions of Jirafs would write an absolute path to the ignore
+    file to the local git configuration, but that's not very desirable
+    because if you move the folder, the @stash_local_changes decorator
+    would then wipe out the git repository itself (among other things)
+    after stashing.  Whoops; that's embarrassing.
+
+    """
     if init:
         set_repo_version(repo, 6)
         return
