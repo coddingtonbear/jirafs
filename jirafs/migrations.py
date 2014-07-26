@@ -109,3 +109,21 @@ def migration_0005(repo, init=False, **kwargs):
     os.rename(temp_path, repo_path)
 
     set_repo_version(repo, 5)
+
+
+def migration_0006(repo, init=False, **kwargs):
+    if init:
+        set_repo_version(repo, 6)
+        return
+
+    repo.run_git_command(
+        'config',
+        '--file=%s' % repo.get_metadata_path(
+            'git',
+            'config',
+        ),
+        'core.excludesfile',
+        '.jirafs/gitignore',
+    )
+
+    set_repo_version(repo, 6)

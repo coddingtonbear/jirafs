@@ -179,10 +179,10 @@ class TicketFolder(object):
             )
         return raw_number
 
-    def get_metadata_path(self, filename):
+    def get_metadata_path(self, *args):
         return os.path.join(
             self.metadata_dir,
-            filename
+            *args
         )
 
     def get_remote_file_metadata(self, shadow=True):
@@ -210,22 +210,24 @@ class TicketFolder(object):
                 )
             )
 
-    def get_local_path(self, filename):
+    def get_local_path(self, *args):
         return os.path.join(
             self.path,
-            filename
+            *args
         )
 
-    def get_shadow_path(self, filename):
+    def get_shadow_path(self, *args):
         return os.path.join(
             self.get_metadata_path('shadow'),
-            filename,
+            *args
         )
 
-    def get_path(self, filename, shadow=False):
+    def get_path(self, *args, **kwargs):
+        shadow = kwargs.get('shadow', False)
+
         if shadow:
-            return self.get_shadow_path(filename)
-        return self.get_local_path(filename)
+            return self.get_shadow_path(*args)
+        return self.get_local_path(*args)
 
     @property
     def version(self):
@@ -280,7 +282,7 @@ class TicketFolder(object):
                 'config'
             ),
             'core.excludesfile',
-            excludes_path
+            '.jirafs/gitignore',
         ))
 
         instance = cls(path, jira, migrate=False)
