@@ -352,6 +352,13 @@ def config(args, jira, path, **kwargs):
 
 
 def main():
+    if sys.version_info < (2, 7):
+        raise RuntimeError(
+            "Jirafs requires minimally version 2.7 of Python 2, or "
+            "any version of Python 3.  Please upgrade your version of "
+            "python before using Jirafs."
+        )
+
     parser = argparse.ArgumentParser(
         description='Edit Jira issues locally from your filesystem',
     )

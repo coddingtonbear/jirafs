@@ -12,13 +12,16 @@ from jira.resources import Issue
 import six
 from six.moves.urllib import parse
 from six.moves import input
+from verlib import NormalizedVersion
 
+from . import __version__
 from . import constants
 from . import exceptions
 from . import migrations
 from . import utils
-from .decorators import stash_local_changes
+from .decorators import run_plugins, stash_local_changes
 from .jirafieldmanager import JiraFieldManager
+from .plugin import PluginValidationError
 
 
 logger = logging.getLogger(__name__)
@@ -29,8 +32,9 @@ class TicketFolder(object):
         self.path = os.path.realpath(
             os.path.expanduser(path)
         )
-        self.plugins = self.load_plugins()
+        self.issue_url = self.get_ticket_url()
         self.get_jira = jira
+        self.plugins = self.load_plugins()
 
         if not os.path.isdir(self.metadata_dir):
             raise exceptions.NotTicketFolderException(
@@ -39,7 +43,6 @@ class TicketFolder(object):
                 )
             )
 
-        self.issue_url = self.get_ticket_url()
         if migrate:
             self.run_migrations()
 
@@ -48,6 +51,46 @@ class TicketFolder(object):
         if not os.path.exists(comment_path):
             with open(comment_path, 'w') as out:
                 out.write('')
+
+    def execute_plugin_method_series(
+        self, name, args=None, kwargs=None, single_response=False
+    ):
+        if args is None:
+            args = []
+            use_kwargs = True
+        if kwargs is None:
+            kwargs = {}
+            use_kwargs = False
+
+        if use_kwargs and single_response:
+            raise RuntimeError(
+                "When executing plugins in series using `single` response "
+                "mode, you must specify only args."
+            )
+        elif args and kwargs:
+            raise RuntimeError(
+                "Plugins can be ran in series using either args or "
+                "kwargs, not both."
+            )
+
+        for plugin in self.plugins:
+            if not hasattr(plugin, name):
+                continue
+            method = getattr(plugin, name)
+            plugin_result = method(*args, **kwargs)
+            if plugin_result is not None:
+                if use_kwargs:
+                    kwargs = plugin_result
+                elif single_response:
+                    args = (plugin_result, )
+                else:
+                    args = plugin_result
+
+        if use_kwargs:
+            return kwargs
+        elif single_response:
+            return args[0]
+        return args
 
     def load_plugins(self):
         config = self.get_config()
@@ -59,10 +102,47 @@ class TicketFolder(object):
         installed_plugins = utils.get_installed_plugins()
 
         for name, status in config.items(constants.CONFIG_PLUGINS):
-            if utils.convert_to_boolean(status):
-                plugins.append(
-                    installed_plugins[name](self)
+            if not utils.convert_to_boolean(status):
+                # This plugin is not turned on.
+                continue
+            if name not in installed_plugins:
+                # This plugin is not installed.
+                self.log(
+                    "Plugin '%s' is not available.",
+                    (name, ),
                 )
+                continue
+
+            cls = installed_plugins[name]
+
+            try:
+                cls.validate()
+            except PluginValidationError as e:
+                self.log(
+                    "Plugin '%s' did not pass validation; not loading: %s.",
+                    (name, e,)
+                )
+
+            min_version = NormalizedVersion(cls.MIN_VERSION)
+            max_version = NormalizedVersion(cls.MAX_VERSION)
+            curr_version = NormalizedVersion(__version__)
+
+            if not min_version <= curr_version <= max_version:
+                self.log(
+                    "Plugin '%s' is not compatible with version %s of Jirafs; "
+                    "minimum version: %s; maximum version %s.",
+                    (
+                        name,
+                        __version__,
+                        cls.MIN_VERSION,
+                        cls.MAX_VERSION,
+                    ),
+                )
+                continue
+
+            plugins.append(
+                cls(self, name)
+            )
 
         return plugins
 
@@ -210,11 +290,22 @@ class TicketFolder(object):
         )
         try:
             with open(remote_files, 'r') as _in:
-                return json.loads(_in.read())
+                data = json.loads(_in.read())
         except IOError:
-            return {}
+            data = {}
+
+        return self.execute_plugin_method_series(
+            'alter_get_remote_file_metadata',
+            args=(data, ),
+            single_response=True,
+        )
 
     def set_remote_file_metadata(self, data, shadow=True):
+        data = self.execute_plugin_method_series(
+            'alter_set_remote_file_metadata',
+            args=(data, ),
+            single_response=True,
+        )
         remote_files = self.get_path(
             '.jirafs/remote_files.json',
             shadow=shadow
@@ -431,7 +522,9 @@ class TicketFolder(object):
     def get_ready_changes(self):
         changed_files = self.filter_ignored_files(
             self.run_git_command(
-                'diff', '--name-only', self.git_merge_base,
+                'diff',
+                '--name-only',
+                '%s..master' % self.git_merge_base,
             ).split('\n')
         )
 
@@ -472,7 +565,11 @@ class TicketFolder(object):
             if changed:
                 assets.append(attachment.filename)
 
-        return assets
+        return self.execute_plugin_method_series(
+            name='alter_remotely_changed',
+            args=(assets, ),
+            single_response=True,
+        )
 
     def filter_ignored_files(self, files, which=constants.IGNORE_FILE):
         ignore_globs = self.get_ignore_globs(which)
@@ -497,7 +594,11 @@ class TicketFolder(object):
                 continue
             assets.append(fileish)
 
-        return assets
+        return self.execute_plugin_method_series(
+            name='alter_filter_ignored_files',
+            args=(assets, ),
+            single_response=True,
+        )
 
     def get_fields(self, revision=None, path=None):
         kwargs = {}
@@ -536,25 +637,38 @@ class TicketFolder(object):
                     self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
                 ) as c:
                     c.truncate()
-
-            return contents
         except IOError:
-            return ''
+            contents = ''
 
+        return self.execute_plugin_method_series(
+            name='alter_new_comment',
+            args=(contents, ),
+            single_response=True,
+        )
+
+    @run_plugins(pre='pre_fetch', post='post_fetch')
     def fetch(self):
         file_meta = self.get_remote_file_metadata(shadow=True)
+        original_hash = self.run_git_command('rev-parse', 'jira')
 
         for filename in self.get_remotely_changed():
             for attachment in self.issue.fields.attachment:
                 if attachment.filename == filename:
-                    shadow_filename = self.get_shadow_path(filename)
-                    with open(shadow_filename, 'wb') as download:
-                        self.log(
-                            'Download file "%s"',
-                            (attachment.filename, ),
-                        )
+                    self.log(
+                        'Download file "%s"',
+                        (attachment.filename, ),
+                    )
+                    content = six.BytesIO(attachment.get())
+                    filename, content = self.execute_plugin_method_series(
+                        'alter_file_download',
+                        args=((filename, content, ),),
+                        single_response=True,
+                    )
+                    save_path = self.get_shadow_path(filename)
+                    with open(save_path, 'wb') as save_file:
+                        content.seek(0)
+                        save_file.write(content.read())
                         file_meta[filename] = attachment.created
-                        download.write(attachment.get())
 
         self.set_remote_file_metadata(file_meta, shadow=True)
 
@@ -629,10 +743,23 @@ class TicketFolder(object):
             failure_ok=True, shadow=True
         )
         self.run_git_command('push', 'origin', 'jira', shadow=True)
+        final_hash = self.run_git_command('rev-parse', 'jira')
+        return utils.PostStatusResponse(
+            original_hash == final_hash,
+            final_hash
+        )
 
     @stash_local_changes
+    @run_plugins(pre='pre_merge', post='post_merge')
     def merge(self):
+        original_merge_base = self.git_merge_base
         self.run_git_command('merge', 'jira')
+        final_merge_base = self.git_merge_base
+
+        return utils.PostStatusResponse(
+            original_merge_base == final_merge_base,
+            final_merge_base
+        )
 
     def pull(self):
         self.fetch()
@@ -662,8 +789,10 @@ class TicketFolder(object):
         return True
 
     @stash_local_changes
+    @run_plugins(pre='pre_push', post='post_push')
     def push(self):
         status = self.status()
+        original_hash = self.run_git_command('rev-parse', 'jira')
 
         if not self.is_up_to_date():
             raise exceptions.LocalCopyOutOfDate()
@@ -678,6 +807,11 @@ class TicketFolder(object):
                     binary=True
                 )
             )
+            filename, upload = self.execute_plugin_method_series(
+                'alter_file_upload',
+                args=((filename, upload, ), ),
+                single_response=True,
+            )
             self.log(
                 'Uploading file "%s"',
                 (filename, ),
@@ -686,6 +820,7 @@ class TicketFolder(object):
             for attachment in self.issue.fields.attachment:
                 if attachment.filename == filename:
                     attachment.delete()
+            upload.seek(0)
             attachment = self.jira.add_attachment(
                 self.ticket_number,
                 upload,
@@ -733,7 +868,13 @@ class TicketFolder(object):
             failure_ok=True, shadow=True
         )
         self.run_git_command('push', 'origin', 'jira', shadow=True)
+        final_hash = self.run_git_command('rev-parse', 'jira')
+        return utils.PostStatusResponse(
+            original_hash == final_hash,
+            final_hash
+        )
 
+    @run_plugins(pre='pre_status', post='post_status')
     def status(self):
         status = {
             'uncommitted': self.get_uncommitted_changes(),

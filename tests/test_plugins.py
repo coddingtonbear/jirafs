@@ -35,9 +35,15 @@ class TestPlugins(BaseTestCase):
 
     def test_load_plugins(self):
         existing_plugins = {
-            'alpha': mock.Mock(),
-            'beta': mock.Mock(),
-            'delta': mock.Mock(),
+            'alpha': mock.Mock(
+                MAX_VERSION='10.0', MIN_VERSION='0.1'
+            ),
+            'beta': mock.Mock(
+                MAX_VERSION='10.0', MIN_VERSION='0.1'
+            ),
+            'delta': mock.Mock(
+                MAX_VERSION='10.0', MIN_VERSION='0.1'
+            ),
         }
 
         with patch('jirafs.utils.get_installed_plugins') as gip:
@@ -49,16 +55,16 @@ class TestPlugins(BaseTestCase):
                         return_value=[
                             ('alpha', 'on'),
                             ('delta', 'enabled'),
-                            ('gamma', 'off'),
+                            ('gamma', 'yes'),
                         ]
                     )
                 )
                 results = self.ticketfolder.load_plugins()
 
         self.assertEquals(2, len(results))
-        existing_plugins['alpha'].assert_called_with(self.ticketfolder)
+        self.assertTrue(existing_plugins['alpha'].called)
         self.assertFalse(existing_plugins['beta'].called)
-        existing_plugins['delta'].assert_called_with(self.ticketfolder)
+        self.assertTrue(existing_plugins['delta'].called)
 
     def tearDown(self):
         shutil.rmtree(self.root_folder)

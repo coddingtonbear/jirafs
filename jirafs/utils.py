@@ -1,3 +1,4 @@
+import collections
 import getpass
 import os
 import pkg_resources
@@ -47,7 +48,10 @@ def get_installed_plugins():
     for entry_point in (
         pkg_resources.iter_entry_points(group='jirafs_plugins')
     ):
-        loaded_class = entry_point.load()
+        try:
+            loaded_class = entry_point.load()
+        except ImportError:
+            continue
         if not issubclass(loaded_class, Plugin):
             continue
         possible_plugins[entry_point.name] = loaded_class
@@ -148,3 +152,9 @@ def get_jira(domain=None, config=None):
 
 def lazy_get_jira():
     return lambda domain, config=None: get_jira(domain, config)
+
+
+PostStatusResponse = collections.namedtuple(
+    'PostStatusResponse',
+    ['new', 'hash']
+)

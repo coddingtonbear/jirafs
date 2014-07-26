@@ -136,3 +136,13 @@ def migration_0006(repo, init=False, **kwargs):
     )
 
     set_repo_version(repo, 6)
+
+
+def migration_0007(repo, init=False, **kwargs):
+    """ Create the plugin metadata directory."""
+    os.mkdir(
+        repo.get_metadata_path(
+            'plugin_meta',
+        )
+    )
+    set_repo_version(repo, 7)
