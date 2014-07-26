@@ -3,7 +3,7 @@ import os
 import shutil
 import subprocess
 
-from .decorators import stash_local_changes
+from . import constants
 
 
 def set_repo_version(repo, version):

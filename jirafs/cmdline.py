@@ -16,6 +16,7 @@ from six.moves.urllib import parse
 from . import constants
 from . import utils
 from .exceptions import (
+    GitCommandError,
     LocalCopyOutOfDate,
     NotTicketFolderException
 )
@@ -373,6 +374,21 @@ def main():
     jira = utils.lazy_get_jira()
     try:
         fn(extra, jira=jira, path=os.getcwd())
+    except GitCommandError as e:
+        print(
+            "Error (code: %s) while running git command." % (
+                e.returncode
+            )
+        )
+        print("")
+        print("Command:")
+        print("    %s" % e.command)
+        print("")
+        print("Output:")
+        for line in e.output.decode('utf8').split('\n'):
+            print("    %s" % line)
+        print("")
+        sys.exit(1)
     except NotTicketFolderException:
         if not fn.try_subfolders:
             print(

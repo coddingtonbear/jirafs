@@ -339,16 +339,18 @@ class TicketFolder(object):
         try:
             result = subprocess.check_output(
                 cmd,
-                stderr=subprocess.PIPE
+                stderr=subprocess.STDOUT
             )
             if not binary:
                 return result.decode('utf-8').strip()
             return result
         except subprocess.CalledProcessError as e:
             if not failure_ok:
+                command = ' '.join(cmd)
                 raise exceptions.GitCommandError(
-                    "Error running command `%s`" % ' '.join(cmd),
-                    inner_exception=e
+                    "Error running command `%s`" % command,
+                    inner_exception=e,
+                    cmd=command
                 )
 
     def get_local_file_at_revision(
