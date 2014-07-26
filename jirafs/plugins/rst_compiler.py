@@ -29,7 +29,6 @@ class RSTtoPDF(CompilerPluginBase):
         return [
             'pandoc',
             '--template=%s' % template_path,
-            '--variable', 'fontsize=12pt',
             '--variable', 'version=%s' % version,
             '--latex-engine=xelatex',
             '--from=rst',

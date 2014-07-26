@@ -21,33 +21,27 @@ $endif$
   \fi
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
-$if(mainfont)$
-    \setmainfont{$mainfont$}
-$endif$
-$if(sansfont)$
-    \setsansfont{$sansfont$}
-$endif$
-$if(monofont)$
-    \setmonofont{$monofont$}
-$endif$
+\setmainfont{Arial}
+\setsansfont{Arial}
+\setmonofont{Courier}
 $if(mathfont)$
     \setmathfont{$mathfont$}
 $endif$
 \fi
 
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-\pagenumbering{arabic}
-\lhead{\itshape $title$}
-\chead{}
-\rhead{}
-\lfoot{$version$}
-\cfoot{}
-\rfoot{\thepage}
+\usepackage{geometry}
+\geometry{verbose,letterpaper,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
 
-$if(geometry)$
-\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
-$endif$
+\usepackage{fancyhdr}
+\fancypagestyle{plain}{
+  \fancyhf{}% Clear header/footer
+  \fancyhead[R]{\itshape $title$}% Right header
+  \fancyfoot[L]{\itshape $version$}% Left footer
+  \fancyfoot[R]{\itshape \thepage}% Right footer
+}
+\pagestyle{plain}
+\pagenumbering{arabic}
+
 $if(natbib)$
 \usepackage{natbib}
 \bibliographystyle{plainnat}
