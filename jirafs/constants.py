@@ -9,6 +9,7 @@ TICKET_FILE_FIELD_TEMPLATE = '{field_name}.jira'
 # Generic settings
 IGNORE_FILE = '.jirafs_ignore'
 REMOTE_IGNORE_FILE = '.jirafs_remote_ignore'
+GIT_IGNORE_FILE = '.jirafs/gitignore'
 TICKET_OPERATION_LOG = 'operation.log'
 METADATA_DIR = '.jirafs'
 GLOBAL_CONFIG = '.jirafs_config'
@@ -33,4 +34,4 @@ FILE_FIELD_BLACKLIST = [
     'fields'
 ]
 
-CURRENT_REPO_VERSION = 7
+CURRENT_REPO_VERSION = 9

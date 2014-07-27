@@ -54,6 +54,15 @@ class TestTicketFolder(BaseTestCase):
                 ),
                 '%s does not exist' % path
             )
+            # Ensure that the file is tracked in git
+            try:
+                self.ticketfolder.run_git_command(
+                    'ls-files', path, '--error-unmatch'
+                )
+            except exceptions.GitCommandError:
+                self.fail(
+                    "File %s is not tracked in the git repository."
+                )
 
     def test_get_fields(self):
         actual_result = self.ticketfolder.get_fields()

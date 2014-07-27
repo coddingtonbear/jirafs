@@ -39,5 +39,8 @@ class BaseTestCase(TestCase):
                 'fields': {},
                 'new_comment': '',
             },
+            'local_uncommitted': {
+                'files': [],
+            },
             'up_to_date': True,
         }

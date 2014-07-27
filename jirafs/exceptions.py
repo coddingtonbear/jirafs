@@ -1,16 +1,20 @@
-class NotTicketFolderException(Exception):
+class JirafsError(Exception):
     pass
 
 
-class CannotInferTicketNumberFromFolderName(Exception):
+class NotTicketFolderException(JirafsError):
     pass
 
 
-class LocalCopyOutOfDate(Exception):
+class CannotInferTicketNumberFromFolderName(JirafsError):
     pass
 
 
-class GitCommandError(Exception):
+class LocalCopyOutOfDate(JirafsError):
+    pass
+
+
+class GitCommandError(JirafsError):
     def __init__(self, *args, **kwargs):
         inner_exception = kwargs.pop('inner_exception', None)
         command = kwargs.pop('cmd', None)

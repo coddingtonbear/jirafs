@@ -3,38 +3,56 @@ import os
 import shutil
 import subprocess
 
-from . import constants
-
 
 def set_repo_version(repo, version):
     with open(repo.get_metadata_path('version'), 'w') as out:
         out.write(str(version))
+    repo.run_git_command(
+        'add', '-f', repo.get_metadata_path('version'), failure_ok=True,
+    )
+    repo.run_git_command(
+        'commit', '-m', 'Upgraded Repository to v%s' % version, failure_ok=True
+    )
 
 
 def migration_0002(repo, **kwargs):
     """ Creates shadow repository used for storing remote values """
+    os.mkdir(
+        repo.get_metadata_path('shadow')
+    )
     subprocess.check_call(
         (
             'git',
             'clone',
             '--shared',
             '-q',
-            repo.get_metadata_path('git'),
-            os.path.join(
-                repo.get_metadata_path('shadow')
-            )
+            '../git',
+            '.'
         ),
+        cwd=repo.get_metadata_path('shadow'),
         stdout=subprocess.PIPE,
     )
     repo.run_git_command('checkout', '-b', 'jira', shadow=True)
-    repo.run_git_command('commit', '--allow-empty', '-m', 'Shadow Created')
+    repo.run_git_command(
+            'commit', '--allow-empty', '-m', 'Shadow Created', shadow=True
+    )
     repo.run_git_command('push', 'origin', 'jira', shadow=True)
     set_repo_version(repo, 2)
 
 
-def migration_0003(repo, **kwargs):
-    """ Creates a shadow copy of the issue. """
-    os.mkdir(repo.get_shadow_path('.jirafs'))
+def migration_0003(repo, init=False, **kwargs):
+    """ Creates a shadow copy of the issue.
+
+    .. note::
+
+       Early versions of this migration improperly created the shadow
+       copy using an absolute path.
+
+    """
+    try:
+        os.mkdir(repo.get_shadow_path('.jirafs'))
+    except OSError:
+        pass
     storable = {
         'options': repo.issue._options,
         'raw': repo.issue.raw
@@ -140,9 +158,85 @@ def migration_0006(repo, init=False, **kwargs):
 
 def migration_0007(repo, init=False, **kwargs):
     """ Create the plugin metadata directory."""
-    os.mkdir(
-        repo.get_metadata_path(
-            'plugin_meta',
+    try:
+        os.mkdir(
+            repo.get_metadata_path(
+                'plugin_meta',
+            )
         )
-    )
+    except OSError:
+        pass
     set_repo_version(repo, 7)
+
+
+def migration_0008(repo, init=False, **kwargs):
+    """ Commit most of .jirafs folder to git so we can back up. """
+    if init:
+        set_repo_version(repo, 8)
+        return
+
+    with open(repo.get_metadata_path('gitignore'), 'w') as out:
+        out.write(
+            '\n'.join(
+                [
+                    '.jirafs/git',
+                    '.jirafs/shadow',
+                    '.jirafs/operation.log'
+                ]
+            )
+        )
+    repo.run_git_command(
+        'add',
+        '.jirafs/gitignore',
+    )
+    repo.run_git_command(
+        'commit',
+        '-m',
+        'Updating gitignore',
+    )
+
+    files_to_add = [
+        'config',
+        'gitignore',
+        'issue_url',
+        'plugin_meta',
+        'version',
+    ]
+    for filename in files_to_add:
+        repo.run_git_command(
+            'add',
+            repo.get_metadata_path(filename),
+            failure_ok=True
+        )
+
+    set_repo_version(repo, 8)
+
+
+def migration_0009(repo, init=False, **kwargs):
+    """ Re-clone shadow copy so it does not reference an absolute path."""
+    if init:
+        set_repo_version(repo, 9)
+
+    shutil.rmtree(repo.get_metadata_path('shadow'))
+    os.mkdir(
+        repo.get_metadata_path('shadow')
+    )
+    subprocess.check_call(
+        (
+            'git',
+            'clone',
+            '--shared',
+            '-q',
+            '../git',
+            '.'
+        ),
+        cwd=repo.get_metadata_path('shadow'),
+        stdout=subprocess.PIPE,
+    )
+    repo.run_git_command('checkout', '-b', 'jira', shadow=True)
+    repo.run_git_command(
+        'commit', '--allow-empty', '-m', 'Shadow Created', shadow=True
+    )
+    repo.run_git_command('push', 'origin', 'jira', shadow=True)
+
+    set_repo_version(repo, 9)

@@ -135,6 +135,7 @@ class TicketFolder(object):
 
         return utils.get_config(additional_configs)
 
+    @stash_local_changes
     def set_config_value(self, section, key, value):
         local_config_file = self.get_metadata_path('config')
 
@@ -150,6 +151,12 @@ class TicketFolder(object):
 
         with open(local_config_file, 'w') as out:
             config.write(out)
+
+        self.run_git_command('add', '.jirafs/config')
+        self.run_git_command(
+            'commit', '-m', 'Config change',
+            failure_ok=True
+        )
 
     @property
     def jira_base(self):
@@ -346,7 +353,12 @@ class TicketFolder(object):
         excludes_path = os.path.join(metadata_path, 'gitignore')
         with open(excludes_path, 'w') as gitignore:
             gitignore.write(
-                '%s\n' % constants.METADATA_DIR,
+                '\n'.join(
+                    [
+                        '%s/git' % constants.METADATA_DIR,
+                        '%s/shadow' % constants.METADATA_DIR,
+                    ]
+                )
             )
 
         subprocess.check_call(
@@ -377,6 +389,9 @@ class TicketFolder(object):
         instance.log(
             'Ticket folder for issue %s created at %s',
             (instance.ticket_number, instance.path, )
+        )
+        instance.run_git_command(
+            'add', '-A'
         )
         instance.run_git_command(
             'commit', '--allow-empty', '-m', 'Initialized'
@@ -530,6 +545,26 @@ class TicketFolder(object):
             'fields': self.get_fields() - self.get_fields('HEAD'),
             'new_comment': self.get_new_comment(ready=False)
         }
+
+    def get_local_uncommitted_changes(self):
+        new_files = self.run_git_command(
+            'ls-files', '-o', failure_ok=True
+        ).split('\n')
+        modified_files = self.run_git_command(
+            'ls-files', '-m', failure_ok=True
+        ).split('\n')
+
+        committable = self.filter_ignored_files([
+            filename for filename in new_files + modified_files if filename
+        ])
+
+        return {
+            'files': self.filter_ignored_files([
+                filename for filename in modified_files + new_files
+                if filename not in committable
+            ], which=constants.GIT_IGNORE_FILE)
+        }
+
 
     def get_remotely_changed(self):
         metadata = self.get_remote_file_metadata(shadow=True)
@@ -858,11 +893,13 @@ class TicketFolder(object):
         status = {
             'uncommitted': self.get_uncommitted_changes(),
             'ready': self.get_ready_changes(),
+            'local_uncommitted': self.get_local_uncommitted_changes(),
             'up_to_date': self.is_up_to_date(),
         }
 
         return status
 
+    @stash_local_changes
     def run_migrations(self, init=False):
         loglevel = logging.INFO
         if init:
@@ -870,7 +907,7 @@ class TicketFolder(object):
         else:
             if self.version < constants.CURRENT_REPO_VERSION:
                 print(
-                    "Your ticket folder is out-of-date and must be updated."
+                    "Your ticket folder is out-of-date and must be updated.  "
                     "Migrations are not necessarily lossless; please record "
                     "your current changes before proceeding with migrations."
                 )

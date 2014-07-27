@@ -138,25 +138,27 @@ def debug(args, jira, path, **kwargs):
 def status(args, jira, path, **kwargs):
     t = Terminal()
 
-    def format_field_changes(changes, color):
+    def format_field_changes(changes, color, no_upload=False):
         lines = []
         color = getattr(t, color)
         normal = t.normal
 
-        for filename in changes['files']:
+        for filename in changes.get('files', []):
             lines.append(
-                '\t' + color + filename + normal + ' (file upload)'
+                '\t' + color + filename + normal + (
+                    ' (save to repo)' if no_upload else ' (file upload)'
+                )
             )
-        for field, value_set in changes['fields'].items():
+        for field, value_set in changes.get('fields', {}).items():
             lines.append(
                 '\t' + color + field + normal +
                 ' (field changed from \'%s\' to \'%s\')' % value_set
             )
-        if changes['new_comment']:
+        if changes.get('new_comment', ''):
             lines.append(
                 '\t' + color + '[New Comment]' + normal
             )
-            for line in changes['new_comment'].split('\n'):
+            for line in changes.get('new_comment', '').split('\n'):
                 lines.append(
                     '\t\t' + line
                 )
@@ -206,6 +208,24 @@ def status(args, jira, path, **kwargs):
             )
             print(
                 format_field_changes(staged, 'red')
+            )
+
+        local_uncommitted = folder_status['local_uncommitted']
+        if local_uncommitted['files']:
+            printed_changes = True
+            print('')
+            print(
+                "Uncommitted changes prevented from being sent to JIRA "
+                "because they match at least one of the patterns in your "
+                ".jirafs_ignore file; use `jirafs commit` to commit these "
+                "changes."
+            )
+            print(
+                "Note: these files will " + t.bold + "not" + t.normal + " "
+                "be uploaded to JIRA even after being committed."
+            )
+            print(
+                format_field_changes(local_uncommitted, 'cyan', no_upload=True)
             )
 
         if not printed_changes:
