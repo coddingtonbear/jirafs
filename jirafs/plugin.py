@@ -57,7 +57,7 @@ class Plugin(object):
 
     def get_configuration(self):
         config = self.ticketfolder.get_config()
-        if not config.has_section(self.plugin_name):
+        if config.has_section(self.plugin_name):
             return dict(config.items(self.plugin_name))
         return {}
 
