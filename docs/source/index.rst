@@ -21,11 +21,12 @@ you edit your JIRA issues as text files using an interface
 modeled off of ``git`` and ``hg``.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    getting_started
    commands
    advanced_commands
    configuration
+   plugins
    details
 
