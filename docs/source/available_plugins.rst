@@ -13,11 +13,11 @@ Install from PyPI::
 
 Enable for your ticket folder::
 
-    jirafs config --set plugins.pandoc enabled
+    jirafs plugins --enable=pandoc
 
 Or, enable globally::
 
-    jirafs config --global --set plugins.pandoc enabled
+    jirafs plugins --global --enable=pandoc
 
 More information on
 `Jirafs-Pandoc's Github Repository <https://github.com/coddingtonbear/jirafs-pandoc>`_.
@@ -34,11 +34,11 @@ Install from PyPI::
 
 Enable for your ticket folder::
 
-    jirafs config --set plugins.graphviz enabled
+    jirafs plugins --enable=graphviz
 
 Or, enable globally::
 
-    jirafs config --global --set plugins.graphviz enabled
+    jirafs plugins --global --enable=graphviz
 
 More information on
 `Jirafs-Graphviz's Github Repository <https://github.com/coddingtonbear/jirafs-graphviz>`_.

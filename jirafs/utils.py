@@ -73,6 +73,17 @@ def get_config(additional_configs=None, include_global=True):
     return parser
 
 
+def set_global_config_value(section, key, value):
+    config = get_config()
+    if not config.has_section(section):
+        config.add_section(section)
+    config.set(section, key, value)
+    with open(
+        os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG), 'w'
+    ) as out:
+        config.write(out)
+
+
 def get_default_jira_server():
     config = get_config()
 

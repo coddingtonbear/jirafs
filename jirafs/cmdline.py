@@ -166,6 +166,18 @@ def plugins(args, jira, path, **kwargs):
         action='store_true',
         default=False
     )
+    parser.add_argument(
+        '--enable',
+    )
+    parser.add_argument(
+        '--disable',
+    )
+    parser.add_argument(
+        '--global',
+        dest='set_global',
+        default=False,
+        action='store_true',
+    )
     args = parser.parse_args(args)
 
     if args.disabled_only and args.enabled_only:
@@ -177,25 +189,54 @@ def plugins(args, jira, path, **kwargs):
     enabled_plugins = folder.load_plugins()
     available_plugins = utils.get_installed_plugins()
 
-    all_plugins = build_plugin_dict(enabled_plugins, available_plugins)
-
-    for plugin_name, plugin_data in all_plugins.items():
-        if plugin_data['enabled'] and args.disabled_only:
-            continue
-        if not plugin_data['enabled'] and args.enabled_only:
-            continue
-        if plugin_data['enabled']:
-            color = t.bold
+    if args.enable:
+        if args.enable not in available_plugins:
+            parser.error(
+                "Plugin '%s' is not installed." % args.enable
+            )
+        if args.set_global:
+            utils.set_global_config_value(
+                'plugins', args.enable, 'enabled',
+            )
         else:
-            color = t.normal
+            folder.set_config_value(
+                'plugins', args.enable, 'enabled'
+            )
+    elif args.disable:
+        if args.set_global:
+            utils.set_global_config_value(
+                'plugins', args.disable, 'disabled',
+            )
+        else:
+            folder.set_config_value(
+                'plugins', args.disable, 'disabled'
+            )
+    else:
+        all_plugins = build_plugin_dict(enabled_plugins, available_plugins)
 
-        print(
-            color + plugin_name + t.normal
-            + ' (Enabled)' if plugin_data['enabled'] else ' (Available)'
-        )
-        if args.verbose:
-            for line in plugin_data['class'].__doc__.strip().split('\n'):
-                print('     %s' % line)
+        for plugin_name, plugin_data in all_plugins.items():
+            if plugin_data['enabled'] and args.disabled_only:
+                continue
+            if not plugin_data['enabled'] and args.enabled_only:
+                continue
+            if plugin_data['enabled']:
+                color = t.bold
+            else:
+                color = t.normal
+
+            print(
+                color + plugin_name + t.normal
+                + (' (Enabled)'
+                    if plugin_data['enabled']
+                    else (
+                        ' (Disabled; enable by running `jirafs '
+                        'plugins --enable=%s`)' % plugin_name
+                    )
+                )
+            )
+            if args.verbose:
+                for line in plugin_data['class'].__doc__.strip().split('\n'):
+                    print('     %s' % line)
 
 
 @command('Get the status of the current folder', try_subfolders=True)
@@ -419,14 +460,7 @@ def config(args, jira, path, **kwargs):
         value = args.params[1]
 
         if args.global_config:
-            config = utils.get_config()
-            if not config.has_section(section):
-                config.add_section(section)
-            config.set(section, key, value)
-            with open(
-                os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG), 'w'
-            ) as out:
-                config.write(out)
+            utils.set_global_config_value(section, key, value)
         else:
             try:
                 folder = TicketFolder(path, jira)

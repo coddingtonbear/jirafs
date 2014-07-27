@@ -43,6 +43,25 @@ sub-options:
 You may also use the ``--global`` argument to ensure that configuration
 changes or lists use or affect only the global configuration.
 
+``plugins``
+-----------
+
+List, activate, or deactivate plugins by name.
+
+Plugins provides several sub-options:
+
+* ``--verbose``: Display information about each plugin along with its name.
+* ``--enabled-only``: List only plugins that are currently enabled.
+* ``--disabled-only``: List only plugins that are available, but not currently
+  enabled.
+* ``--enable=PLUGIN_NAME``: Enable a plugin by name for the current issue
+  folder.
+* ``--disable=PLUGIN_NAME``: Disable a plugin by name for the current issue
+  folder.
+* ``--global``: Used with ``--enable`` or ``--disable`` above, will enable
+  or disable a plugin globally.  Note: per-folder settings always take
+  priority.
+
 ``git``
 -------
 
