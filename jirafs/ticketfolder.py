@@ -12,9 +12,7 @@ from jira.resources import Issue
 import six
 from six.moves.urllib import parse
 from six.moves import input
-from verlib import NormalizedVersion
 
-from . import __version__
 from . import constants
 from . import exceptions
 from . import migrations
@@ -113,36 +111,17 @@ class TicketFolder(object):
                 )
                 continue
 
-            cls = installed_plugins[name]
+            plugin = installed_plugins[name](self, name)
 
             try:
-                cls.validate()
+                plugin.validate()
             except PluginValidationError as e:
                 self.log(
                     "Plugin '%s' did not pass validation; not loading: %s.",
                     (name, e,)
                 )
 
-            min_version = NormalizedVersion(cls.MIN_VERSION)
-            max_version = NormalizedVersion(cls.MAX_VERSION)
-            curr_version = NormalizedVersion(__version__)
-
-            if not min_version <= curr_version <= max_version:
-                self.log(
-                    "Plugin '%s' is not compatible with version %s of Jirafs; "
-                    "minimum version: %s; maximum version %s.",
-                    (
-                        name,
-                        __version__,
-                        cls.MIN_VERSION,
-                        cls.MAX_VERSION,
-                    ),
-                )
-                continue
-
-            plugins.append(
-                cls(self, name)
-            )
+            plugins.append(plugin)
 
         return plugins
 

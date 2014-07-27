@@ -1,5 +1,9 @@
 import json
 
+from verlib import NormalizedVersion
+
+from . import __version__
+
 
 class PluginError(Exception):
     pass
@@ -21,12 +25,27 @@ class Plugin(object):
         self.ticketfolder = ticketfolder
         self.plugin_name = plugin_name
 
-    @classmethod
-    def validate(cls):
-        if not cls.MIN_VERSION or not cls.MAX_VERSION:
+    def validate(self):
+        if not self.MIN_VERSION or not self.MAX_VERSION:
             raise PluginValidationError(
                 "Minimum and maximum version numbers not specified."
             )
+
+        min_version = NormalizedVersion(self.MIN_VERSION)
+        max_version = NormalizedVersion(self.MAX_VERSION)
+        curr_version = NormalizedVersion(__version__)
+        if not min_version <= curr_version <= max_version:
+            raise PluginValidationError(
+                "Plugin '%s' is not compatible with version %s of Jirafs; "
+                "minimum version: %s; maximum version %s.",
+                (
+                    self.plugin_name,
+                    __version__,
+                    self.MIN_VERSION,
+                    self.MAX_VERSION,
+                ),
+            )
+
         return True
 
     @property
@@ -35,6 +54,12 @@ class Plugin(object):
             'plugin_meta',
             '%s.json' % self.plugin_name,
         )
+
+    def get_configuration(self):
+        config = self.ticketfolder.get_config()
+        if not config.has_section(self.plugin_name):
+            return dict(config.items(self.plugin_name))
+        return {}
 
     def get_metadata(self):
         try:

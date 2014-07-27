@@ -58,11 +58,6 @@ setup(
     entry_points={
         'console_scripts': [
             'jirafs = jirafs.cmdline:main'
-        ],
-        'jirafs_plugins': [
-            'rst_to_pdf = jirafs.plugins.rst_compiler:RSTtoPDF',
-            'rst_to_html = jirafs.plugins.rst_compiler:RSTtoHTML',
-            'dot_to_png = jirafs.plugins.dot_compiler:DOTtoPNG',
         ]
     },
 )

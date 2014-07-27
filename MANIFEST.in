@@ -1,4 +1,3 @@
 include readme.rst
 include requirements.txt
 recursive-include tests *.rst *.txt *.json *.svg
-recursive-include jirafs/jirafs/plugins *.tex

@@ -129,6 +129,8 @@ The plugin will have the following properties and methods at its disposal:
 
 * ``self.ticketfolder``: An instance of ``jirafs.ticketfolder.TicketFolder`` representing
   the jira issue that this plugin is currently operating upon.
+* ``self.get_configuration()``: Returns a dictionary of configuration settings for this
+  plugin.
 * ``self.get_metadata()``: Returns a dictionary containing metadata stored
   for this plugin.
 * ``self.set_metadata(dict)``: Allows plugin to store metadata.  Data **must**
