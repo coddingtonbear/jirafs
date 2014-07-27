@@ -40,6 +40,8 @@ your workflow.  Currently, existing plugins include:
   Automatically transform graphviz (dot) files into PNG digraphs during
   upload.
 
+----------
+
 - Documentation for Jirafs is available on
   `ReadTheDocs <http://jirafs.readthedocs.org/>`_.
 - Please post issues on
