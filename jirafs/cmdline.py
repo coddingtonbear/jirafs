@@ -248,8 +248,8 @@ def clone(args, jira, path, **kwargs):
     )
 
 
-@command('Open this ticket in JIRA', try_subfolders=True)
-def open(args, jira, path, **kwargs):
+@command('Open this ticket in JIRA', try_subfolders=True, name='open')
+def web_open(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
     parser.parse_args(args)
 
@@ -275,7 +275,12 @@ def config(args, jira, path, **kwargs):
     parser.add_argument('--list', action='store_true')
     parser.add_argument('--get', action='store_true')
     parser.add_argument('--set', action='store_true')
-    parser.add_argument('--global', dest='global_config', action='store_true')
+    parser.add_argument(
+        '--global',
+        dest='global_config',
+        default=False,
+        action='store_true'
+    )
     parser.add_argument('params', nargs='*')
     args = parser.parse_args(args)
     if not args.list and not args.get and not args.set:
@@ -335,7 +340,7 @@ def config(args, jira, path, **kwargs):
                 config.add_section(section)
             config.set(section, key, value)
             with open(
-                os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG)
+                os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG), 'w'
             ) as out:
                 config.write(out)
         else:
