@@ -13,7 +13,6 @@ import six
 from six.moves import configparser
 from six.moves.urllib import parse
 
-from . import constants
 from . import utils
 from .exceptions import (
     CannotInferTicketNumberFromFolderName,
