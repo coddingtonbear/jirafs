@@ -3,6 +3,8 @@ import os
 import shutil
 import subprocess
 
+from .exceptions import GitCommandError
+
 
 def set_repo_version(repo, version):
     with open(repo.get_metadata_path('version'), 'w') as out:
@@ -24,7 +26,6 @@ def migration_0002(repo, **kwargs):
         (
             'git',
             'clone',
-            '--shared',
             '-q',
             '../git',
             '.'
@@ -32,9 +33,12 @@ def migration_0002(repo, **kwargs):
         cwd=repo.get_metadata_path('shadow'),
         stdout=subprocess.PIPE,
     )
-    repo.run_git_command('checkout', '-b', 'jira', shadow=True)
+    try:
+        repo.run_git_command('checkout', '-b', 'jira', shadow=True)
+    except GitCommandError:
+        repo.run_git_command('checkout', 'jira', shadow=True)
     repo.run_git_command(
-            'commit', '--allow-empty', '-m', 'Shadow Created', shadow=True
+        'commit', '--allow-empty', '-m', 'Shadow Created', shadow=True
     )
     repo.run_git_command('push', 'origin', 'jira', shadow=True)
     set_repo_version(repo, 2)
@@ -166,6 +170,19 @@ def migration_0007(repo, init=False, **kwargs):
         )
     except OSError:
         pass
+    with open(repo.get_metadata_path('plugin_meta', '.empty'), 'w') as out:
+        out.write('')
+    repo.run_git_command(
+        'add',
+        '-f',
+        repo.get_metadata_path('plugin_meta', '.empty',)
+    )
+    repo.run_git_command(
+        'commit',
+        '-m',
+        'Completing migration_0007',
+        failure_ok=True
+    )
     set_repo_version(repo, 7)
 
 
@@ -193,6 +210,7 @@ def migration_0008(repo, init=False, **kwargs):
         'commit',
         '-m',
         'Updating gitignore',
+        failure_ok=True
     )
 
     files_to_add = [
@@ -225,7 +243,6 @@ def migration_0009(repo, init=False, **kwargs):
         (
             'git',
             'clone',
-            '--shared',
             '-q',
             '../git',
             '.'
@@ -233,10 +250,121 @@ def migration_0009(repo, init=False, **kwargs):
         cwd=repo.get_metadata_path('shadow'),
         stdout=subprocess.PIPE,
     )
-    repo.run_git_command('checkout', '-b', 'jira', shadow=True)
+    try:
+        repo.run_git_command('checkout', '-b', 'jira', shadow=True)
+    except GitCommandError:
+        repo.run_git_command('checkout', 'jira', shadow=True)
     repo.run_git_command(
         'commit', '--allow-empty', '-m', 'Shadow Created', shadow=True
     )
     repo.run_git_command('push', 'origin', 'jira', shadow=True)
 
     set_repo_version(repo, 9)
+
+
+def migration_0010(repo, init=False, **kwargs):
+    """ Make sure that the operation.log and plugin_meta are untracked/tracked.
+
+    * ``operation.log`` *cannot* be tracked, since if we make a change,
+      followed by a stash pop, operation.log may have encountered changes
+      since then.
+    * ``plugin_meta`` *must* be tracked, or when we pop stash, 
+
+    """
+    if init:
+        set_repo_version(repo, 10)
+        return
+
+    with open(repo.get_metadata_path('gitignore'), 'w') as out:
+        out.write(
+            '\n'.join(
+                [
+                    '.jirafs/git',
+                    '.jirafs/shadow',
+                    '.jirafs/operation.log'
+                ]
+            )
+        )
+    repo.run_git_command(
+        'add',
+        '-f',
+        '.jirafs/gitignore',
+    )
+    try:
+        os.mkdir(
+            repo.get_metadata_path(
+                'plugin_meta',
+            )
+        )
+        with open(repo.get_metadata_path('plugin_meta', '.empty'), 'w') as out:
+            out.write('')
+    except OSError:
+        # Already exists
+        pass
+    repo.run_git_command(
+        'add',
+        '-f',
+        repo.get_metadata_path(
+            'plugin_meta',
+            '.empty'
+        )
+    )
+    repo.run_git_command(
+        'rm',
+        '-f',
+        '--cached',
+        '.jirafs/operation.log',
+        failure_ok=True,
+    )
+    repo.run_git_command(
+        'commit',
+        '-m',
+        'Completing migration_0010',
+        failure_ok=True
+    )
+    set_repo_version(repo, 10)
+
+
+def migration_0011(repo, init=False, **kwargs):
+    """ Re-clone shadow copy so it does not reference an absolute path.
+
+    .. note::
+
+       The amount of stumbling I've engaged in in managing this shadow
+       copy has been terribly embarassing.  Who knew it was so complicated.
+
+       The TLDR is that you *cannot* use `shared` if you ever want the folder
+       to be portable, since it'll write an absolute path to the repository
+       in your `.jirafs/shadow/.git/objects/info/alternates` file.
+
+    """
+    if init:
+        set_repo_version(repo, 11)
+        return
+
+    shutil.rmtree(repo.get_metadata_path('shadow'))
+    os.mkdir(
+        repo.get_metadata_path('shadow')
+    )
+    subprocess.check_call(
+        (
+            'git',
+            'clone',
+            '-q',
+            '../git',
+            '.'
+        ),
+        cwd=repo.get_metadata_path('shadow'),
+        stdout=subprocess.PIPE,
+    )
+    try:
+        repo.run_git_command('checkout', '-b', 'jira', shadow=True)
+    except GitCommandError:
+        repo.run_git_command('checkout', 'jira', shadow=True)
+    repo.run_git_command(
+        'commit', '--allow-empty', '-m', 'Shadow Created', shadow=True
+    )
+    repo.run_git_command('push', '-f', 'origin', 'jira', shadow=True)
+    repo.merge()
+
+    set_repo_version(repo, 11)

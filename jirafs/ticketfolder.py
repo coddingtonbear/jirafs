@@ -358,6 +358,7 @@ class TicketFolder(object):
                     [
                         '%s/git' % constants.METADATA_DIR,
                         '%s/shadow' % constants.METADATA_DIR,
+                        '%s/operation.log' % constants.METADATA_DIR,
                     ]
                 )
             )

@@ -251,7 +251,7 @@ def status(args, jira, path, **kwargs):
         for filename in changes.get('files', []):
             lines.append(
                 '\t' + color + filename + normal + (
-                    ' (save to repo)' if no_upload else ' (file upload)'
+                    ' (save to repository)' if no_upload else ' (file upload)'
                 )
             )
         for field, value_set in changes.get('fields', {}).items():
