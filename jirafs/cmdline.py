@@ -16,6 +16,7 @@ from six.moves.urllib import parse
 from . import constants
 from . import utils
 from .exceptions import (
+    CannotInferTicketNumberFromFolderName,
     GitCommandError,
     LocalCopyOutOfDate,
     NotTicketFolderException
@@ -132,6 +133,69 @@ def log(args, jira, path, **kwargs):
 def debug(args, jira, path, **kwargs):
     folder = TicketFolder(path, jira)
     ipdb.set_trace()
+
+
+@command('List which plugins are currently enabled')
+def plugins(args, jira, path, **kwargs):
+    def build_plugin_dict(enabled, available):
+        all_plugins = {}
+        for plugin_name, cls in available.items():
+            all_plugins[plugin_name] = {
+                'enabled': False,
+                'class': cls,
+            }
+        for plugin_instance in enabled:
+            plugin_name = plugin_instance.plugin_name
+            all_plugins[plugin_name]['enabled'] = True
+            all_plugins[plugin_name]['instance'] = plugin_instance
+
+        return all_plugins
+
+    t = Terminal()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--verbose', action='store_true', default=False)
+    parser.add_argument(
+        '--enabled-only',
+        dest='enabled_only',
+        action='store_true',
+        default=False
+    )
+    parser.add_argument(
+        '--disabled-only',
+        dest='disabled_only',
+        action='store_true',
+        default=False
+    )
+    args = parser.parse_args(args)
+
+    if args.disabled_only and args.enabled_only:
+        parser.error(
+            "--disabled-only and --enabled-only are mutually exclusive."
+        )
+
+    folder = TicketFolder(path, jira, quiet=True)
+    enabled_plugins = folder.load_plugins()
+    available_plugins = utils.get_installed_plugins()
+
+    all_plugins = build_plugin_dict(enabled_plugins, available_plugins)
+
+    for plugin_name, plugin_data in all_plugins.items():
+        if plugin_data['enabled'] and args.disabled_only:
+            continue
+        if not plugin_data['enabled'] and args.enabled_only:
+            continue
+        if plugin_data['enabled']:
+            color = t.bold
+        else:
+            color = t.normal
+
+        print(
+            color + plugin_name + t.normal
+            + ' (Enabled)' if plugin_data['enabled'] else ' (Available)'
+        )
+        if args.verbose:
+            for line in plugin_data['class'].__doc__.strip().split('\n'):
+                print('     %s' % line)
 
 
 @command('Get the status of the current folder', try_subfolders=True)
@@ -421,7 +485,7 @@ def main():
             print("    %s" % line)
         print("")
         sys.exit(1)
-    except NotTicketFolderException:
+    except (NotTicketFolderException, CannotInferTicketNumberFromFolderName):
         if not fn.try_subfolders:
             print(
                 "The command '%s' must be ran from within an issue folder." % (

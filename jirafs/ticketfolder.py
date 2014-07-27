@@ -26,10 +26,11 @@ logger = logging.getLogger(__name__)
 
 
 class TicketFolder(object):
-    def __init__(self, path, jira, migrate=True):
+    def __init__(self, path, jira, migrate=True, quiet=False):
         self.path = os.path.realpath(
             os.path.expanduser(path)
         )
+        self.quiet = quiet
         self.issue_url = self.get_ticket_url()
         self.get_jira = jira
         self.plugins = self.load_plugins()
@@ -938,7 +939,7 @@ class TicketFolder(object):
                     (message % args).replace('\n', '\\n')
                 )
             )
-        if level >= logging.INFO:
+        if level >= logging.INFO and not self.quiet:
             print(
                 "[%s %s] %s" % (
                     logging.getLevelName(level),

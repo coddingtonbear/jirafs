@@ -11,9 +11,9 @@ from .plugin import Plugin
 
 
 def convert_to_boolean(string):
-    if string.upper().strip() in ['Y', 'YES', 'ON', 'ENABLED']:
+    if string.upper().strip() in ['Y', 'YES', 'ON', 'ENABLED', 'ENABLE']:
         return True
-    elif string.upper().strip() in ['N', 'NO', 'OFF', 'DISABLED']:
+    elif string.upper().strip() in ['N', 'NO', 'OFF', 'DISABLED', 'DISABLE']:
         return False
     return None
 
