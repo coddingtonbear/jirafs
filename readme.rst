@@ -31,6 +31,15 @@ modeled off of ``git`` and ``hg``.
 
     # Now your comment and file are available in JIRA
 
+Additionally provides a Plugin API allowing one to write scripts to simplify
+your workflow.  Currently, existing plugins include:
+
+* `jirafs-pandoc <http://github.com/coddingtonbear/jirafs-pandoc>`_: Automatically
+  transform RST/Markdown markup into fancy PDFs during upload.
+* `jirafs-graphviz <http://github.com/coddingtonbear/jirafs-graphviz>`_:
+  Automatically transform graphviz (dot) files into PNG digraphs during
+  upload.
+
 - Documentation for Jirafs is available on
   `ReadTheDocs <http://jirafs.readthedocs.org/>`_.
 - Please post issues on
