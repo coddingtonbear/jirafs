@@ -408,8 +408,15 @@ class TicketFolder(object):
 
     @classmethod
     def clone(cls, ticket_url, jira, path=None):
+        match = re.match('.*\/browse\/(\w+-\d+)\/?', ticket_url)
+        if not match:
+            raise exceptions.JirafsError(
+                    "\'%s\' is not a valid JIRA ticket URL." % (
+                        ticket_url
+                    )
+            )
         if not path:
-            path = re.match('.*\/browse\/(\w+-\d+)\/?', ticket_url).group(1)
+            path = match.group(1)
         path = os.path.realpath(path)
         os.mkdir(path)
         folder = cls.initialize_ticket_folder(ticket_url, path, jira)

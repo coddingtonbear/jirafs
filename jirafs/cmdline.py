@@ -18,6 +18,7 @@ from . import utils
 from .exceptions import (
     CannotInferTicketNumberFromFolderName,
     GitCommandError,
+    JirafsError,
     LocalCopyOutOfDate,
     NotTicketFolderException
 )
@@ -554,6 +555,8 @@ def main():
                 )
             )
             sys.exit(1)
+    except JirafsError as e:
+        print("Jirafs encountered an error processing your request: %s" % e)
 
     logger.debug(
         'Command %s(%s) finished in %s seconds',
