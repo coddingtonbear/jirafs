@@ -2,9 +2,12 @@ import collections
 import getpass
 import os
 import pkg_resources
+import re
+import subprocess
 
 from jira.client import JIRA
 from six.moves import configparser, input
+from verlib import NormalizedVersion
 
 from . import constants
 from .plugin import Plugin
@@ -159,6 +162,15 @@ def get_jira(domain=None, config=None):
         config.write(global_config)
 
     return jira
+
+
+def get_git_version():
+    result = subprocess.check_output(
+        ['git', '--version'],
+        stderr=subprocess.PIPE,
+    ).decode('utf8')
+    version_string = re.match('git version ([0-9.]+) .*', result).group(1)
+    return NormalizedVersion(version_string)
 
 
 def lazy_get_jira():

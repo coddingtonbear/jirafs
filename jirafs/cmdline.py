@@ -12,6 +12,7 @@ import ipdb
 import six
 from six.moves import configparser
 from six.moves.urllib import parse
+from verlib import NormalizedVersion
 
 from . import utils
 from .exceptions import (
@@ -479,6 +480,11 @@ def main():
             "Jirafs requires minimally version 2.7 of Python 2, or "
             "any version of Python 3.  Please upgrade your version of "
             "python before using Jirafs."
+        )
+    if utils.get_git_version() < NormalizedVersion('1.8'):
+        raise RuntimeError(
+            "Jirafs requires minimally version 1.8 of Git.  Please "
+            "upgrade your version of git before using Jirafs."
         )
 
     parser = argparse.ArgumentParser(

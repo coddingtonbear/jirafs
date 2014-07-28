@@ -40,6 +40,12 @@ your workflow.  Currently, existing plugins include:
   Automatically transform graphviz (dot) files into PNG digraphs during
   upload.
 
+Requirements
+------------
+
+* ``git > 1.8``
+* ``python > 2.7`` or ``python3 > 3.3```
+
 ----------
 
 - Documentation for Jirafs is available on
