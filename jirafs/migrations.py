@@ -296,11 +296,11 @@ def migration_0010(repo, init=False, **kwargs):
                 'plugin_meta',
             )
         )
-        with open(repo.get_metadata_path('plugin_meta', '.empty'), 'w') as out:
-            out.write('')
     except OSError:
         # Already exists
         pass
+    with open(repo.get_metadata_path('plugin_meta', '.empty'), 'w') as out:
+        out.write('')
     repo.run_git_command(
         'add',
         '-f',
