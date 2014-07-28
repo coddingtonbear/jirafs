@@ -115,9 +115,15 @@ def push(args, jira, path, **kwargs):
 @command('Run a command in this issue\'s git repository')
 def git(args, jira, path, **kwargs):
     parser = argparse.ArgumentParser()
-    _, extra = parser.parse_known_args(args)
+    parser.add_argument(
+        '--no-migrate',
+        dest='migrate',
+        default=True,
+        action='store_false',
+    )
+    args, extra = parser.parse_known_args(args)
 
-    folder = TicketFolder(path, jira)
+    folder = TicketFolder(path, jira, migrate=args.migrate)
     print(folder.run_git_command(*extra))
 
 
