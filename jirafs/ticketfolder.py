@@ -917,10 +917,11 @@ class TicketFolder(object):
             if self.version < constants.CURRENT_REPO_VERSION:
                 print(
                     "Your ticket folder is out-of-date and must be updated.  "
-                    "Migrations are not necessarily lossless; please record "
-                    "your current changes before proceeding with migrations."
+                    "Although migrations will never affect the JIRA issue "
+                    "itself, they may modify your local clone of the issue; "
+                    "please record your current changes before proceeding."
                 )
-                result = utils.convert_to_boolean(input("Proceed? (N/y)"))
+                result = utils.convert_to_boolean(input("Continue? (N/Y): "))
                 if not result:
                     sys.exit(1)
         while self.version < constants.CURRENT_REPO_VERSION:
