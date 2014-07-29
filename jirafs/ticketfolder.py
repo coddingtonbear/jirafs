@@ -908,7 +908,6 @@ class TicketFolder(object):
 
         return status
 
-    @stash_local_changes
     def run_migrations(self, init=False):
         loglevel = logging.INFO
         if init:
@@ -931,6 +930,7 @@ class TicketFolder(object):
             )
             self.migrate(migrator, loglevel=loglevel, init=init)
 
+    @stash_local_changes
     def migrate(self, migrator, loglevel=logging.INFO, init=False):
         self.log('%s: Migration started', (migrator.__name__, ), loglevel)
         migrator(self, init=init)
