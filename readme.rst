@@ -15,21 +15,12 @@ library lets you stay out of JIRA as much as possible by letting
 you edit your JIRA issues as text files using an interface
 modeled off of ``git`` and ``hg``.
 
-::
+.. image:: https://s3-us-west-2.amazonaws.com/coddingtonbear-public/jirafs_small.gif
 
-    jirafs clone http://my-jira-server/browse/MYISSUE-1024
-    cd MYISSUE-1024
+Read more details in `the docs <http://jirafs.readthedocs.org/>`_.
 
-    # let's add an attachment
-    cp ~/Desktop/some_file.jpg  .
-
-    # and add a comment
-    echo 'Uploading some file I found' >> new_comment.jira
-
-    jirafs commit
-    jirafs push
-
-    # Now your comment and file are available in JIRA
+Plugins, Too
+------------
 
 Additionally provides a Plugin API allowing one to write scripts to simplify
 your workflow.  Currently, existing plugins include:

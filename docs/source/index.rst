@@ -20,6 +20,8 @@ library lets you stay out of JIRA as much as possible by letting
 you edit your JIRA issues as text files using an interface
 modeled off of ``git`` and ``hg``.
 
+.. image:: https://s3-us-west-2.amazonaws.com/coddingtonbear-public/jirafs_small.gif
+
 .. toctree::
    :maxdepth: 3
 
@@ -29,4 +31,5 @@ modeled off of ``git`` and ``hg``.
    configuration
    plugins
    details
+
 
