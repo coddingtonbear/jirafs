@@ -15,7 +15,7 @@ library lets you stay out of JIRA as much as possible by letting
 you edit your JIRA issues as text files using an interface
 modeled off of ``git`` and ``hg``.
 
-.. image:: https://s3-us-west-2.amazonaws.com/coddingtonbear-public/github/jirafs/readme_demo.gif
+.. image:: https://s3-us-west-2.amazonaws.com/coddingtonbear-public/github/jirafs/readme_demo_revised.gif
 
 Read more details in `the docs <http://jirafs.readthedocs.org/>`_.
 
