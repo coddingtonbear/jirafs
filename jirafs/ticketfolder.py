@@ -433,9 +433,11 @@ class TicketFolder(object):
         if not shadow:
             work_tree = self.path,
             git_dir = self.get_metadata_path('git')
+            cwd = self.path
         else:
             work_tree = self.get_metadata_path('shadow')
             git_dir = self.get_metadata_path('shadow/.git')
+            cwd = self.get_metadata_path('shadow')
 
         cmd = [
             'git',
@@ -453,7 +455,8 @@ class TicketFolder(object):
         try:
             result = subprocess.check_output(
                 cmd,
-                stderr=subprocess.STDOUT
+                cwd=cwd,
+                stderr=subprocess.STDOUT,
             )
             if not binary:
                 return result.decode('utf-8').strip()

@@ -368,3 +368,21 @@ def migration_0011(repo, init=False, **kwargs):
     repo.merge()
 
     set_repo_version(repo, 11)
+
+
+def migration_0012(repo, init=False, **kwargs):
+    """ Force the shadow repository to use a relative URL."""
+    subprocess.check_call(
+        (
+            'git',
+            'remote',
+            'set-url',
+            'origin',
+            '../git'
+        ),
+        cwd=repo.get_metadata_path('shadow'),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    set_repo_version(repo, 12)
