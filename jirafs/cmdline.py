@@ -105,6 +105,7 @@ def push(args, jira, path, **kwargs):
     folder = TicketFolder(path, jira)
     try:
         folder.push()
+        folder.pull()
     except LocalCopyOutOfDate:
         print(
             "Your local copy is out-of-date; please run "
