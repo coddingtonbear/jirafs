@@ -1,4 +1,5 @@
 import collections
+import contextlib
 import getpass
 import os
 import pkg_resources
@@ -19,6 +20,26 @@ def convert_to_boolean(string):
     elif string.upper().strip() in ['N', 'NO', 'OFF', 'DISABLED', 'DISABLE']:
         return False
     return None
+
+
+@contextlib.contextmanager
+def stash_local_changes(repo):
+    # Only v10 of repositories will properly handle stashing local
+    # changes since the `version` file was previously untracked.
+    try:
+        if repo.version >= 10:
+            repo.run_git_command(
+                'stash', '--include-untracked', failure_ok=True
+            )
+        yield
+    finally:
+        if repo.version >= 10:
+            repo.run_git_command(
+                'stash', 'apply', failure_ok=True
+            )
+            repo.run_git_command(
+                'stash', 'drop', failure_ok=True
+            )
 
 
 def get_user_input(message, options=None, boolean=False, password=False):

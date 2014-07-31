@@ -1,24 +1,14 @@
 from functools import wraps
 import inspect
 
+from .utils import stash_local_changes as stash_local_changes_cm
+
 
 def stash_local_changes(cmd):
     @wraps(cmd)
     def wrapped(self, *args, **kwargs):
-        # Only v10 of repositories will properly handle stashing local
-        # changes since the `version` file was previously untracked.
-        if self.version >= 10:
-            self.run_git_command(
-                'stash', '--include-untracked', failure_ok=True,
-            )
-        cmd(self, *args, **kwargs)
-        if self.version >= 10:
-            self.run_git_command(
-                'stash', 'apply', failure_ok=True,
-            )
-            self.run_git_command(
-                'stash', 'drop', failure_ok=True,
-            )
+        with stash_local_changes_cm(self):
+            cmd(self, *args, **kwargs)
     return wrapped
 
 
