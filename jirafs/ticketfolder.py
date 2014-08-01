@@ -6,7 +6,6 @@ import os
 import re
 import sys
 import subprocess
-import textwrap
 
 from jira.resources import Issue
 import six
@@ -17,7 +16,6 @@ from . import constants
 from . import exceptions
 from . import migrations
 from . import utils
-from .decorators import run_plugins, stash_local_changes
 from .jirafieldmanager import JiraFieldManager
 from .plugin import PluginValidationError
 
@@ -136,28 +134,28 @@ class TicketFolder(object):
 
         return utils.get_config(additional_configs)
 
-    @stash_local_changes
     def set_config_value(self, section, key, value):
-        local_config_file = self.get_metadata_path('config')
+        with utils.stash_local_changes(self):
+            local_config_file = self.get_metadata_path('config')
 
-        config = utils.get_config(
-            additional_configs=[
-                local_config_file,
-            ],
-            include_global=False,
-        )
-        if not config.has_section(section):
-            config.add_section(section)
-        config.set(section, key, value)
+            config = utils.get_config(
+                additional_configs=[
+                    local_config_file,
+                ],
+                include_global=False,
+            )
+            if not config.has_section(section):
+                config.add_section(section)
+            config.set(section, key, value)
 
-        with open(local_config_file, 'w') as out:
-            config.write(out)
+            with open(local_config_file, 'w') as out:
+                config.write(out)
 
-        self.run_git_command('add', '.jirafs/config')
-        self.run_git_command(
-            'commit', '-m', 'Config change',
-            failure_ok=True
-        )
+            self.run_git_command('add', '.jirafs/config')
+            self.run_git_command(
+                'commit', '-m', 'Config change',
+                failure_ok=True
+            )
 
     @property
     def jira_base(self):
@@ -406,23 +404,6 @@ class TicketFolder(object):
 
         return instance
 
-    @classmethod
-    def clone(cls, ticket_url, jira, path=None):
-        match = re.match('.*\/browse\/(\w+-\d+)\/?', ticket_url)
-        if not match:
-            raise exceptions.JirafsError(
-                    "\'%s\' is not a valid JIRA ticket URL." % (
-                        ticket_url
-                    )
-            )
-        if not path:
-            path = match.group(1)
-        path = os.path.realpath(path)
-        os.mkdir(path)
-        folder = cls.initialize_ticket_folder(ticket_url, path, jira)
-        folder.pull()
-        return folder
-
     def run_git_command(self, command, *args, **kwargs):
         failure_ok = kwargs.get('failure_ok', False)
         shadow = kwargs.get('shadow', False)
@@ -577,7 +558,6 @@ class TicketFolder(object):
             ], which=constants.GIT_IGNORE_FILE)
         }
 
-
     def get_remotely_changed(self):
         metadata = self.get_remote_file_metadata(shadow=True)
 
@@ -672,136 +652,6 @@ class TicketFolder(object):
             single_response=True,
         )
 
-    @run_plugins(pre='pre_fetch', post='post_fetch')
-    def fetch(self):
-        file_meta = self.get_remote_file_metadata(shadow=True)
-        original_hash = self.run_git_command('rev-parse', 'jira')
-
-        for filename in self.get_remotely_changed():
-            for attachment in self.issue.fields.attachment:
-                if attachment.filename == filename:
-                    self.log(
-                        'Download file "%s"',
-                        (attachment.filename, ),
-                    )
-                    content = six.BytesIO(attachment.get())
-                    filename, content = self.execute_plugin_method_series(
-                        'alter_file_download',
-                        args=((filename, content, ),),
-                        single_response=True,
-                    )
-                    save_path = self.get_shadow_path(filename)
-                    with open(save_path, 'wb') as save_file:
-                        content.seek(0)
-                        save_file.write(content.read())
-                        file_meta[filename] = attachment.created
-
-        self.set_remote_file_metadata(file_meta, shadow=True)
-
-        with open(self.get_shadow_path(constants.TICKET_DETAILS), 'w') as dets:
-            for field in sorted(self.issue.raw['fields'].keys()):
-                value = getattr(self.issue.fields, field)
-                if isinstance(value, six.string_types):
-                    value = value.replace('\r\n', '\n').strip()
-                elif value is None:
-                    value = ''
-                elif field in constants.NO_DETAIL_FIELDS:
-                    continue
-
-                if not isinstance(value, six.string_types):
-                    value = six.text_type(value)
-
-                if field in constants.FILE_FIELDS:
-                    # Write specific fields to their own files without
-                    # significant alteration
-
-                    file_field_path = self.get_shadow_path(
-                        constants.TICKET_FILE_FIELD_TEMPLATE
-                    ).format(field_name=field)
-                    with open(file_field_path, 'w') as file_field_file:
-                        file_field_file.write(value)
-                        file_field_file.write('\n')  # For unix' sake
-                else:
-                    # Normal fields, though, just go into the standard
-                    # fields file.
-                    if value is None:
-                        continue
-                    elif field in constants.NO_DETAIL_FIELDS:
-                        continue
-
-                    dets.write('* %s:\n' % field)
-                    for line in value.replace('\r\n', '\n').split('\n'):
-                        dets.write('    %s\n' % line)
-
-        comments_filename = self.get_shadow_path(constants.TICKET_COMMENTS)
-        with open(comments_filename, 'w') as comm:
-            for comment in self.issue.fields.comment.comments:
-                comm.write(
-                    '* At %s, %s wrote:\n\n' % (
-                        comment.created,
-                        comment.author
-                    )
-                )
-                final_lines = []
-                lines = comment.body.replace('\r\n', '\n').split('\n')
-                for line in lines:
-                    if not line:
-                        final_lines.append('')
-                    else:
-                        final_lines.extend(
-                            textwrap.wrap(
-                                line,
-                                width=70,
-                                expand_tabs=False,
-                                replace_whitespace=False,
-                                break_long_words=False,
-                            )
-                        )
-                for line in final_lines:
-                    comm.write('    %s\n' % line)
-                comm.write('\n')
-
-        self.store_cached_issue()
-
-        self.run_git_command('add', '-A', shadow=True)
-        self.run_git_command(
-            'commit', '-m', 'Pulled remote changes',
-            failure_ok=True, shadow=True
-        )
-        self.run_git_command('push', 'origin', 'jira', shadow=True)
-        final_hash = self.run_git_command('rev-parse', 'jira')
-        return utils.PostStatusResponse(
-            original_hash == final_hash,
-            final_hash
-        )
-
-    @stash_local_changes
-    @run_plugins(pre='pre_merge', post='post_merge')
-    def merge(self):
-        original_merge_base = self.git_merge_base
-        self.run_git_command('merge', 'jira')
-        final_merge_base = self.git_merge_base
-
-        return utils.PostStatusResponse(
-            original_merge_base == final_merge_base,
-            final_merge_base
-        )
-
-    def pull(self):
-        self.fetch()
-        self.merge()
-
-    def commit(self, message, *args):
-        self.run_git_command(
-            'add', '-A'
-        )
-        try:
-            self.run_git_command(
-                'commit', '-m', message, *args
-            )
-        except exceptions.GitCommandError:
-            print("Nothing to commit")
-
     def is_up_to_date(self):
         jira_commit = self.run_git_command('rev-parse', 'jira')
         master_commit = self.run_git_command('rev-parse', 'master')
@@ -814,93 +664,6 @@ class TicketFolder(object):
             return False
         return True
 
-    @stash_local_changes
-    @run_plugins(pre='pre_push', post='post_push')
-    def push(self):
-        status = self.status()
-        original_hash = self.run_git_command('rev-parse', 'jira')
-
-        if not self.is_up_to_date():
-            raise exceptions.LocalCopyOutOfDate()
-
-        file_meta = self.get_remote_file_metadata(shadow=False)
-
-        for filename in status['ready']['files']:
-            upload = six.BytesIO(
-                self.get_local_file_at_revision(
-                    filename,
-                    'HEAD',
-                    binary=True
-                )
-            )
-            filename, upload = self.execute_plugin_method_series(
-                'alter_file_upload',
-                args=((filename, upload, ), ),
-                single_response=True,
-            )
-            self.log(
-                'Uploading file "%s"',
-                (filename, ),
-            )
-            # Delete the existing issue if there is one
-            for attachment in self.issue.fields.attachment:
-                if attachment.filename == filename:
-                    attachment.delete()
-            upload.seek(0)
-            attachment = self.jira.add_attachment(
-                self.ticket_number,
-                upload,
-                filename=filename,
-            )
-            file_meta[filename] = attachment.created
-
-        self.set_remote_file_metadata(file_meta, shadow=False)
-
-        comment = self.get_new_comment(clear=True, ready=True)
-        if comment:
-            self.log('Adding comment "%s"' % comment)
-            self.jira.add_comment(self.ticket_number, comment)
-
-        collected_updates = {}
-        for field, diff_values in status['ready']['fields'].items():
-            collected_updates[field] = diff_values[1]
-
-        if collected_updates:
-            self.log(
-                'Updating fields "%s"',
-                (collected_updates, )
-            )
-            self.issue.update(**collected_updates)
-
-        # Commit local copy
-        self.run_git_command('reset', '--soft', failure_ok=True)
-        self.run_git_command(
-            'add', '.jirafs/remote_files.json', failure_ok=True
-        )
-        self.run_git_command(
-            'add', constants.TICKET_NEW_COMMENT, failure_ok=True
-        )
-        self.run_git_command(
-            'commit', '-m', 'Pushed local changes', failure_ok=True
-        )
-
-        # Commit changes to remote copy, too, so we record remote
-        # file metadata.
-        self.run_git_command('fetch', shadow=True)
-        self.run_git_command('merge', 'origin/master', shadow=True)
-        self.run_git_command('add', '-A', shadow=True)
-        self.run_git_command(
-            'commit', '-m', 'Pulled remote changes',
-            failure_ok=True, shadow=True
-        )
-        self.run_git_command('push', 'origin', 'jira', shadow=True)
-        final_hash = self.run_git_command('rev-parse', 'jira')
-        return utils.PostStatusResponse(
-            original_hash == final_hash,
-            final_hash
-        )
-
-    @run_plugins(pre='pre_status', post='post_status')
     def status(self):
         status = {
             'uncommitted': self.get_uncommitted_changes(),
@@ -933,11 +696,11 @@ class TicketFolder(object):
             )
             self.migrate(migrator, loglevel=loglevel, init=init)
 
-    @stash_local_changes
     def migrate(self, migrator, loglevel=logging.INFO, init=False):
-        self.log('%s: Migration started', (migrator.__name__, ), loglevel)
-        migrator(self, init=init)
-        self.log('%s: Migration finished', (migrator.__name__, ), loglevel)
+        with utils.stash_local_changes(self):
+            self.log('%s: Migration started', (migrator.__name__, ), loglevel)
+            migrator(self, init=init)
+            self.log('%s: Migration finished', (migrator.__name__, ), loglevel)
 
     def log(self, message, args=None, level=logging.INFO):
         if args is None:

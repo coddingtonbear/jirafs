@@ -58,6 +58,22 @@ setup(
     entry_points={
         'console_scripts': [
             'jirafs = jirafs.cmdline:main'
+        ],
+        'jirafs_commands': [
+            'fetch = jirafs.commands.fetch:Command',
+            'pull = jirafs.commands.pull:Command',
+            'merge = jirafs.commands.merge:Command',
+            'commit = jirafs.commands.commit:Command',
+            'push = jirafs.commands.push:Command',
+            'git = jirafs.commands.git:Command',
+            'log = jirafs.commands.log:Command',
+            'debug = jirafs.commands.debug:Command',
+            'plugins = jirafs.commands.plugins:Command',
+            'status = jirafs.commands.status:Command',
+            'clone = jirafs.commands.clone:Command',
+            'open = jirafs.commands.open:Command',
+            'diff = jirafs.commands.diff:Command',
+            'config = jirafs.commands.config:Command',
         ]
     },
 )

@@ -11,7 +11,7 @@ from six.moves import configparser, input
 from verlib import NormalizedVersion
 
 from . import constants
-from .plugin import Plugin
+from .plugin import CommandPlugin, Plugin
 
 
 def convert_to_boolean(string):
@@ -65,6 +65,22 @@ def get_user_input(message, options=None, boolean=False, password=False):
             print("Please enter a response")
 
     return value
+
+
+def get_installed_commands():
+    possible_commands = {}
+    for entry_point in (
+        pkg_resources.iter_entry_points(group='jirafs_commands')
+    ):
+        try:
+            loaded_class = entry_point.load()
+        except ImportError:
+            continue
+        if not issubclass(loaded_class, CommandPlugin):
+            continue
+        possible_commands[entry_point.name] = loaded_class
+
+    return possible_commands
 
 
 def get_installed_plugins():

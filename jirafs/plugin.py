@@ -1,5 +1,7 @@
+import inspect
 import json
 
+import argparse
 from verlib import NormalizedVersion
 
 from . import __version__
@@ -77,3 +79,45 @@ class Plugin(object):
                     sort_keys=True,
                 )
             )
+
+
+class CommandPlugin(object):
+    def get_description(self):
+        try:
+            return self.__doc__.strip()
+        except AttributeError:
+            raise NotImplementedError()
+
+    def get_name(self):
+        try:
+            return self.NAME
+        except AttributeError:
+            raise NotImplementedError()
+
+    def add_arguments(self, parser):
+        pass
+
+    def parse_arguments(self, parser, extra_args):
+        return parser.parse_args(extra_args)
+
+    @classmethod
+    def execute_command(cls, extra_args, jira, path, **kwargs):
+        cmd = cls()
+
+        parser = argparse.ArgumentParser()
+        cmd.add_arguments(parser)
+        args = cmd.parse_arguments(parser, extra_args)
+
+        cmd.handle(args, jira, path, parser=parser)
+
+    def handle(self, args, jira, path, **kwargs):
+        raise NotImplementedError()
+
+    def try_subfolders(self):
+        try:
+            return self.TRY_SUBFOLDERS
+        except AttributeError:
+            return False
+
+    def validate(self):
+        pass
