@@ -4,7 +4,6 @@ import argparse
 from verlib import NormalizedVersion
 
 from . import __version__
-from .ticketfolder import TicketFolder
 
 
 class PluginError(Exception):
@@ -98,6 +97,7 @@ class CommandPlugin(JirafsPluginBase):
 
     @classmethod
     def execute_command(cls, extra_args, jira, path, command_name, **kwargs):
+        from .ticketfolder import TicketFolder
         cmd = cls()
 
         parser = argparse.ArgumentParser()
@@ -112,8 +112,10 @@ class CommandPlugin(JirafsPluginBase):
         args = cmd.parse_arguments(parser, extra_args)
 
         folder = None
+        folder_plugins = []
         if cmd.auto_instantiate_folder():
             folder = TicketFolder(path, jira, migrate=args.migrate)
+            folder_plugins = folder.plugins
 
         kwargs = {
             'args': args,
@@ -124,7 +126,7 @@ class CommandPlugin(JirafsPluginBase):
         }
         pre_method = 'pre_%s' % command_name
         post_method = 'post_%s' % command_name
-        for plugin in folder.plugins:
+        for plugin in folder_plugins:
             if not hasattr(plugin, pre_method):
                 continue
             method = getattr(plugin, pre_method)
@@ -135,7 +137,7 @@ class CommandPlugin(JirafsPluginBase):
         cmd.validate(**kwargs)
         result = cmd.handle(**kwargs)
 
-        for plugin in folder.plugins:
+        for plugin in folder_plugins:
             if not hasattr(plugin, post_method):
                 continue
             method = getattr(plugin, post_method)

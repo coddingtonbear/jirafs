@@ -7,7 +7,7 @@ import mock
 from mock import patch
 
 from jirafs import exceptions
-from jirafs.ticketfolder import TicketFolder
+from jirafs.utils import run_command_method_with_kwargs
 
 from .base import BaseTestCase
 
@@ -26,13 +26,14 @@ class TestTicketFolder(BaseTestCase):
             'jirafs.ticketfolder.TicketFolder.get_remotely_changed'
         ) as get_remotely_changed:
             get_remotely_changed.return_value = []
-            self.ticketfolder = TicketFolder.clone(
+            self.ticketfolder = run_command_method_with_kwargs(
+                'clone',
                 ticket_url='http://arbitrary.com/browse/ALPHA-123',
                 jira=self.mock_get_jira,
                 path=os.path.join(
                     self.root_folder,
                     self.arbitrary_ticket_number,
-                ),
+                )
             )
 
     def test_cloned_issue_successfully(self):
@@ -79,7 +80,10 @@ class TestTicketFolder(BaseTestCase):
         self.ticketfolder._issue = (
             self.rehydrate_issue('test_fetch/fetched.json')
         )
-        self.ticketfolder.fetch()
+        run_command_method_with_kwargs(
+            'fetch',
+            folder=self.ticketfolder,
+        )
 
         expected_result = self.get_asset_contents('test_fetch/fetched.jira')
         with open(self.ticketfolder.get_shadow_path('fields.jira')) as _in:
@@ -98,7 +102,10 @@ class TestTicketFolder(BaseTestCase):
         with patch.object(self.ticketfolder, 'status') as status_method:
             status_method.return_value = status
             with patch.object(self.ticketfolder.issue, 'update') as out:
-                self.ticketfolder.push()
+                run_command_method_with_kwargs(
+                    'push',
+                    folder=self.ticketfolder
+                )
                 out.assert_called_with(
                     **{
                         'description': changed_value
@@ -121,7 +128,10 @@ class TestTicketFolder(BaseTestCase):
             'push', 'origin', 'jira', shadow=True
         )
         with self.assertRaises(exceptions.LocalCopyOutOfDate):
-            self.ticketfolder.push()
+            run_command_method_with_kwargs(
+                'push',
+                folder=self.ticketfolder
+            )
 
     def test_status_new_file(self):
         src_path = self.get_asset_path('test_status_local_changes/alpha.svg')

@@ -71,7 +71,7 @@ def run_command_method_with_kwargs(command, method=None, **kwargs):
     if method is None:
         method = command
     installed_commands = get_installed_commands()
-    getattr(installed_commands[command](), method)(**kwargs)
+    return getattr(installed_commands[command](), method)(**kwargs)
 
 
 def get_installed_commands():
