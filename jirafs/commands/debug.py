@@ -1,5 +1,3 @@
-import ipdb
-
 from jirafs.plugin import CommandPlugin
 
 
@@ -12,4 +10,5 @@ class Command(CommandPlugin):
         return self.debug(folder)
 
     def debug(self, folder):
+        import ipdb
         return ipdb.set_trace()
