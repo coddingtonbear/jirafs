@@ -7,7 +7,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Enable/Disable or display information about installed issue plugins """
-    NAME = 'plugins'
 
     def handle(self, args, jira, path, parser, **kwargs):
         folder = TicketFolder(path, jira, quiet=True)

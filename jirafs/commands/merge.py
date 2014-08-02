@@ -5,7 +5,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Merge remote changes into your local copy """
-    NAME = 'merge'
     TRY_SUBFOLDERS = True
 
     def handle(self, args, jira, path, **kwargs):

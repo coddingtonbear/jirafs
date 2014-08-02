@@ -7,7 +7,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Push locally-committed changes to JIRA """
-    NAME = 'push'
     TRY_SUBFOLDERS = True
 
     def handle(self, args, jira, path, **kwargs):

@@ -4,7 +4,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Print a diff of locally-changed files """
-    NAME = 'diff'
 
     def handle(self, args, jira, path, **kwargs):
         folder = TicketFolder(path, jira)

@@ -4,7 +4,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Print the log for this issue """
-    NAME = 'log'
 
     def handle(self, args, jira, path, **kwargs):
         folder = TicketFolder(path, jira)

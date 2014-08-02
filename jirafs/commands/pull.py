@@ -5,7 +5,6 @@ from jirafs.utils import get_installed_commands
 
 class Command(CommandPlugin):
     """ Fetch and merge remote changes """
-    NAME = 'fetch'
     TRY_SUBFOLDERS = True
 
     def handle(self, args, jira, path, **kwargs):

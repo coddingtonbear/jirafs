@@ -8,7 +8,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Get the status of the current ticketfolder """
-    NAME = 'status'
     TRY_SUBFOLDERS = True
 
     def handle(self, args, jira, path, **kwargs):

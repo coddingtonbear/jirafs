@@ -9,7 +9,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Fetch remote changes """
-    NAME = 'fetch'
     TRY_SUBFOLDERS = True
 
     def handle(self, args, jira, path, **kwargs):

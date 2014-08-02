@@ -4,7 +4,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Run a git command against this ticketfolder's underlying GIT repo """
-    NAME = 'git'
 
     def handle(self, args, jira, path, **kwargs):
         folder = TicketFolder(path, jira, migrate=args.migrate)

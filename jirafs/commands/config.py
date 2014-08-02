@@ -8,7 +8,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Get, set, or list global or per-folder configuration values """
-    NAME = 'config'
 
     def handle(self, args, jira, path, parser, **kwargs):
         if args.global_config:

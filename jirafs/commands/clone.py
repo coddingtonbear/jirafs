@@ -11,7 +11,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Clone a new ticketfolder for the specified ticket URL"""
-    NAME = 'clone'
 
     def handle(self, args, jira, path):
         ticket_url = args.ticket_url[0]

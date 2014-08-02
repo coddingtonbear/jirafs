@@ -5,7 +5,6 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Commit local changes for later submission to JIRA """
-    NAME = 'commit'
 
     def handle(self, args, jira, path, **kwargs):
         folder = TicketFolder(path, jira)
