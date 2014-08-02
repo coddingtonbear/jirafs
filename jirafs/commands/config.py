@@ -8,6 +8,9 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Get, set, or list global or per-folder configuration values """
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
+    AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
     def handle(self, args, jira, path, parser, **kwargs):
         if args.global_config:
@@ -19,12 +22,13 @@ class Command(CommandPlugin):
             except NotTicketFolderException:
                 config = utils.get_config()
 
+        return_value = None
         if args.list:
             if len(args.params) != 0:
                 parser.error(
                     "--list requires no parameters."
                 )
-            self.list(config)
+            return_value = self.list(config)
         elif args.get:
             if len(args.params) != 1:
                 parser.error(
@@ -32,7 +36,7 @@ class Command(CommandPlugin):
                     "value to display."
                 )
             section, key = self.get_section_and_key(args.params[0])
-            self.get(config, section, key)
+            return_value = self.get(config, section, key)
         elif args.set:
             if len(args.params) != 2:
                 parser.error(
@@ -43,33 +47,38 @@ class Command(CommandPlugin):
             value = args.params[1]
 
             if args.global_config:
-                self.set_global(section, key, value)
+                return_value = self.set_global(section, key, value)
             else:
                 try:
                     folder = TicketFolder(path, jira)
-                    self.set_local(folder, section, key, value)
+                    return_value = self.set_local(folder, section, key, value)
                 except NotTicketFolderException:
                     parser.error(
                         "Not currently within a ticket folder.  To set a "
                         "global configuration value, use the --global option."
                     )
 
+        return return_value
+
     def get_section_and_key(self, string):
         return string.rsplit('.', 1)
 
     def set_global(self, section, key, value):
-        utils.set_global_config_value(section, key, value)
+        return utils.set_global_config_value(section, key, value)
 
     def set_local(self, folder, section, key, value):
-        folder.set_config_value(section, key, value)
+        return folder.set_config_value(section, key, value)
 
     def get(self, config, section, key):
         try:
-            print(config.get(section, key))
+            value = config.get(section, key)
+            print(value)
+            return value
         except configparser.Error:
             pass
 
     def list(self, config):
+        lines = []
         for section in config.sections():
             parameters = config.items(section)
             for key, value in parameters:
@@ -80,7 +89,9 @@ class Command(CommandPlugin):
                         value=value
                     )
                 )
+                lines.append(line)
                 print(line)
+        return lines
 
     def add_arguments(self, parser):
         parser.add_argument('--list', action='store_true')

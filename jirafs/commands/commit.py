@@ -1,13 +1,13 @@
 from jirafs import exceptions
 from jirafs.plugin import CommandPlugin
-from jirafs.ticketfolder import TicketFolder
 
 
 class Command(CommandPlugin):
     """ Commit local changes for later submission to JIRA """
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
 
-    def handle(self, args, jira, path, **kwargs):
-        folder = TicketFolder(path, jira)
+    def handle(self, args, folder, **kwargs):
         return self.commit(folder, args.message, *args.git_arguments)
 
     def add_arguments(self, parser):
@@ -23,7 +23,7 @@ class Command(CommandPlugin):
             'add', '-A'
         )
         try:
-            folder.run_git_command(
+            return folder.run_git_command(
                 'commit', '-m', message, *args
             )
         except exceptions.GitCommandError:

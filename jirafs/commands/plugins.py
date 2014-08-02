@@ -2,15 +2,14 @@ from blessings import Terminal
 
 from jirafs import utils
 from jirafs.plugin import CommandPlugin
-from jirafs.ticketfolder import TicketFolder
 
 
 class Command(CommandPlugin):
     """ Enable/Disable or display information about installed issue plugins """
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
 
-    def handle(self, args, jira, path, parser, **kwargs):
-        folder = TicketFolder(path, jira, quiet=True)
-
+    def handle(self, args, folder, parser, **kwargs):
         enabled_plugins = folder.get_enabled_plugins()
         if args.disabled_only and args.enabled_only:
             parser.error(

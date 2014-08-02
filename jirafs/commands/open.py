@@ -1,16 +1,15 @@
 import webbrowser
 
 from jirafs.plugin import CommandPlugin
-from jirafs.ticketfolder import TicketFolder
 
 
 class Command(CommandPlugin):
     """ Open the current ticketfolder's issue in your web browser """
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
 
-    def handle(self, args, jira, path, **kwargs):
-        folder = TicketFolder(path, jira)
-
-        self.open(folder)
+    def handle(self, folder, **kwargs):
+        return self.open(folder)
 
     def open(self, folder):
-        webbrowser.open(folder.cached_issue.permalink())
+        return webbrowser.open(folder.cached_issue.permalink())

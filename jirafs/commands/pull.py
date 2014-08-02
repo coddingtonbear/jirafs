@@ -1,18 +1,18 @@
 from jirafs.plugin import CommandPlugin
-from jirafs.ticketfolder import TicketFolder
-from jirafs.utils import get_installed_commands
+from jirafs.utils import run_command_method_with_kwargs
 
 
 class Command(CommandPlugin):
     """ Fetch and merge remote changes """
     TRY_SUBFOLDERS = True
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
 
-    def handle(self, args, jira, path, **kwargs):
-        folder = TicketFolder(path, jira)
+    def handle(self, folder, **kwargs):
         return self.pull(folder)
 
     def pull(self, folder):
-        commands = get_installed_commands()
+        fetch_result = run_command_method_with_kwargs('fetch', folder=folder)
+        merge_result = run_command_method_with_kwargs('merge', folder=folder)
 
-        commands['fetch']().fetch(folder)
-        commands['merge']().merge(folder)
+        return fetch_result, merge_result

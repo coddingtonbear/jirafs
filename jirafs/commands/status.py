@@ -3,17 +3,16 @@ import json
 from blessings import Terminal
 
 from jirafs.plugin import CommandPlugin
-from jirafs.ticketfolder import TicketFolder
 
 
 class Command(CommandPlugin):
     """ Get the status of the current ticketfolder """
     TRY_SUBFOLDERS = True
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
 
-    def handle(self, args, jira, path, **kwargs):
-        folder = TicketFolder(path, jira)
-
-        self.status(folder, args.format)
+    def handle(self, args, folder, **kwargs):
+        return self.status(folder, args.format)
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -23,14 +22,16 @@ class Command(CommandPlugin):
         )
 
     def status(self, folder, output_format='text'):
+        status = folder.status()
         if output_format == 'json':
-            self.status_json(folder)
-        self.status_text(folder)
+            self.status_json(folder, status)
+        self.status_text(folder, status)
+        return status
 
-    def status_json(self, folder):
-        print(json.dumps(folder.status()))
+    def status_json(self, folder, status):
+        print(json.dumps(status))
 
-    def status_text(self, folder):
+    def status_text(self, folder, folder_status):
         t = Terminal()
         print(
             "On ticket {ticket} ({url})".format(
@@ -38,7 +39,6 @@ class Command(CommandPlugin):
                 url=folder.cached_issue.permalink(),
             )
         )
-        folder_status = folder.status()
         if not folder_status['up_to_date']:
             print(
                 t.magenta + "Warning: unmerged upstream changes exist; "

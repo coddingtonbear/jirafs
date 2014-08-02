@@ -1,13 +1,15 @@
 from jirafs.plugin import CommandPlugin
-from jirafs.ticketfolder import TicketFolder
 
 
 class Command(CommandPlugin):
     """ Print the log for this issue """
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
 
-    def handle(self, args, jira, path, **kwargs):
-        folder = TicketFolder(path, jira)
+    def handle(self, folder, **kwargs):
         return self.log(folder)
 
     def log(self, folder):
-        print(folder.get_log())
+        results = folder.get_log()
+        print(results)
+        return results

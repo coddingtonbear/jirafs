@@ -11,8 +11,11 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Clone a new ticketfolder for the specified ticket URL"""
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
+    AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
-    def handle(self, args, jira, path):
+    def handle(self, args, jira, path, **kwargs):
         ticket_url = args.ticket_url[0]
         ticket_url_parts = parse.urlparse(ticket_url)
         if not ticket_url_parts.netloc:
@@ -23,7 +26,7 @@ class Command(CommandPlugin):
             )
         path = args.path[0] if args.path else None
 
-        self.clone(path, ticket_url, jira)
+        return self.clone(path, ticket_url, jira)
 
     def clone(self, path, ticket_url, jira):
         match = re.match('.*\/browse\/(\w+-\d+)\/?', ticket_url)
@@ -38,8 +41,9 @@ class Command(CommandPlugin):
         path = os.path.realpath(path)
         os.mkdir(path)
         folder = TicketFolder.initialize_ticket_folder(ticket_url, path, jira)
-        commands = utils.get_installed_commands()
-        commands['pull']().pull(folder)
+
+        utils.run_command_method_with_kwargs('pull', folder=folder)
+
         return folder
 
     def add_arguments(self, parser):

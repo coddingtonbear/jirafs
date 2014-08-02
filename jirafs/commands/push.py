@@ -2,15 +2,15 @@ import six
 
 from jirafs import constants, exceptions, utils
 from jirafs.plugin import CommandPlugin
-from jirafs.ticketfolder import TicketFolder
 
 
 class Command(CommandPlugin):
     """ Push locally-committed changes to JIRA """
     TRY_SUBFOLDERS = True
+    MIN_VERSION = '1.0'
+    MAX_VERSION = '1.99.99'
 
-    def handle(self, args, jira, path, **kwargs):
-        folder = TicketFolder(path, jira)
+    def handle(self, folder, **kwargs):
         return self.push(folder)
 
     def push(self, folder):
