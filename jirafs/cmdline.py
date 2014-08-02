@@ -9,7 +9,6 @@ from verlib import NormalizedVersion
 
 from . import utils
 from .exceptions import (
-    CannotInferTicketNumberFromFolderName,
     GitCommandError,
     JirafsError,
     NotTicketFolderException
@@ -74,7 +73,7 @@ def main():
             print("    %s" % line)
         print("")
         sys.exit(1)
-    except (NotTicketFolderException, CannotInferTicketNumberFromFolderName):
+    except NotTicketFolderException:
         if not cmd_class.TRY_SUBFOLDERS:
             print(
                 "The command '%s' must be ran from within an issue folder." % (

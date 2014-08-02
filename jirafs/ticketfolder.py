@@ -240,27 +240,8 @@ class TicketFolder(object):
         )
 
     def get_ticket_url(self):
-        if os.path.isfile(self.get_metadata_path('issue_url')):
-            with open(self.get_metadata_path('issue_url'), 'r') as in_:
-                return in_.read().strip()
-
-        jira_base = utils.get_default_jira_server()
-        ticket_number = self.infer_ticket_number()
-        return parse.urljoin(
-            jira_base,
-            'browse/' + ticket_number + '/',
-        )
-
-    def infer_ticket_number(self):
-        raw_number = self.path.split('/')[-1:][0].upper()
-        if not re.match('^\w+-\d+$', raw_number):
-            raise exceptions.CannotInferTicketNumberFromFolderName(
-                "Cannot infer ticket number from folder %s. Please name "
-                "ticket folders after the ticket they represent." % (
-                    self.path,
-                )
-            )
-        return raw_number
+        with open(self.get_metadata_path('issue_url'), 'r') as in_:
+            return in_.read().strip()
 
     def get_metadata_path(self, *args):
         return os.path.join(

@@ -3,6 +3,9 @@ import os
 import shutil
 import subprocess
 
+from six.moves.urllib import parse
+
+from . import utils
 from .exceptions import GitCommandError
 
 
@@ -386,3 +389,27 @@ def migration_0012(repo, init=False, **kwargs):
     )
 
     set_repo_version(repo, 12)
+
+
+def migration_0013(repo, init=False, **kwargs):
+    """ Ensure that folder URL is written to issue_url file."""
+    if init:
+        set_repo_version(repo, 13)
+        return
+
+    try:
+        repo.get_ticket_url()
+    except (IOError, OSError):
+        pass
+
+    jira_base = utils.get_default_jira_server()
+    ticket_number = repo.path.split('/')[-1:][0].upper()
+    issue_url = parse.urljoin(
+        jira_base,
+        'browse/' + ticket_number + '/',
+    )
+
+    with open(repo.get_metadata_path('issue_url', 'w')) as out:
+        out.write(issue_url)
+
+    set_repo_version(repo, 13)

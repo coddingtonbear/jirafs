@@ -6,10 +6,6 @@ class NotTicketFolderException(JirafsError):
     pass
 
 
-class CannotInferTicketNumberFromFolderName(JirafsError):
-    pass
-
-
 class LocalCopyOutOfDate(JirafsError):
     pass
 
