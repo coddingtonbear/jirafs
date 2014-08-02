@@ -35,6 +35,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         description='Edit Jira issues locally from your filesystem',
+        add_help=False,
     )
     parser.add_argument(
         'command',

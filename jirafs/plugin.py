@@ -1,4 +1,6 @@
 import json
+import os
+import sys
 
 import argparse
 from verlib import NormalizedVersion
@@ -100,7 +102,10 @@ class CommandPlugin(JirafsPluginBase):
         from .ticketfolder import TicketFolder
         cmd = cls()
 
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            prog=os.path.basename(sys.argv[0]) + ' ' + command_name,
+            description=cmd.get_description(),
+        )
         if cmd.auto_instantiate_folder():
             parser.add_argument(
                 '--no-migrate',
