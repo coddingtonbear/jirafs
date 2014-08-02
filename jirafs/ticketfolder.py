@@ -672,6 +672,12 @@ class TicketFolder(object):
             'up_to_date': self.is_up_to_date(),
         }
 
+        return self.execute_plugin_method_series(
+            'alter_status_dict',
+            args=(status, ),
+            single_response=True,
+        )
+
         return status
 
     def run_migrations(self, init=False):

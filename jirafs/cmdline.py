@@ -56,7 +56,9 @@ def main():
     )
     jira = utils.lazy_get_jira()
     try:
-        cmd_class.execute_command(extra, jira=jira, path=os.getcwd())
+        cmd_class.execute_command(
+            extra, jira=jira, path=os.getcwd(), command_name=command_name
+        )
     except GitCommandError as e:
         print(
             "Error (code: %s) while running git command." % (

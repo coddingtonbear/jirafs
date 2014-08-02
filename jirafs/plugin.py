@@ -1,10 +1,10 @@
-import inspect
 import json
 
 import argparse
 from verlib import NormalizedVersion
 
 from . import __version__
+from .ticketfolder import TicketFolder
 
 
 class PluginError(Exception):
@@ -19,15 +19,8 @@ class PluginOperationError(PluginError):
     pass
 
 
-class Plugin(object):
-    MIN_VERSION = None
-    MAX_VERSION = None
-
-    def __init__(self, ticketfolder, plugin_name, **kwargs):
-        self.ticketfolder = ticketfolder
-        self.plugin_name = plugin_name
-
-    def validate(self):
+class JirafsPluginBase(object):
+    def validate(self, **kwargs):
         if not self.MIN_VERSION or not self.MAX_VERSION:
             raise PluginValidationError(
                 "Minimum and maximum version numbers not specified."
@@ -49,6 +42,15 @@ class Plugin(object):
             )
 
         return True
+
+
+class Plugin(JirafsPluginBase):
+    MIN_VERSION = None
+    MAX_VERSION = None
+
+    def __init__(self, ticketfolder, plugin_name, **kwargs):
+        self.ticketfolder = ticketfolder
+        self.plugin_name = plugin_name
 
     @property
     def metadata_filename(self):
@@ -81,18 +83,12 @@ class Plugin(object):
             )
 
 
-class CommandPlugin(object):
+class CommandPlugin(JirafsPluginBase):
     def get_description(self):
         try:
             return self.__doc__.strip()
         except AttributeError:
-            raise NotImplementedError()
-
-    def get_name(self):
-        try:
-            return self.NAME
-        except AttributeError:
-            raise NotImplementedError()
+            raise None
 
     def add_arguments(self, parser):
         pass
@@ -101,16 +97,55 @@ class CommandPlugin(object):
         return parser.parse_args(extra_args)
 
     @classmethod
-    def execute_command(cls, extra_args, jira, path, **kwargs):
+    def execute_command(cls, extra_args, jira, path, command_name, **kwargs):
         cmd = cls()
 
         parser = argparse.ArgumentParser()
+        if cmd.auto_instantiate_folder():
+            parser.add_argument(
+                '--no-migrate',
+                dest='migrate',
+                default=True,
+                action='store_false'
+            )
         cmd.add_arguments(parser)
         args = cmd.parse_arguments(parser, extra_args)
 
-        cmd.handle(args, jira, path, parser=parser)
+        folder = None
+        if cmd.auto_instantiate_folder():
+            folder = TicketFolder(path, jira, migrate=args.migrate)
 
-    def handle(self, args, jira, path, **kwargs):
+        kwargs = {
+            'args': args,
+            'folder': folder,
+            'jira': jira,
+            'path': path,
+            'parser': parser,
+        }
+        pre_method = 'pre_%s' % command_name
+        post_method = 'post_%s' % command_name
+        for plugin in folder.plugins:
+            if not hasattr(plugin, pre_method):
+                continue
+            method = getattr(plugin, pre_method)
+            result = method(**kwargs)
+            if result is not None:
+                kwargs = result
+
+        cmd.validate(**kwargs)
+        result = cmd.handle(**kwargs)
+
+        for plugin in folder.plugins:
+            if not hasattr(plugin, post_method):
+                continue
+            method = getattr(plugin, post_method)
+            post_result = method(result)
+            if post_result is not None:
+                result = post_result
+
+        return result
+
+    def handle(self, folder, args, **kwargs):
         raise NotImplementedError()
 
     def try_subfolders(self):
@@ -119,5 +154,8 @@ class CommandPlugin(object):
         except AttributeError:
             return False
 
-    def validate(self):
-        pass
+    def auto_instantiate_folder(self):
+        try:
+            return self.AUTOMATICALLY_INSTANTIATE_FOLDER
+        except AttributeError:
+            return True
