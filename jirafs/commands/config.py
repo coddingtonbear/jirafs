@@ -8,7 +8,7 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Get, set, or list global or per-folder configuration values """
-    MIN_VERSION = '1.0'
+    MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
@@ -109,9 +109,6 @@ class Command(CommandPlugin):
         args = super(Command, self).parse_arguments(parser, args)
 
         if not args.list and not args.get and not args.set:
-            parser.error(
-                'Please specify action using either --list, '
-                '--set, or --get.'
-            )
+            args.list = True
 
         return args

@@ -8,7 +8,7 @@ from jirafs.plugin import CommandPlugin
 class Command(CommandPlugin):
     """ Get the status of the current ticketfolder """
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.0'
+    MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, **kwargs):
@@ -103,6 +103,8 @@ class Command(CommandPlugin):
     ):
         if terminal is None:
             t = Terminal()
+        else:
+            t = terminal
         lines = []
         color = getattr(t, color)
         normal = t.normal

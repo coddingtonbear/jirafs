@@ -85,6 +85,10 @@ class Plugin(JirafsPluginBase):
 
 
 class CommandPlugin(JirafsPluginBase):
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
     def get_description(self):
         try:
             return self.__doc__.strip()
@@ -100,7 +104,9 @@ class CommandPlugin(JirafsPluginBase):
     @classmethod
     def execute_command(cls, extra_args, jira, path, command_name, **kwargs):
         from .ticketfolder import TicketFolder
-        cmd = cls()
+        cmd = cls(
+            plugin_name=command_name
+        )
 
         parser = argparse.ArgumentParser(
             prog=os.path.basename(sys.argv[0]) + ' ' + command_name,

@@ -6,11 +6,11 @@ from jirafs.plugin import CommandPlugin
 
 class Command(CommandPlugin):
     """ Enable/Disable or display information about installed issue plugins """
-    MIN_VERSION = '1.0'
+    MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, parser, **kwargs):
-        enabled_plugins = folder.get_enabled_plugins()
+        enabled_plugins = folder.load_plugins()
         if args.disabled_only and args.enabled_only:
             parser.error(
                 "--disabled-only and --enabled-only are mutually exclusive."
@@ -66,7 +66,7 @@ class Command(CommandPlugin):
     def plugins(self, folder, args):
         t = Terminal()
 
-        enabled_plugins = folder.get_enabled_plugins()
+        enabled_plugins = folder.load_plugins()
         available_plugins = utils.get_installed_plugins()
 
         if args.enable:

@@ -49,6 +49,21 @@ class TicketFolder(object):
             with open(comment_path, 'w') as out:
                 out.write('')
 
+    def __repr__(self):
+        if six.PY3:
+            value = self.__unicode__()
+        else:
+            value = self.__str__()
+        return "<%s>" % value
+
+    def __unicode__(self):
+        return "[%s] at %s" % (self.ticket_number, self.path)
+
+    def __str__(self):
+        if six.PY3:
+            return self.__unicode__()
+        return self.__unicode__().encode('utf8', 'replace')
+
     def execute_plugin_method_series(
         self, name, args=None, kwargs=None, single_response=False
     ):

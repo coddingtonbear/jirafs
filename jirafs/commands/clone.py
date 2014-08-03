@@ -11,7 +11,7 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Clone a new ticketfolder for the specified ticket URL"""
-    MIN_VERSION = '1.0'
+    MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 

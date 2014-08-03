@@ -3,7 +3,7 @@ from jirafs.plugin import CommandPlugin
 
 class Command(CommandPlugin):
     """ Print a diff of locally-changed files """
-    MIN_VERSION = '1.0'
+    MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
 
     def handle(self, folder, **kwargs):

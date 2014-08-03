@@ -5,7 +5,7 @@ from jirafs.utils import run_command_method_with_kwargs
 class Command(CommandPlugin):
     """ Fetch and merge remote changes """
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.0'
+    MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
 
     def handle(self, folder, **kwargs):

@@ -2,12 +2,13 @@ import six
 
 from jirafs import constants, exceptions, utils
 from jirafs.plugin import CommandPlugin
+from jirafs.utils import run_command_method_with_kwargs
 
 
 class Command(CommandPlugin):
     """ Push locally-committed changes to JIRA """
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.0'
+    MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
 
     def handle(self, folder, **kwargs):
@@ -16,7 +17,6 @@ class Command(CommandPlugin):
     def push(self, folder):
         with utils.stash_local_changes(folder):
             status = folder.status()
-            original_hash = folder.run_git_command('rev-parse', 'jira')
 
             if not folder.is_up_to_date():
                 raise exceptions.LocalCopyOutOfDate()
@@ -92,8 +92,5 @@ class Command(CommandPlugin):
                 failure_ok=True, shadow=True
             )
             folder.run_git_command('push', 'origin', 'jira', shadow=True)
-            final_hash = folder.run_git_command('rev-parse', 'jira')
-            return utils.PostStatusResponse(
-                original_hash == final_hash,
-                final_hash
-            )
+            pull_result = run_command_method_with_kwargs('pull', folder=folder)
+            return pull_result[1]
