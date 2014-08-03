@@ -70,3 +70,23 @@ run ``jirafs push``.
 
 From within an issue folder, opens the current JIRA issue in your
 default web browser.
+
+``transition``
+----------------------------------------
+
+From within an issue folder, allows you to transition an issue into any
+state available in your workflow.
+
+Possible forms include:
+
+* ``transition``: The user will be presented with state options for
+  selection at runtime.
+* ``transition 10``: Transition into the state with the ID of '10'.
+* ``transition "closed"``: Transition into the state with the name
+  "closed".  Note that state names are case-insensitive.
+
+.. note::
+
+   Note that the options available are dependent upon the user account
+   used for authentication.
+

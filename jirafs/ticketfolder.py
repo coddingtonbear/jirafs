@@ -205,6 +205,10 @@ class TicketFolder(object):
             self._issue = self.jira.issue(self.ticket_number)
         return self._issue
 
+    def clear_cache(self):
+        del self._issue
+        del self._jira
+
     def store_cached_issue(self, shadow=True):
         storable = {
             'options': self.issue._options,

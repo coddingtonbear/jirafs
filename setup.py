@@ -74,6 +74,7 @@ setup(
             'open = jirafs.commands.open:Command',
             'diff = jirafs.commands.diff:Command',
             'config = jirafs.commands.config:Command',
+            'transition = jirafs.commands.transition:Command',
         ]
     },
 )

@@ -16,6 +16,8 @@ class Command(CommandPlugin):
         return self.fetch(folder)
 
     def fetch(self, folder):
+        folder.clear_cache()
+
         file_meta = folder.get_remote_file_metadata(shadow=True)
         original_hash = folder.run_git_command('rev-parse', 'jira')
 
