@@ -75,7 +75,7 @@ def main():
         print("")
         sys.exit(1)
     except NotTicketFolderException:
-        if not cmd_class.TRY_SUBFOLDERS:
+        if not getattr(cmd_class, 'TRY_SUBFOLDERS', False):
             print(
                 "The command '%s' must be ran from within an issue folder." % (
                     command_name

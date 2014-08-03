@@ -397,10 +397,10 @@ def migration_0013(repo, init=False, **kwargs):
         set_repo_version(repo, 13)
         return
 
-    try:
-        repo.get_ticket_url()
-    except (IOError, OSError):
-        pass
+    result = repo.get_ticket_url()
+    if result is not None:
+        set_repo_version(repo, 13)
+        return
 
     jira_base = utils.get_default_jira_server()
     ticket_number = repo.path.split('/')[-1:][0].upper()

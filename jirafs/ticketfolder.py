@@ -255,8 +255,11 @@ class TicketFolder(object):
         )
 
     def get_ticket_url(self):
-        with open(self.get_metadata_path('issue_url'), 'r') as in_:
-            return in_.read().strip()
+        try:
+            with open(self.get_metadata_path('issue_url'), 'r') as in_:
+                return in_.read().strip()
+        except (IOError, OSError):
+            return None
 
     def get_metadata_path(self, *args):
         return os.path.join(
