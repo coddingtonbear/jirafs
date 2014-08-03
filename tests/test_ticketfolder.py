@@ -99,18 +99,20 @@ class TestTicketFolder(BaseTestCase):
         status['ready']['fields'][changed_field] = (
             'Something', changed_value,
         )
-        with patch.object(self.ticketfolder, 'status') as status_method:
-            status_method.return_value = status
-            with patch.object(self.ticketfolder.issue, 'update') as out:
-                run_command_method_with_kwargs(
-                    'push',
-                    folder=self.ticketfolder
-                )
-                out.assert_called_with(
-                    **{
-                        'description': changed_value
-                    }
-                )
+        with patch('jirafs.commands.pull.Command.pull') as pull:
+            with patch.object(self.ticketfolder, 'status') as status_method:
+                status_method.return_value = status
+                with patch.object(self.ticketfolder.issue, 'update') as out:
+                    run_command_method_with_kwargs(
+                        'push',
+                        folder=self.ticketfolder
+                    )
+                    self.assertTrue(pull.called)
+                    out.assert_called_with(
+                        **{
+                            'description': changed_value
+                        }
+                    )
 
     def test_push_rejected_if_updated(self):
         src_path = self.get_asset_path('test_fetch/fetched.jira')
