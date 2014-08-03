@@ -80,10 +80,12 @@ class TestTicketFolder(BaseTestCase):
         self.ticketfolder._issue = (
             self.rehydrate_issue('test_fetch/fetched.json')
         )
-        run_command_method_with_kwargs(
-            'fetch',
-            folder=self.ticketfolder,
-        )
+        with patch.object(self.ticketfolder, 'clear_cache') as clear_cache:
+            run_command_method_with_kwargs(
+                'fetch',
+                folder=self.ticketfolder,
+            )
+            self.assertTrue(clear_cache.called)
 
         expected_result = self.get_asset_contents('test_fetch/fetched.jira')
         with open(self.ticketfolder.get_shadow_path('fields.jira')) as _in:
