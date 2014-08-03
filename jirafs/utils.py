@@ -213,7 +213,7 @@ def get_git_version():
         ['git', '--version'],
         stderr=subprocess.PIPE,
     ).decode('utf8')
-    version_string = re.match('git version ([0-9.]+) .*', result).group(1)
+    version_string = re.match('git version ([0-9.]+).*', result).group(1)
     return NormalizedVersion(version_string)
 
 
