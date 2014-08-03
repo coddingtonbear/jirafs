@@ -92,6 +92,7 @@ def main():
                         os.getcwd(),
                         folder,
                     ),
+                    command_name=command_name,
                 )
                 count_runs += 1
             except NotTicketFolderException:
