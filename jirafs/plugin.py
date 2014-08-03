@@ -162,13 +162,11 @@ class CommandPlugin(JirafsPluginBase):
         raise NotImplementedError()
 
     def try_subfolders(self):
-        try:
-            return self.TRY_SUBFOLDERS
-        except AttributeError:
-            return False
+        return getattr(self, 'TRY_SUBFOLDERS', False)
 
     def auto_instantiate_folder(self):
-        try:
-            return self.AUTOMATICALLY_INSTANTIATE_FOLDER
-        except AttributeError:
-            return True
+        return getattr(
+            self,
+            'AUTOMATICALLY_INSTANTIATE_FOLDER',
+            True,
+        )
