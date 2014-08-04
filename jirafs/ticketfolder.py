@@ -206,8 +206,10 @@ class TicketFolder(object):
         return self._issue
 
     def clear_cache(self):
-        del self._issue
-        del self._jira
+        if hasattr(self, '_issue'):
+            del self._issue
+        if hasattr(self, '_jira'):
+            del self._jira
 
     def store_cached_issue(self, shadow=True):
         storable = {
