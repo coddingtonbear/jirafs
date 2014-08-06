@@ -5,7 +5,6 @@ import tempfile
 import mock
 from mock import patch
 
-from jirafs.ticketfolder import TicketFolder
 from jirafs.utils import run_command_method_with_kwargs
 
 from .base import BaseTestCase
@@ -27,7 +26,7 @@ class TestPlugins(BaseTestCase):
             get_remotely_changed.return_value = []
             self.ticketfolder = run_command_method_with_kwargs(
                 'clone',
-                ticket_url='http://arbitrary.com/browse/ALPHA-123',
+                url='http://arbitrary.com/browse/ALPHA-123',
                 jira=self.mock_get_jira,
                 path=os.path.join(
                     self.root_folder,
