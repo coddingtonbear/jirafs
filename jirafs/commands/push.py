@@ -56,7 +56,9 @@ class Command(CommandPlugin):
 
             comment = folder.get_new_comment(clear=True, ready=True)
             if comment:
-                folder.log('Adding comment "%s"' % comment)
+                folder.log(
+                    'Adding comment "%s..."' % comment[0:30].replace('%', '%%')
+                )
                 folder.jira.add_comment(folder.ticket_number, comment)
 
             collected_updates = {}
