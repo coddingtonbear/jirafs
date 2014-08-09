@@ -4,6 +4,7 @@ from six.moves import input
 
 from jirafs.plugin import CommandPlugin
 from jirafs.utils import run_command_method_with_kwargs
+from jirafs.exceptions import JiraInteractionFailed
 
 
 class Command(CommandPlugin):
@@ -19,7 +20,22 @@ class Command(CommandPlugin):
 
     def transition(self, folder, state_id):
         folder.jira.transition_issue(folder.issue, state_id)
+        starting_status = folder.get_fields()['status']
         pull_result = run_command_method_with_kwargs('pull', folder=folder)
+
+        if starting_status == folder.get_fields()['status']:
+            # I'd love it if we could instead just check the response code
+            # from the transitions API, but that API returns a 204 whether
+            # or not the issue itself can be successfully transitioned.
+            raise JiraInteractionFailed(
+                "JIRA was not able to successfully transition this issue "
+                "into the requested state.  This type of failure usually "
+                "occurs when one's JIRA configuration requires that certain "
+                "fields must be specified before transitioning into a "
+                "given state.  Unfortunately, no details regarding what "
+                "fields may be required are provided via JIRA's API."
+            )
+
         return pull_result[1]
 
     def get_transition_dict(self, folder):

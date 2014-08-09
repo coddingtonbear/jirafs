@@ -10,6 +10,10 @@ class LocalCopyOutOfDate(JirafsError):
     pass
 
 
+class JiraInteractionFailed(JirafsError):
+    pass
+
+
 class GitCommandError(JirafsError):
     def __init__(self, *args, **kwargs):
         inner_exception = kwargs.pop('inner_exception', None)
