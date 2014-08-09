@@ -31,7 +31,7 @@ class Command(CommandPlugin):
                 "JIRA was not able to successfully transition this issue "
                 "into the requested state.  This type of failure usually "
                 "occurs when one's JIRA configuration requires that certain "
-                "fields must be specified before transitioning into a "
+                "fields be specified before transitioning into a "
                 "given state.  Unfortunately, no details regarding what "
                 "fields may be required are provided via JIRA's API."
             )
