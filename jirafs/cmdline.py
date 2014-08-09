@@ -4,12 +4,14 @@ import os
 import sys
 import time
 
+from blessings import Terminal
 import six
 from verlib import NormalizedVersion
 
 from . import utils
 from .exceptions import (
     GitCommandError,
+    JiraInteractionFailed,
     JirafsError,
     NotTicketFolderException
 )
@@ -19,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    term = Terminal()
     if sys.version_info < (2, 7):
         raise RuntimeError(
             "Jirafs requires minimally version 2.7 of Python 2, or "
@@ -61,27 +64,31 @@ def main():
         )
     except GitCommandError as e:
         print(
-            "Error (code: %s) while running git command." % (
-                e.returncode
+            "{t.red}Error (code: {code}) while running git "
+            "command.{t.normal}".format(
+                t=term,
+                code=e.returncode
             )
         )
         print("")
-        print("Command:")
-        print("    %s" % e.command)
-        print("")
-        print("Output:")
+        print("{t.red}Command:{t.normal}{t.red}{t.bold}".format(t=term))
+        print("    {cmd}".format(cmd=e.command))
+        print("{t.normal}".format(t=term))
+        print("{t.red}Output:{t.normal}{t.red}{t.bold}".format(t=term))
         for line in e.output.decode('utf8').split('\n'):
             print("    %s" % line)
-        print("")
-        sys.exit(1)
+        print("{t.normal}".format(t=term))
+        sys.exit(10)
     except NotTicketFolderException:
         if not getattr(cmd_class, 'TRY_SUBFOLDERS', False):
             print(
-                "The command '%s' must be ran from within an issue folder." % (
-                    command_name
+                "{t.red}The command '{cmd}' must be ran from "
+                "within an issue folder.{t.normal}".format(
+                    t=term,
+                    cmd=command_name
                 )
             )
-            sys.exit(1)
+            sys.exit(20)
         count_runs = 0
         for folder in os.listdir(os.getcwd()):
             try:
@@ -99,14 +106,32 @@ def main():
                 pass
         if count_runs == 0:
             print(
-                "The command '%s' must be ran from within an issue folder "
-                "or from within a folder containing issue folders." % (
-                    command_name
+                "{t.red}The command '{cmd}' must be ran from "
+                "within an issue folder or from within a folder containing "
+                "issue folders.{t.normal}".format(
+                    t=term,
+                    cmd=command_name
                 )
             )
-            sys.exit(1)
+            sys.exit(21)
+    except JiraInteractionFailed as e:
+        print(
+            "{t.red}JIRA was unable to satisfy your "
+            "request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
+                t=term,
+                error=str(e)
+            )
+        )
+        sys.exit(80)
     except JirafsError as e:
-        print("Jirafs encountered an error processing your request: %s" % e)
+        print(
+            "{t.red}Jirafs encountered an error processing your "
+            "request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
+                t=term,
+                error=str(e)
+            )
+        )
+        sys.exit(90)
 
     logger.debug(
         'Command %s(%s) finished in %s seconds',
