@@ -22,6 +22,12 @@ into your local copy.
 From within an issue folder, will display any local changes that you have
 made.
 
+``field <field name>``
+----------------------
+
+Write the content of the field named ``field name`` to the console.  Useful
+in scripts for gathering, for example, the ticket's ``summary`` field.
+
 ``log``
 -------
 

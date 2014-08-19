@@ -75,6 +75,7 @@ setup(
             'diff = jirafs.commands.diff:Command',
             'config = jirafs.commands.config:Command',
             'transition = jirafs.commands.transition:Command',
+            'field = jirafs.commands.field:Command',
         ]
     },
 )

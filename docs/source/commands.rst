@@ -14,8 +14,10 @@ less-commonly-used functionality.
    issue folder.
 
 
-``clone http://my.jira.server/browse/MYISSUE-1024``
----------------------------------------------------
+``clone <source>``
+------------------
+
+Requires a single parameter (``source``) indicating what to clone.
 
 Possible forms include:
 
