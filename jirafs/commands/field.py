@@ -20,6 +20,6 @@ class Command(CommandPlugin):
         fields = folder.get_fields()
 
         if field_name not in fields:
-            raise JirafsError("Field '%s' does not exist.")
+            raise JirafsError("Field '%s' does not exist." % field_name)
 
         print(fields[field_name])
