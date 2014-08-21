@@ -1,3 +1,4 @@
+import json
 import os
 import re
 
@@ -43,6 +44,14 @@ class JiraFieldManager(dict):
     def get_used_per_ticket_fields(self):
         raise NotImplementedError()
 
+    def set_data_value(self, data, field_name, raw_value):
+        raw_value = raw_value.strip()
+        try:
+            value = json.loads(raw_value)
+        except (TypeError, ValueError):
+            value = raw_value
+        data[field_name] = value
+
     def get_fields_from_string(self, string):
         """ Gets field data from an incoming string.
 
@@ -63,13 +72,13 @@ class JiraFieldManager(dict):
         for idx, line in enumerate(lines):
             if line.startswith('*'):
                 if value:
-                    data[field_name] = value.strip()
+                    self.set_data_value(data, field_name, value)
                     value = ''
                 field_name = re.match('^\* (\w+):$', line).group(1)
             elif field_name:
                 value = value + '\n' + line.strip()
         if value:
-            data[field_name] = value.strip()
+            self.set_data_value(data, field_name, value)
 
         return data
 
