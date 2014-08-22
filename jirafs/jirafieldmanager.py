@@ -82,7 +82,7 @@ class JiraFieldManager(dict):
                         raw_field_name
                     ).group(1)
                 else:
-                    field_name = raw_field_name.lower().replace(' ', '_')
+                    field_name = raw_field_name.replace(' ', '_')
             elif field_name:
                 value = value + '\n' + line.strip()
         if value:

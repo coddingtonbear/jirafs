@@ -96,8 +96,8 @@ class TestJiraFieldManager(TestCase):
         """)
 
         expected_result = {
-            'summary': 'This is a test summary',
-            'longer_message': (
+            'Summary': 'This is a test summary',
+            'Longer_Message': (
                 'This is a much\n'
                 'longer message that happens\n'
                 'to contain newlines.'
