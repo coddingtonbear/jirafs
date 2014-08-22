@@ -82,3 +82,37 @@ class TestJiraFieldManager(TestCase):
             expected_result,
             actual_result,
         )
+
+    def test_decode_with_human_readable_field_names(self):
+        encoded_values = dedent("""
+            * Summary:
+                This is a test summary
+            * Longer Message:
+                This is a much
+                longer message that happens
+                to contain newlines.
+            * Something Company-Specific (customfield_108234):
+                This is something else
+        """)
+
+        expected_result = {
+            'summary': 'This is a test summary',
+            'longer_message': (
+                'This is a much\n'
+                'longer message that happens\n'
+                'to contain newlines.'
+            ),
+            'customfield_108234': (
+                'This is something else'
+            )
+        }
+
+        actual_result = self.jirafieldmanager.get_fields_from_string(
+            encoded_values
+        )
+
+        self.assertEqual(
+            expected_result,
+            actual_result
+        )
+

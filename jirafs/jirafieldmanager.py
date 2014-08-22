@@ -74,7 +74,15 @@ class JiraFieldManager(dict):
                 if value:
                     self.set_data_value(data, field_name, value)
                     value = ''
-                field_name = re.match('^\* (\w+):$', line).group(1)
+                raw_field_name = re.match('^\* ([^:]+):$', line).group(1)
+                if '(' in raw_field_name:
+                    # This field name's real name doesn't match the field ID
+                    field_name = re.match(
+                        '.*\(([^)]+)\)',
+                        raw_field_name
+                    ).group(1)
+                else:
+                    field_name = raw_field_name.lower().replace(' ', '_')
             elif field_name:
                 value = value + '\n' + line.strip()
         if value:
