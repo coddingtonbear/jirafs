@@ -37,8 +37,7 @@ The following text files are created:
 * ``fields.jira``:  This file will show all currently-set field values
   for this JIRA issue (except fields written to their own files; see
   ``description.jira`` below).  You **can** change field values here
-  by editing the field values in the file, but this functionality has
-  only been tested for fields storing text data.
+  by editing the field values in the file.
 * ``description.jira``: This file will show the issue's current
   description.  You **can** change the issue's description by editing
   the contents of this file.
@@ -48,6 +47,13 @@ The following text files are created:
 * ``new_comment.jira``: This file starts out empty, but if you would
   like to add a new comment, you **can** create one by entering text
   into this file.
+
+.. note::
+
+   For many fields from JIRA, the incoming data is a JSON dictionary
+   or list.  If you see fields having values starting with either a
+   "[" or "{", you may need to consult with JIRA's documentation to
+   develop an understanding of how to change those values.
 
 In order to update any of the above data or upload an asset, either
 make the change to a field in ``fields.jira``, edit the issue's
