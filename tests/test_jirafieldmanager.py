@@ -40,3 +40,45 @@ class TestJiraFieldManager(TestCase):
             expected_result,
             actual_result
         )
+
+    def test_decode_with_json_values(self):
+        encoded_values = dedent("""
+            * dictionary_field:
+                {
+                    "name": "Adam Coddington"
+                }
+            * integer_field:
+                10
+            * string_field:
+                Hello
+            * list_field:
+                [
+                    "Alphabet",
+                    {
+                        "One": "Two"
+                    }
+                ]
+        """)
+
+        expected_result = {
+            "dictionary_field": {
+                "name": "Adam Coddington"
+            },
+            "integer_field": 10,
+            "string_field": "Hello",
+            "list_field": [
+                "Alphabet",
+                {
+                    "One": "Two",
+                }
+            ]
+        }
+
+        actual_result = self.jirafieldmanager.get_fields_from_string(
+            encoded_values
+        )
+
+        self.assertEqual(
+            expected_result,
+            actual_result,
+        )
