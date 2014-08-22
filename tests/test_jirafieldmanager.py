@@ -91,7 +91,7 @@ class TestJiraFieldManager(TestCase):
                 This is a much
                 longer message that happens
                 to contain newlines.
-            * Something Company-Specific (customfield_108234):
+            * Something(s) that are Company-Specific (customfield_108234):
                 This is something else
         """)
 

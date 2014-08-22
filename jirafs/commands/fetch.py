@@ -16,6 +16,13 @@ class Command(CommandPlugin):
     def handle(self, folder, **kwargs):
         return self.fetch(folder)
 
+    def get_field_map(self, folder):
+        fields = {}
+        for field in folder.jira.fields():
+            fields[field['id']] = field['name']
+
+        return fields
+
     def fetch(self, folder):
         folder.clear_cache()
 
@@ -43,6 +50,7 @@ class Command(CommandPlugin):
 
         folder.set_remote_file_metadata(file_meta, shadow=True)
 
+        field_map = self.get_field_map(folder)
         detail_path = folder.get_shadow_path(constants.TICKET_DETAILS)
         with open(detail_path, 'w') as dets:
             for field in sorted(folder.issue.raw['fields'].keys()):
@@ -79,7 +87,20 @@ class Command(CommandPlugin):
                     elif field in constants.NO_DETAIL_FIELDS:
                         continue
 
-                    dets.write('* %s:\n' % field)
+                    human_readable = field_map.get(field)
+                    if human_readable is None or human_readable == field:
+                        dets.write(
+                            '* %s:\n' % (
+                                field
+                            )
+                        )
+                    else:
+                        dets.write(
+                            '* %s (%s):\n' % (
+                                human_readable,
+                                field
+                            )
+                        )
                     for line in value.replace('\r\n', '\n').split('\n'):
                         dets.write('    %s\n' % line)
 
