@@ -161,9 +161,19 @@ class TestTicketFolder(BaseTestCase):
 
         expected_output = self.get_empty_status()
         expected_output['uncommitted']['fields']['assignee'] = (
-            '', 'Coddington, Adam (ArbitraryCorp-Atlantis)'
+            '',
+            {
+                "active": True,
+                "displayName": "Coddington, Adam (ArbitraryCorp-Atlantis)",
+                "name": "acoddington",
+            }
         )
         actual_output = self.ticketfolder.status()
+
+        for field in expected_output:
+            if expected_output[field] != actual_output[field]:
+                import ipdb
+                ipdb.set_trace()
 
         self.assertEqual(expected_output, actual_output)
 

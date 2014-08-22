@@ -1,5 +1,9 @@
 * assignee:
-    Coddington, Adam (ArbitraryCorp-Atlantis)
+    {
+        "active": true, 
+        "displayName": "Coddington, Adam (ArbitraryCorp-Atlantis)", 
+        "name": "acoddington"
+    }
 * components:
     []
 * created:
@@ -13,23 +17,70 @@
 * issuelinks:
     []
 * issuetype:
-    Story
+    {
+        "description": "", 
+        "iconUrl": "https://jira.arbitrary.com/download/resources/com.pyxis.greenhopper.jira:greenhopper-webactions/images/ico_story.png", 
+        "id": "9", 
+        "name": "Story", 
+        "self": "https://jira.arbitrary.com/rest/api/2/issuetype/9", 
+        "subtask": false
+    }
 * labels:
     []
 * lastViewed:
     2014-07-10T01:44:18.539-0400
 * priority:
-    Not a priority
+    {
+        "iconUrl": "https://jira.arbitrary.com/images/icons/priorities/trivial.png", 
+        "id": "5", 
+        "name": "Not a priority", 
+        "self": "https://jira.arbitrary.com/rest/api/2/priority/5"
+    }
 * project:
-    ALPHA
+    {
+        "avatarUrls": {
+            "16x16": "https://jira.arbitrary.com/secure/projectavatar?size=xsmall&pid=10066&avatarId=10011", 
+            "24x24": "https://jira.arbitrary.com/secure/projectavatar?size=small&pid=10066&avatarId=10011", 
+            "32x32": "https://jira.arbitrary.com/secure/projectavatar?size=medium&pid=10066&avatarId=10011", 
+            "48x48": "https://jira.arbitrary.com/secure/projectavatar?pid=10066&avatarId=10011"
+        }, 
+        "id": "10066", 
+        "key": "ALPHA", 
+        "name": "ALPHABETS: Are pretty cool", 
+        "projectCategory": {
+            "description": "Exploratory", 
+            "id": "10010", 
+            "name": "ORANGES", 
+            "self": "https://jira.arbitrary.com/rest/api/2/projectCategory/10010"
+        }, 
+        "self": "https://jira.arbitrary.com/rest/api/2/project/10066"
+    }
 * reporter:
-    Coddington, Adam (ArbitraryCorp-Atlantis)
+    {
+        "active": true, 
+        "avatarUrls": {
+            "16x16": "https://jira.arbitrary.com/secure/useravatar?size=xsmall&ownerId=acoddington&avatarId=10885", 
+            "24x24": "https://jira.arbitrary.com/secure/useravatar?size=small&ownerId=acoddington&avatarId=10885", 
+            "32x32": "https://jira.arbitrary.com/secure/useravatar?size=medium&ownerId=acoddington&avatarId=10885", 
+            "48x48": "https://jira.arbitrary.com/secure/useravatar?ownerId=acoddington&avatarId=10885"
+        }, 
+        "displayName": "Coddington, Adam (ArbitraryCorp-Atlantis)", 
+        "emailAddress": "acoddington@arbitrary.com", 
+        "name": "acoddington", 
+        "self": "https://jira.arbitrary.com/rest/api/2/user?username=acoddington"
+    }
 * resolution:
     
 * resolutiondate:
     
 * status:
-    Open
+    {
+        "description": "The issue is open and ready for the assignee to start work on it.", 
+        "iconUrl": "https://jira.arbitrary.com/images/icons/statuses/open.png", 
+        "id": "1", 
+        "name": "Open", 
+        "self": "https://jira.arbitrary.com/rest/api/2/status/1"
+    }
 * subtasks:
     []
 * summary:
@@ -39,6 +90,10 @@
 * versions:
     []
 * votes:
-    0
+    {
+        "hasVoted": false, 
+        "self": "https://jira.arbitrary.com/rest/api/2/issue/ALPHA-123/votes", 
+        "votes": 0
+    }
 * workratio:
     -1

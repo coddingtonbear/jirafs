@@ -13,7 +13,11 @@
     "raw": {
         "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog",
         "fields": {
-            "assignee": "Coddington, Adam (ArbitraryCorp-Atlantis)",
+            "assignee": {
+                "active": true, 
+                "displayName": "Coddington, Adam (ArbitraryCorp-Atlantis)",
+                "name": "acoddington"
+            },
             "attachment": [],
             "comment": {
                 "comments": [
