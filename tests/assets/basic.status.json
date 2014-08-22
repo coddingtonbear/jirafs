@@ -1,14 +1,14 @@
 {
     "assignee": "",
-    "components": "[]",
+    "components": [],
     "created": "2014-07-07T22:32:27.000-0400",
     "description": "Stay with me and I'll have it made",
     "duedate": "",
     "environment": "",
-    "fixVersions": "[]",
-    "issuelinks": "[]",
+    "fixVersions": [],
+    "issuelinks": [],
     "issuetype": "Story",
-    "labels": "[]",
+    "labels": [],
     "lastViewed": "2014-07-10T01:44:18.539-0400",
     "priority": "Not a priority",
     "project": "ALPHA",
@@ -16,10 +16,10 @@
     "resolution": "",
     "resolutiondate": "",
     "status": "Open",
-    "subtasks": "[]",
+    "subtasks": [],
     "summary": "Test Issue",
     "updated": "2014-07-10T01:44:18.000-0400",
-    "versions": "[]",
-    "votes": "0",
-    "workratio": "-1"
+    "versions": [],
+    "votes": 0,
+    "workratio": -1
 }
