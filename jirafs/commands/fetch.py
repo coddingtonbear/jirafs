@@ -1,3 +1,4 @@
+import json
 import textwrap
 
 import six
@@ -45,7 +46,7 @@ class Command(CommandPlugin):
         detail_path = folder.get_shadow_path(constants.TICKET_DETAILS)
         with open(detail_path, 'w') as dets:
             for field in sorted(folder.issue.raw['fields'].keys()):
-                value = getattr(folder.issue.fields, field)
+                value = folder.issue.raw['fields'][field]
                 if isinstance(value, six.string_types):
                     value = value.replace('\r\n', '\n').strip()
                 elif value is None:
@@ -54,7 +55,11 @@ class Command(CommandPlugin):
                     continue
 
                 if not isinstance(value, six.string_types):
-                    value = six.text_type(value)
+                    value = json.dumps(
+                        value,
+                        sort_keys=True,
+                        indent=4,
+                    )
 
                 if field in constants.FILE_FIELDS:
                     # Write specific fields to their own files without
