@@ -117,16 +117,11 @@ class Command(CommandPlugin):
             )
         for field, value_set in changes.get('fields', {}).items():
             lines.append(
-                '\t' + color + field + normal +
-                ' (field changed from \'%s\' to \'%s\')' % value_set
+                '\t' + color + field + normal
             )
         if changes.get('new_comment', ''):
             lines.append(
                 '\t' + color + '[New Comment]' + normal
             )
-            for line in changes.get('new_comment', '').split('\n'):
-                lines.append(
-                    '\t\t' + line
-                )
 
         return '\n'.join(lines)
