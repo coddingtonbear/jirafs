@@ -89,12 +89,15 @@ class Command(CommandPlugin):
 
                     human_readable = field_map.get(field)
                     if human_readable is None or human_readable == field:
+                        field = field.encode("utf8")
                         dets.write(
                             '* %s:\n' % (
                                 field
                             )
                         )
                     else:
+                        human_readable = human_readable.encode("utf8")
+                        field = field.encode("utf8")
                         dets.write(
                             '* %s (%s):\n' % (
                                 human_readable,
