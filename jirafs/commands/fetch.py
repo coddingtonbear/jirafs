@@ -78,9 +78,15 @@ class Command(CommandPlugin):
                     file_field_path = folder.get_shadow_path(
                         constants.TICKET_FILE_FIELD_TEMPLATE
                     ).format(field_name=field)
-                    with io.open(file_field_path, 'w', encoding='utf-8') as file_field_file:
+                    with io.open(
+                        file_field_path,
+                        'w',
+                        encoding='utf-8'
+                    ) as file_field_file:
                         file_field_file.write(six.text_type(value))
-                        file_field_file.write(six.text_type('\n'))  # For unix' sake
+                        file_field_file.write(
+                            six.text_type('\n')
+                        )  # For unix' sake
                 else:
                     # Normal fields, though, just go into the standard
                     # fields file.

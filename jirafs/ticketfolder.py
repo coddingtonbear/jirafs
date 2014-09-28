@@ -344,7 +344,11 @@ class TicketFolder(object):
     @property
     def version(self):
         try:
-            with io.open(self.get_metadata_path('version'), 'r', encoding='utf-8') as _in:
+            with io.open(
+                self.get_metadata_path('version'),
+                'r',
+                encoding='utf-8'
+            ) as _in:
                 return int(_in.read().strip())
         except IOError:
             return 1
@@ -363,7 +367,11 @@ class TicketFolder(object):
         )
         os.mkdir(metadata_path)
 
-        with io.open(os.path.join(metadata_path, 'issue_url'), 'w', encoding='utf-8') as out:
+        with io.open(
+            os.path.join(metadata_path, 'issue_url'),
+            'w',
+            encoding='utf-8'
+        ) as out:
             out.write(six.text_type(ticket_url))
 
         # Create bare git repository so we can easily detect changes.
@@ -501,7 +509,11 @@ class TicketFolder(object):
             return globs
 
         try:
-            with io.open(self.get_local_path(which), 'r', encoding='utf-8') as local_ign:
+            with io.open(
+                self.get_local_path(which),
+                'r',
+                encoding='utf-8'
+            ) as local_ign:
                 all_globs.extend(
                     get_globs_from_file(local_ign)
                 )
@@ -509,7 +521,11 @@ class TicketFolder(object):
             pass
 
         try:
-            with io.open(os.path.expanduser('~/%s' % which), 'r', encoding='utf-8') as global_ignores:
+            with io.open(
+                os.path.expanduser('~/%s' % which),
+                'r',
+                encoding='utf-8'
+            ) as global_ignores:
                 all_globs.extend(
                     get_globs_from_file(global_ignores)
                 )

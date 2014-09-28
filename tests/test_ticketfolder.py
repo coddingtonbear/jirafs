@@ -90,7 +90,10 @@ class TestTicketFolder(BaseTestCase):
             self.assertTrue(clear_cache.called)
 
         expected_result = self.get_asset_contents('test_fetch/fetched.jira')
-        with io.open(self.ticketfolder.get_shadow_path('fields.jira'), encoding='utf-8') as _in:
+        with io.open(
+            self.ticketfolder.get_shadow_path('fields.jira'),
+            encoding='utf-8'
+        ) as _in:
             actual_result = _in.read()
 
         self.assertEqual(actual_result, expected_result)
