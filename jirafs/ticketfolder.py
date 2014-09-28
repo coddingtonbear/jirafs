@@ -1,5 +1,6 @@
 import datetime
 import fnmatch
+import io
 import json
 import logging
 import os
@@ -46,8 +47,8 @@ class TicketFolder(object):
         # If no `new_comment.jira.txt` file exists, let's create one
         comment_path = self.get_local_path(constants.TICKET_NEW_COMMENT)
         if not os.path.exists(comment_path):
-            with open(comment_path, 'w') as out:
-                out.write('')
+            with io.open(comment_path, 'w', encoding='utf-8') as out:
+                out.write(six.text_type(''))
 
     def __repr__(self):
         if six.PY3:
@@ -163,7 +164,7 @@ class TicketFolder(object):
                 config.add_section(section)
             config.set(section, key, value)
 
-            with open(local_config_file, 'w') as out:
+            with io.open(local_config_file, 'w', encoding='utf-8') as out:
                 config.write(out)
 
             self.run_git_command('add', '.jirafs/config')
@@ -216,14 +217,19 @@ class TicketFolder(object):
             'options': self.issue._options,
             'raw': self.issue.raw
         }
-        with open(
-            self.get_path('.jirafs/issue.json', shadow=shadow), 'w'
+        with io.open(
+            self.get_path('.jirafs/issue.json', shadow=shadow),
+            'w',
+            encoding='utf-8',
         ) as out:
             out.write(
-                json.dumps(
-                    storable,
-                    indent=4,
-                    sort_keys=True,
+                six.text_type(
+                    json.dumps(
+                        storable,
+                        indent=4,
+                        sort_keys=True,
+                        ensure_ascii=False,
+                    )
                 )
             )
 
@@ -232,7 +238,7 @@ class TicketFolder(object):
         if not hasattr(self, '_cached_issue'):
             try:
                 issue_path = self.get_metadata_path('issue.json')
-                with open(issue_path, 'r') as _in:
+                with io.open(issue_path, 'r', encoding='utf-8') as _in:
                     storable = json.loads(_in.read())
                     self._cached_issue = Issue(
                         storable['options'],
@@ -262,7 +268,11 @@ class TicketFolder(object):
 
     def get_ticket_url(self):
         try:
-            with open(self.get_metadata_path('issue_url'), 'r') as in_:
+            with io.open(
+                self.get_metadata_path('issue_url'),
+                'r',
+                encoding='utf-8'
+            ) as in_:
                 return in_.read().strip()
         except (IOError, OSError):
             return None
@@ -279,7 +289,7 @@ class TicketFolder(object):
             shadow=shadow
         )
         try:
-            with open(remote_files, 'r') as _in:
+            with io.open(remote_files, 'r', encoding='utf-8') as _in:
                 data = json.loads(_in.read())
         except IOError:
             data = {}
@@ -300,12 +310,15 @@ class TicketFolder(object):
             '.jirafs/remote_files.json',
             shadow=shadow
         )
-        with open(remote_files, 'w') as out:
+        with io.open(remote_files, 'w', encoding='utf-8') as out:
             out.write(
-                json.dumps(
-                    data,
-                    indent=4,
-                    sort_keys=True,
+                six.text_type(
+                    json.dumps(
+                        data,
+                        indent=4,
+                        sort_keys=True,
+                        ensure_ascii=False,
+                    )
                 )
             )
 
@@ -331,7 +344,7 @@ class TicketFolder(object):
     @property
     def version(self):
         try:
-            with open(self.get_metadata_path('version'), 'r') as _in:
+            with io.open(self.get_metadata_path('version'), 'r', encoding='utf-8') as _in:
                 return int(_in.read().strip())
         except IOError:
             return 1
@@ -350,14 +363,14 @@ class TicketFolder(object):
         )
         os.mkdir(metadata_path)
 
-        with open(os.path.join(metadata_path, 'issue_url'), 'w') as out:
-            out.write(ticket_url)
+        with io.open(os.path.join(metadata_path, 'issue_url'), 'w', encoding='utf-8') as out:
+            out.write(six.text_type(ticket_url))
 
         # Create bare git repository so we can easily detect changes.
         excludes_path = os.path.join(metadata_path, 'gitignore')
-        with open(excludes_path, 'w') as gitignore:
+        with io.open(excludes_path, 'w', encoding='utf-8') as gitignore:
             gitignore.write(
-                '\n'.join(
+                six.text_type('\n').join(
                     [
                         '%s/git' % constants.METADATA_DIR,
                         '%s/shadow' % constants.METADATA_DIR,
@@ -404,8 +417,8 @@ class TicketFolder(object):
         instance.run_migrations(init=True)
 
         comment_path = instance.get_local_path(constants.TICKET_NEW_COMMENT)
-        with open(comment_path, 'w') as out:
-            out.write('')
+        with io.open(comment_path, 'w', encoding='utf-8') as out:
+            out.write(six.text_type(''))
 
         return instance
 
@@ -488,7 +501,7 @@ class TicketFolder(object):
             return globs
 
         try:
-            with open(self.get_local_path(which)) as local_ign:
+            with io.open(self.get_local_path(which), 'r', encoding='utf-8') as local_ign:
                 all_globs.extend(
                     get_globs_from_file(local_ign)
                 )
@@ -496,7 +509,7 @@ class TicketFolder(object):
             pass
 
         try:
-            with open(os.path.expanduser('~/%s' % which)) as global_ignores:
+            with io.open(os.path.expanduser('~/%s' % which), 'r', encoding='utf-8') as global_ignores:
                 all_globs.extend(
                     get_globs_from_file(global_ignores)
                 )
@@ -624,8 +637,10 @@ class TicketFolder(object):
 
     def get_new_comment(self, clear=False, staged=False, ready=True):
         try:
-            with open(
-                self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
+            with io.open(
+                self.get_local_path(constants.TICKET_NEW_COMMENT),
+                'r+',
+                encoding='utf-8',
             ) as c:
                 local_contents = c.read().strip()
             if ready:
@@ -644,8 +659,10 @@ class TicketFolder(object):
                 contents = ''
 
             if contents == local_contents and clear:
-                with open(
-                    self.get_local_path(constants.TICKET_NEW_COMMENT), 'r+'
+                with io.open(
+                    self.get_local_path(constants.TICKET_NEW_COMMENT),
+                    'r+',
+                    encoding='utf-8',
                 ) as c:
                     c.truncate()
         except IOError:
@@ -717,9 +734,9 @@ class TicketFolder(object):
         if args is None:
             args = []
         logger.log(level, message, *args)
-        with open(self.log_path, 'a') as log_file:
+        with io.open(self.log_path, 'a', encoding='utf-8') as log_file:
             log_file.write(
-                "%s\t%s\t%s\n" % (
+                six.text_type("%s\t%s\t%s\n") % (
                     datetime.datetime.utcnow().isoformat(),
                     logging.getLevelName(level),
                     (message % args).replace('\n', '\\n')
@@ -735,5 +752,5 @@ class TicketFolder(object):
             )
 
     def get_log(self):
-        with open(self.log_path, 'r') as log_file:
+        with io.open(self.log_path, 'r', encoding='utf-8') as log_file:
             return log_file.read()

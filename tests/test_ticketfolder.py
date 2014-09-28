@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import shutil
@@ -5,6 +6,7 @@ import tempfile
 
 import mock
 from mock import patch
+import six
 
 from jirafs import exceptions
 from jirafs.utils import run_command_method_with_kwargs
@@ -88,7 +90,7 @@ class TestTicketFolder(BaseTestCase):
             self.assertTrue(clear_cache.called)
 
         expected_result = self.get_asset_contents('test_fetch/fetched.jira')
-        with open(self.ticketfolder.get_shadow_path('fields.jira')) as _in:
+        with io.open(self.ticketfolder.get_shadow_path('fields.jira'), encoding='utf-8') as _in:
             actual_result = _in.read()
 
         self.assertEqual(actual_result, expected_result)
@@ -164,7 +166,11 @@ class TestTicketFolder(BaseTestCase):
             '',
             {
                 "active": True,
-                "displayName": "Coddington, Adam (ArbitraryCorp-Atlantis)",
+                "displayName": (
+                    u"Coddington, Adam (\u0410\u0440\u0431\u0438\u0442"
+                    u"\u0440\u0430\u0440\u0438\u041a\u043e\u0440\u043f"
+                    u"-Atlantis)"
+                ),
                 "name": "acoddington",
             }
         )
@@ -172,16 +178,21 @@ class TestTicketFolder(BaseTestCase):
 
         for field in expected_output:
             if expected_output[field] != actual_output[field]:
-                import ipdb
-                ipdb.set_trace()
+                self.fail(
+                    "Field %s does not match; Actual: %s != Expected: %s" % (
+                        field,
+                        actual_output[field],
+                        expected_output[field],
+                    )
+                )
 
         self.assertEqual(expected_output, actual_output)
 
     def test_status_new_comment(self):
-        arbitrary_comment = 'New Comment'
+        arbitrary_comment = six.text_type('New Comment')
 
         comment = self.ticketfolder.get_local_path('new_comment.jira')
-        with open(comment, 'w') as out:
+        with io.open(comment, 'w', encoding='utf-8') as out:
             out.write(arbitrary_comment)
 
         expected_output = self.get_empty_status()

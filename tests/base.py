@@ -1,3 +1,4 @@
+import io
 import json
 import os
 from unittest import TestCase
@@ -16,7 +17,7 @@ class BaseTestCase(TestCase):
     def get_asset_contents(self, filename, mode='r'):
         path = self.get_asset_path(filename)
 
-        with open(path, mode) as r:
+        with io.open(path, mode, encoding='utf-8') as r:
             return r.read()
 
     def rehydrate_issue(self, filename):

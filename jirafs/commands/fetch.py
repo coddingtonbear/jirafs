@@ -1,3 +1,4 @@
+import io
 import json
 import textwrap
 
@@ -52,7 +53,7 @@ class Command(CommandPlugin):
 
         field_map = self.get_field_map(folder)
         detail_path = folder.get_shadow_path(constants.TICKET_DETAILS)
-        with open(detail_path, 'w') as dets:
+        with io.open(detail_path, 'w', encoding='utf-8') as dets:
             for field in sorted(folder.issue.raw['fields'].keys()):
                 value = folder.issue.raw['fields'][field]
                 if isinstance(value, six.string_types):
@@ -67,6 +68,7 @@ class Command(CommandPlugin):
                         value,
                         sort_keys=True,
                         indent=4,
+                        ensure_ascii=False
                     )
 
                 if field in constants.FILE_FIELDS:
@@ -76,9 +78,9 @@ class Command(CommandPlugin):
                     file_field_path = folder.get_shadow_path(
                         constants.TICKET_FILE_FIELD_TEMPLATE
                     ).format(field_name=field)
-                    with open(file_field_path, 'w') as file_field_file:
-                        file_field_file.write(value)
-                        file_field_file.write('\n')  # For unix' sake
+                    with io.open(file_field_path, 'w', encoding='utf-8') as file_field_file:
+                        file_field_file.write(six.text_type(value))
+                        file_field_file.write(six.text_type('\n'))  # For unix' sake
                 else:
                     # Normal fields, though, just go into the standard
                     # fields file.
@@ -90,25 +92,25 @@ class Command(CommandPlugin):
                     human_readable = field_map.get(field)
                     if human_readable is None or human_readable == field:
                         dets.write(
-                            '* %s:\n' % (
+                            six.text_type('* %s:\n') % (
                                 field
                             )
                         )
                     else:
                         dets.write(
-                            '* %s (%s):\n' % (
+                            six.text_type('* %s (%s):\n') % (
                                 human_readable,
                                 field
                             )
                         )
                     for line in value.replace('\r\n', '\n').split('\n'):
-                        dets.write('    %s\n' % line)
+                        dets.write(six.text_type('    %s\n' % line))
 
         comments_filename = folder.get_shadow_path(constants.TICKET_COMMENTS)
-        with open(comments_filename, 'w') as comm:
+        with io.open(comments_filename, 'w', encoding='utf-8') as comm:
             for comment in folder.issue.fields.comment.comments:
                 comm.write(
-                    '* At %s, %s wrote:\n\n' % (
+                    six.text_type('* At %s, %s wrote:\n\n') % (
                         comment.created,
                         comment.author
                     )
@@ -117,7 +119,7 @@ class Command(CommandPlugin):
                 lines = comment.body.replace('\r\n', '\n').split('\n')
                 for line in lines:
                     if not line:
-                        final_lines.append('')
+                        final_lines.append(six.text_type(''))
                     else:
                         final_lines.extend(
                             textwrap.wrap(
@@ -129,8 +131,8 @@ class Command(CommandPlugin):
                             )
                         )
                 for line in final_lines:
-                    comm.write('    %s\n' % line)
-                comm.write('\n')
+                    comm.write(six.text_type('    %s\n') % line)
+                comm.write(six.text_type('\n'))
 
         folder.store_cached_issue()
 
