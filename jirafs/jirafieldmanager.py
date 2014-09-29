@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import re
@@ -121,7 +122,11 @@ class LocalFileJiraFieldManager(JiraFieldManager):
     def get_file_contents(self, path):
         full_path = os.path.join(self.path, path)
 
-        with open(self.folder.get_local_path(full_path), 'r') as _in:
+        with io.open(
+            self.folder.get_local_path(full_path),
+            'r',
+            encoding='utf-8'
+        ) as _in:
             return _in.read().strip()
 
     def get_used_per_ticket_fields(self):
