@@ -32,7 +32,8 @@ specify a full URL, your default JIRA instance will be used; if you have
 not yet set one, you will be asked to specify one.
 
 Although by default, the issue will be cloned into a folder matching the name
-of the issue, you may specify a path into which the issue should be cloned.
+of the issue, you may specify a path into which the issue should be cloned
+by specifying an additional parameter (``PATH`` in the example forms above).
 
 ``commit``
 ----------
