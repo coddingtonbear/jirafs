@@ -2,6 +2,7 @@ import os
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 import sys
+import uuid
 
 from jirafs import __version__ as version_string
 
@@ -13,7 +14,10 @@ requirements_path = os.path.join(
 try:
     from pip.req import parse_requirements
     requirements = [
-        str(req.req) for req in parse_requirements(requirements_path)
+        str(req.req) for req in parse_requirements(
+            requirements_path,
+            session=uuid.uuid1()
+        )
     ]
 except ImportError:
     requirements = []
