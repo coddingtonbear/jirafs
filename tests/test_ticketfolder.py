@@ -44,7 +44,6 @@ class TestTicketFolder(BaseTestCase):
             'fields.jira',
             'description.jira',
             'new_comment.jira',
-            '.jirafs/gitignore',
             '.jirafs/issue.json',
             '.jirafs/remote_files.json',
             '.jirafs/version',
