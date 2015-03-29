@@ -375,18 +375,6 @@ class TicketFolder(object):
             out.write(six.text_type(ticket_url))
 
         # Create bare git repository so we can easily detect changes.
-        excludes_path = os.path.join(metadata_path, 'gitignore')
-        with io.open(excludes_path, 'w', encoding='utf-8') as gitignore:
-            gitignore.write(
-                six.text_type('\n').join(
-                    [
-                        '%s/git' % constants.METADATA_DIR,
-                        '%s/shadow' % constants.METADATA_DIR,
-                        '%s/operation.log' % constants.METADATA_DIR,
-                    ]
-                )
-            )
-
         subprocess.check_call(
             (
                 'git',
@@ -408,8 +396,20 @@ class TicketFolder(object):
                 'config'
             ),
             'core.excludesfile',
-            '.jirafs/gitignore',
+            '.jirafs_ignore',
         ))
+
+        excludes_path = os.path.join(metadata_path, 'git', 'info', 'exclude')
+        with io.open(excludes_path, 'w', encoding='utf-8') as gitignore:
+            gitignore.write(
+                six.text_type('\n').join(
+                    [
+                        '%s/git' % constants.METADATA_DIR,
+                        '%s/shadow' % constants.METADATA_DIR,
+                        '%s/operation.log' % constants.METADATA_DIR,
+                    ]
+                )
+            )
 
         instance = cls(path, jira, migrate=False)
         instance.log(
@@ -489,7 +489,7 @@ class TicketFolder(object):
             binary=binary,
         )
 
-    def get_ignore_globs(self, which=constants.IGNORE_FILE):
+    def get_ignore_globs(self, which=constants.LOCAL_ONLY_FILE):
         all_globs = [
             constants.TICKET_DETAILS,
             constants.TICKET_COMMENTS,
@@ -566,9 +566,13 @@ class TicketFolder(object):
         ).split('\n')
 
         return {
-            'files': self.filter_ignored_files([
-                filename for filename in new_files + modified_files if filename
-            ]),
+            'files': self.filter_ignored_files(
+                self.filter_ignored_files([
+                    filename for filename in new_files + modified_files
+                    if filename
+                ]),
+                constants.GIT_IGNORE_FILE
+            ),
             'fields': self.get_fields() - self.get_fields('HEAD'),
             'new_comment': self.get_new_comment(ready=False)
         }
@@ -584,12 +588,13 @@ class TicketFolder(object):
         committable = self.filter_ignored_files([
             filename for filename in new_files + modified_files if filename
         ])
+        uncommitted = self.filter_ignored_files([
+            filename for filename in modified_files + new_files
+            if filename not in committable
+        ], which=constants.GIT_IGNORE_FILE)
 
         return {
-            'files': self.filter_ignored_files([
-                filename for filename in modified_files + new_files
-                if filename not in committable
-            ], which=constants.GIT_IGNORE_FILE)
+            'files': uncommitted
         }
 
     def get_remotely_changed(self):
@@ -611,7 +616,7 @@ class TicketFolder(object):
             single_response=True,
         )
 
-    def filter_ignored_files(self, files, which=constants.IGNORE_FILE):
+    def filter_ignored_files(self, files, which=constants.LOCAL_ONLY_FILE):
         ignore_globs = self.get_ignore_globs(which)
 
         assets = []

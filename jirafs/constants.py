@@ -7,9 +7,9 @@ TICKET_NEW_COMMENT = 'new_comment.jira'
 TICKET_FILE_FIELD_TEMPLATE = '{field_name}.jira'
 
 # Generic settings
-IGNORE_FILE = '.jirafs_ignore'
+LOCAL_ONLY_FILE = '.jirafs_local'
 REMOTE_IGNORE_FILE = '.jirafs_remote_ignore'
-GIT_IGNORE_FILE = '.jirafs/gitignore'
+GIT_IGNORE_FILE = '.jirafs_ignore'
 TICKET_OPERATION_LOG = 'operation.log'
 METADATA_DIR = '.jirafs'
 GLOBAL_CONFIG = '.jirafs_config'

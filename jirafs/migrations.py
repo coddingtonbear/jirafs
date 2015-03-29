@@ -368,7 +368,7 @@ def migration_0011(repo, init=False, **kwargs):
         'commit', '--allow-empty', '-m', 'Shadow Created', shadow=True
     )
     repo.run_git_command('push', '-f', 'origin', 'jira', shadow=True)
-    repo.merge()
+    repo.run_git_command('merge', 'jira')
 
     set_repo_version(repo, 11)
 
@@ -413,3 +413,84 @@ def migration_0013(repo, init=False, **kwargs):
         out.write(issue_url)
 
     set_repo_version(repo, 13)
+
+
+def migration_0014(repo, init=False, **kwargs):
+    if init:
+        set_repo_version(repo, 14)
+        return
+
+    with open(repo.get_metadata_path('git/info/exclude'), 'w') as out:
+        out.write(
+            '\n'.join(
+                [
+                    '.jirafs/git',
+                    '.jirafs/shadow',
+                    '.jirafs/operation.log'
+                ]
+            )
+        )
+
+    if os.path.exists(repo.get_local_path('.jirafs_ignore')):
+        shutil.copyfile(
+            repo.get_local_path('.jirafs_ignore'),
+            repo.get_local_path('.jirafs_local'),
+        )
+        repo.run_git_command(
+            'add',
+            '.jirafs_local',
+        )
+    if os.path.exists(repo.get_metadata_path('gitignore')):
+        shutil.copyfile(
+            repo.get_metadata_path('gitignore'),
+            repo.get_local_path('.jirafs_ignore')
+        )
+        repo.run_git_command(
+            'add',
+            '.jirafs_ignore',
+        )
+        repo.run_git_command(
+            'rm',
+            repo.get_metadata_path('gitignore')
+        )
+
+    repo.run_git_command(
+        'config',
+        '--file=%s' % repo.get_metadata_path(
+            'git',
+            'config',
+        ),
+        'core.excludesfile',
+        '.jirafs_ignore',
+    )
+
+    tracked_files = repo.run_git_command(
+        'ls-files', '-c', failure_ok=True
+    ).split('\n')
+    filtered_files = repo.filter_ignored_files(
+        tracked_files,
+        '.jirafs_ignore'
+    )
+    ignored = repo.filter_ignored_files(
+        set(tracked_files) - set(filtered_files),
+        '.jirafs_local'
+    )
+
+    for filename in ignored:
+        repo.run_git_command(
+            'rm',
+            '--cached',
+            filename,
+            failure_ok=True,
+            shadow=True
+        )
+
+    repo.run_git_command(
+        'commit',
+        '-m',
+        'Completing migration_0014',
+        failure_ok=True,
+        shadow=True
+    )
+
+    set_repo_version(repo, 14)
