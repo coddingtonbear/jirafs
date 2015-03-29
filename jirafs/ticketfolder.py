@@ -1,3 +1,4 @@
+import codecs
 import datetime
 import fnmatch
 import io
@@ -49,6 +50,9 @@ class TicketFolder(object):
         if not os.path.exists(comment_path):
             with io.open(comment_path, 'w', encoding='utf-8') as out:
                 out.write(six.text_type(''))
+
+        # Let's update the ignore file while we're here.
+        self.build_ignore_file()
 
     def __repr__(self):
         if six.PY3:
@@ -396,7 +400,7 @@ class TicketFolder(object):
                 'config'
             ),
             'core.excludesfile',
-            '.jirafs_ignore',
+            constants.GIT_IGNORE_FILE,
         ))
 
         excludes_path = os.path.join(metadata_path, 'git', 'info', 'exclude')
@@ -750,6 +754,44 @@ class TicketFolder(object):
             self.log('%s: Migration started', (migrator.__name__, ), loglevel)
             migrator(self, init=init)
             self.log('%s: Migration finished', (migrator.__name__, ), loglevel)
+
+    def build_ignore_file(self):
+        with codecs.open(
+            self.get_metadata_path('combined_ignore'),
+            'w',
+            'utf-8'
+        ) as out:
+            try:
+                out.write('# ~/%s\n' % constants.GIT_IGNORE_FILE_PARTIAL)
+                with codecs.open(
+                    os.path.expanduser(
+                        '~/%s' % constants.GIT_IGNORE_FILE_PARTIAL
+                    ),
+                    'r',
+                    'utf-8'
+                ) as in_:
+                    for line in in_:
+                        out.write(
+                            '%s\n' % line.strip()
+                        )
+            except:
+                pass
+
+            try:
+                out.write(
+                    '# %s\n' % (
+                        self.get_path(constants.GIT_IGNORE_FILE_PARTIAL)
+                    )
+                )
+                with codecs.open(
+                    self.get_path(constants.GIT_IGNORE_FILE_PARTIAL),
+                    'r',
+                    'utf-8'
+                ) as in_:
+                    for line in in_:
+                        out.write('%s\n' % line.strip())
+            except:
+                pass
 
     def log(self, message, args=None, level=logging.INFO):
         if args is None:

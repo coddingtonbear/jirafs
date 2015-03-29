@@ -461,7 +461,7 @@ def migration_0014(repo, init=False, **kwargs):
             'config',
         ),
         'core.excludesfile',
-        '.jirafs_ignore',
+        '.jirafs/combined_ignore',
     )
 
     tracked_files = repo.run_git_command(
