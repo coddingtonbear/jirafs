@@ -6,7 +6,8 @@ Interesting Details
 Ignore File Format
 ------------------
 
-The files ``.jirafs_ignore`` and ``.jirafs_remote_ignore`` use a subset
+The files ``.jirafs_local``, ``.jirafs_ignore`` and
+``.jirafs_remote_ignore`` use a subset
 of the globbing functionality supported by ``git``'s ``gitignore`` file
 syntax.  Specifically, you can have comments, blank lines, and 
 globbing patterns of files that you would not like to upload.
