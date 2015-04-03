@@ -74,6 +74,12 @@ run ``jirafs push``.
 From within an issue folder, opens the current JIRA issue in your
 default web browser.
 
+``subtask <summary>``
+---------------------
+
+From within an issue folder, creates a new subtask of the current
+JIRA issue.
+
 ``transition``
 ----------------------------------------
 

@@ -80,6 +80,7 @@ setup(
             'config = jirafs.commands.config:Command',
             'transition = jirafs.commands.transition:Command',
             'field = jirafs.commands.field:Command',
+            'subtask = jirafs.commands.subtask:Command',
         ]
     },
 )
