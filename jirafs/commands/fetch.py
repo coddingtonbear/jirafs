@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import textwrap
 
 import six
@@ -142,6 +143,39 @@ class Command(CommandPlugin):
 
         folder.store_cached_issue()
 
+        # Clone subtasks
+        subtasks = folder.issue.fields.subtasks
+        if len(subtasks) > 0:
+            commands = utils.get_installed_commands()
+            jira = utils.lazy_get_jira()
+            with open(
+                folder.get_metadata_path('subtasks'),
+                'w'
+            ) as out:
+                for issue in subtasks:
+                    out.write(
+                        '%s\n' % issue.key
+                    )
+                    issue_path = folder.get_path(issue.key)
+                    if os.path.exists(issue_path):
+                        command_name = 'fetch'
+                        args = []
+                        path = issue_path
+                    else:
+                        command_name = 'clone'
+                        args = [
+                            issue.permalink(),
+                            issue_path
+                        ]
+                        path = folder.path
+                    commands[command_name].execute_command(
+                        args,
+                        jira=jira,
+                        path=path,
+                        command_name=command_name
+                    )
+        folder.build_ignore_files()
+
         folder.run_git_command('add', '-A', shadow=True)
         folder.run_git_command(
             'commit', '-m', 'Fetched remote changes',
@@ -153,6 +187,7 @@ class Command(CommandPlugin):
             folder.log(
                 "Updated 'jira' to %s" % final_hash
             )
+
         return utils.PostStatusResponse(
             original_hash == final_hash,
             final_hash

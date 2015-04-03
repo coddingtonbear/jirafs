@@ -52,7 +52,7 @@ class TicketFolder(object):
                 out.write(six.text_type(''))
 
         # Let's update the ignore file while we're here.
-        self.build_ignore_file()
+        self.build_ignore_files()
 
     def __repr__(self):
         if six.PY3:
@@ -571,11 +571,14 @@ class TicketFolder(object):
 
         return {
             'files': self.filter_ignored_files(
-                self.filter_ignored_files([
-                    filename for filename in new_files + modified_files
-                    if filename
-                ]),
-                constants.GIT_IGNORE_FILE
+                self.filter_ignored_files(
+                    self.filter_ignored_files([
+                        filename for filename in new_files + modified_files
+                        if filename
+                    ]),
+                    constants.GIT_IGNORE_FILE
+                ),
+                constants.GIT_EXCLUDE_FILE
             ),
             'fields': self.get_fields() - self.get_fields('HEAD'),
             'new_comment': self.get_new_comment(ready=False)
@@ -755,7 +758,33 @@ class TicketFolder(object):
             migrator(self, init=init)
             self.log('%s: Migration finished', (migrator.__name__, ), loglevel)
 
-    def build_ignore_file(self):
+    def build_ignore_files(self):
+        metadata_excludes = [
+            'git',
+            'shadow',
+            'operation.log',
+            'subtasks',
+        ]
+        with codecs.open(
+            self.get_local_path(constants.GIT_EXCLUDE_FILE),
+            'w',
+            'utf-8'
+        ) as out:
+            for line in metadata_excludes:
+                out.write(
+                    '%s/%s\n' % (
+                        constants.METADATA_DIR,
+                        line,
+                    )
+                )
+            subtask_list_path = self.get_metadata_path('subtasks')
+            if os.path.exists(subtask_list_path):
+                with open(subtask_list_path, 'r') as in_:
+                    for line in in_:
+                        out.write(
+                            '%s/*\n' % line.strip()
+                        )
+
         with codecs.open(
             self.get_metadata_path('combined_ignore'),
             'w',
