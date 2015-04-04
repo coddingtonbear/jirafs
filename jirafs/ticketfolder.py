@@ -550,7 +550,8 @@ class TicketFolder(object):
                 'diff',
                 '--name-only',
                 '%s..master' % self.git_merge_base,
-            ).split('\n')
+            ).split('\n'),
+            constants.LOCAL_ONLY_FILE
         )
 
         return {
@@ -571,14 +572,13 @@ class TicketFolder(object):
 
         return {
             'files': self.filter_ignored_files(
-                self.filter_ignored_files(
-                    self.filter_ignored_files([
-                        filename for filename in new_files + modified_files
-                        if filename
-                    ]),
-                    constants.GIT_IGNORE_FILE
-                ),
-                constants.GIT_EXCLUDE_FILE
+                [
+                    filename for filename in new_files + modified_files
+                    if filename
+                ],
+                constants.LOCAL_ONLY_FILE,
+                constants.GIT_IGNORE_FILE,
+                constants.GIT_EXCLUDE_FILE,
             ),
             'fields': self.get_fields() - self.get_fields('HEAD'),
             'new_comment': self.get_new_comment(ready=False)
@@ -592,13 +592,20 @@ class TicketFolder(object):
             'ls-files', '-m', failure_ok=True
         ).split('\n')
 
-        committable = self.filter_ignored_files([
-            filename for filename in new_files + modified_files if filename
-        ])
-        uncommitted = self.filter_ignored_files([
-            filename for filename in modified_files + new_files
-            if filename not in committable
-        ], which=constants.GIT_IGNORE_FILE)
+        committable = self.filter_ignored_files(
+            [
+                filename for filename in new_files + modified_files if filename
+            ],
+            constants.LOCAL_ONLY_FILE
+        )
+        uncommitted = self.filter_ignored_files(
+            [
+                filename for filename in modified_files + new_files
+                if filename not in committable
+            ],
+            constants.GIT_IGNORE_FILE,
+            constants.GIT_EXCLUDE_FILE,
+        )
 
         return {
             'files': uncommitted
@@ -623,28 +630,35 @@ class TicketFolder(object):
             single_response=True,
         )
 
-    def filter_ignored_files(self, files, which=constants.LOCAL_ONLY_FILE):
-        ignore_globs = self.get_ignore_globs(which)
+    def filter_ignored_files(self, files, *which):
+        if len(which) < 1:
+            which = [constants.LOCAL_ONLY_FILE]
+        if not isinstance(which, (list, tuple)):
+            which = [which]
 
-        assets = []
-        for fileish in files:
-            # Get the actual filename; this is a little gross -- apologies.
-            filename = fileish
-            attachment = False
-            if not isinstance(fileish, six.string_types):
-                filename = fileish.filename
-                attachment = True
+        for list_path in which:
+            ignore_globs = self.get_ignore_globs(list_path)
 
-            if self.file_matches_globs(filename, ignore_globs):
-                continue
-            if (
-                not attachment
-                and not os.path.isfile(os.path.join(self.path, filename))
-            ):
-                continue
-            if filename.startswith('.'):
-                continue
-            assets.append(fileish)
+            assets = []
+            for fileish in files:
+                # Get the actual filename; this is a little gross -- apologies.
+                filename = fileish
+                attachment = False
+                if not isinstance(fileish, six.string_types):
+                    filename = fileish.filename
+                    attachment = True
+
+                if self.file_matches_globs(filename, ignore_globs):
+                    continue
+                if (
+                    not attachment
+                    and not os.path.isfile(os.path.join(self.path, filename))
+                ):
+                    continue
+                if filename.startswith('.'):
+                    continue
+                assets.append(fileish)
+            files = assets
 
         return self.execute_plugin_method_series(
             name='alter_filter_ignored_files',
