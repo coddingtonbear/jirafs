@@ -4,6 +4,7 @@ from jirafs.plugin import CommandPlugin
 
 class Command(CommandPlugin):
     """ Merge remote changes into your local copy """
+    RUN_FOR_SUBTASKS = True
     TRY_SUBFOLDERS = True
     MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'

@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 
@@ -6,6 +7,9 @@ import argparse
 from verlib import NormalizedVersion
 
 from . import __version__
+
+
+logger = logging.getLogger(__name__)
 
 
 class PluginError(Exception):
@@ -21,6 +25,9 @@ class PluginOperationError(PluginError):
 
 
 class JirafsPluginBase(object):
+    MIN_VERSION = None
+    MAX_VERSION = None
+
     def validate(self, **kwargs):
         if not self.MIN_VERSION or not self.MAX_VERSION:
             raise PluginValidationError(
@@ -46,9 +53,6 @@ class JirafsPluginBase(object):
 
 
 class Plugin(JirafsPluginBase):
-    MIN_VERSION = None
-    MAX_VERSION = None
-
     def __init__(self, ticketfolder, plugin_name, **kwargs):
         self.ticketfolder = ticketfolder
         self.plugin_name = plugin_name
@@ -102,7 +106,7 @@ class CommandPlugin(JirafsPluginBase):
         return parser.parse_args(extra_args)
 
     @classmethod
-    def execute_command(cls, extra_args, jira, path, command_name, **kwargs):
+    def execute_command(cls, extra_args, jira, path, command_name, **ckwargs):
         from .ticketfolder import TicketFolder
         cmd = cls(
             plugin_name=command_name
@@ -155,6 +159,26 @@ class CommandPlugin(JirafsPluginBase):
             post_result = method(result)
             if post_result is not None:
                 result = post_result
+
+        if getattr(cls, 'RUN_FOR_SUBTASKS', False):
+            for subfolder in folder.subtasks:
+                try:
+                    cls.execute_command(
+                        extra_args,
+                        jira,
+                        subfolder.path,
+                        command_name,
+                        **ckwargs
+                    )
+                except Exception as e:
+                    logger.exception(
+                        "Exception encountered while running "
+                        "'%s' for ticket subfolder '%s': %s" % (
+                            command_name,
+                            subfolder.ticket_number,
+                            e
+                        )
+                    )
 
         return result
 

@@ -75,10 +75,11 @@ class TicketFolder(object):
             return self._subtasks
         self._subtasks = []
 
-        with open(
-            self.get_metadata_path('subtasks'),
-            'r'
-        ) as in_:
+        subtasks_path = self.get_metadata_path('subtasks')
+        if not os.path.exists(subtasks_path):
+            return self._subtasks
+
+        with open(subtasks_path, 'r') as in_:
             for line in in_:
                 ticket_number = line.strip()
                 folder = self.__class__(

@@ -12,6 +12,7 @@ from jirafs.plugin import CommandPlugin
 class Command(CommandPlugin):
     """ Fetch remote changes """
     TRY_SUBFOLDERS = True
+    RUN_FOR_SUBTASKS = False
     MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
 
@@ -157,23 +158,19 @@ class Command(CommandPlugin):
                         '%s\n' % issue.key
                     )
                     issue_path = folder.get_path(issue.key)
-                    if os.path.exists(issue_path):
-                        command_name = 'fetch'
-                        args = []
-                        path = issue_path
-                    else:
+                    if not os.path.exists(issue_path):
                         command_name = 'clone'
                         args = [
                             issue.permalink(),
                             issue_path
                         ]
                         path = folder.path
-                    commands[command_name].execute_command(
-                        args,
-                        jira=jira,
-                        path=path,
-                        command_name=command_name
-                    )
+                        commands[command_name].execute_command(
+                            args,
+                            jira=jira,
+                            path=path,
+                            command_name=command_name
+                        )
         folder.build_ignore_files()
 
         folder.run_git_command('add', '-A', shadow=True)
