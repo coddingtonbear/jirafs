@@ -69,6 +69,28 @@ class TicketFolder(object):
             return self.__unicode__()
         return self.__unicode__().encode('utf8', 'replace')
 
+    @property
+    def subtasks(self):
+        if hasattr(self, '_subtasks'):
+            return self._subtasks
+        self._subtasks = []
+
+        with open(
+            self.get_metadata_path('subtasks'),
+            'r'
+        ) as in_:
+            for line in in_:
+                ticket_number = line.strip()
+                folder = self.__class__(
+                    self.get_path(
+                        ticket_number,
+                    ),
+                    utils.lazy_get_jira()
+                )
+                self._subtasks.append(folder)
+
+        return self._subtasks
+
     def execute_plugin_method_series(
         self, name, args=None, kwargs=None, single_response=False
     ):
