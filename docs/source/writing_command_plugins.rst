@@ -73,12 +73,15 @@ command plugin:
     ``add_arguments`` method above.
   * ``extra_arguments``: A list of string arguments unused by Jirafs.
 
-You may also use the following property to alter the behavior of Jirafs:
+You may also use any of the following properties
+to alter the behavior of Jirafs:
 
-* ``TRY_SUBFOLDERS``: Set this class property to a boolean value indicating
-  whether this command should be applied to all Jirafs ticket folders in
-  subdirectories in the event that the current folder is not a ticket
-  folder.
+* ``TRY_SUBFOLDERS``: Set this class property to ``True`` if this command
+  should be applied to all Jirafs ticket folders in subdirectories in the
+  event that the current folder is not a ticket folder.
+* ``RUN_FOR_SUBTASKS``: Set this class property to ``True`` if you would like
+  your command to be automatically executed for subtask when being executed
+  for a ticket having subtasks.
 
 Example Plugin
 --------------
