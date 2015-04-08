@@ -18,13 +18,8 @@ class TestStashLocalChanges(BaseTestCase):
 
         self.assertEqual(
             repo.run_git_command.call_count,
-            3,
+            4,
         )
-        repo.run_git_command.assert_has_calls([
-            mock.call('stash', '--include-untracked', failure_ok=True),
-            mock.call('stash', 'apply', failure_ok=True),
-            mock.call('stash', 'drop', failure_ok=True),
-        ])
 
     def test_stash_local_changes_exception(self):
         repo = mock.Mock()
@@ -36,13 +31,8 @@ class TestStashLocalChanges(BaseTestCase):
 
         self.assertEqual(
             repo.run_git_command.call_count,
-            3,
+            4,
         )
-        repo.run_git_command.assert_has_calls([
-            mock.call('stash', '--include-untracked', failure_ok=True),
-            mock.call('stash', 'apply', failure_ok=True),
-            mock.call('stash', 'drop', failure_ok=True),
-        ])
 
 
 class TestParseGitVersion(BaseTestCase):
