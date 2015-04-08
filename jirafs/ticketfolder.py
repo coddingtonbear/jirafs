@@ -461,6 +461,7 @@ class TicketFolder(object):
         failure_ok = kwargs.get('failure_ok', False)
         shadow = kwargs.get('shadow', False)
         binary = kwargs.get('binary', False)
+        stdin = kwargs.get('stdin', '')
 
         args = list(args)
 
@@ -485,24 +486,32 @@ class TicketFolder(object):
             )
         cmd.extend(args)
 
-        self.log('Executing git command %s', (cmd, ), logging.DEBUG)
-        try:
-            result = subprocess.check_output(
-                cmd,
-                cwd=cwd,
-                stderr=subprocess.STDOUT,
+        self.log(
+            'Executing git command `%s`',
+            (
+                " ".join(cmd),
+            ),
+            logging.DEBUG
+        )
+
+        handle = subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE
+        )
+        result, _ = handle.communicate(stdin)
+
+        if handle.returncode != 0 and not failure_ok:
+            command = ' '.join(cmd)
+            raise exceptions.GitCommandError(
+                "Error running command `%s`" % command,
+                cmd=command
             )
-            if not binary:
-                return result.decode('utf-8').strip()
-            return result
-        except subprocess.CalledProcessError as e:
-            if not failure_ok:
-                command = ' '.join(cmd)
-                raise exceptions.GitCommandError(
-                    "Error running command `%s`" % command,
-                    inner_exception=e,
-                    cmd=command
-                )
+        if not binary:
+            return result.decode('utf-8').strip()
+        return result
 
     def get_local_file_at_revision(
         self, path, revision, failure_ok=True, binary=False
