@@ -81,6 +81,7 @@ setup(
             'transition = jirafs.commands.transition:Command',
             'field = jirafs.commands.field:Command',
             'subtask = jirafs.commands.subtask:Command',
+            'assign = jirafs.commands.assign:Command',
         ]
     },
 )

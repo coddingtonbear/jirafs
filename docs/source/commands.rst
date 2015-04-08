@@ -80,6 +80,13 @@ default web browser.
 From within an issue folder, creates a new subtask of the current
 JIRA issue.
 
+``assign [<username>]``
+-----------------------
+
+Change the assignee of the JIRA issue to the username specified.
+If one does not specify a username,
+the assignee will be set to the currently authenticated user.
+
 ``transition``
 ----------------------------------------
 
