@@ -781,12 +781,22 @@ class TicketFolder(object):
         if init:
             loglevel = logging.DEBUG
         else:
+            if not os.path.exists(self.get_metadata_path('git')):
+                raise exceptions.JirafsError(
+                    "{path} is not a valid ticket folder!".format(
+                        path=self.path
+                    )
+                )
+
             if self.version < constants.CURRENT_REPO_VERSION:
                 print(
-                    "Your ticket folder is out-of-date and must be updated.  "
-                    "Although migrations will never affect the JIRA issue "
-                    "itself, they may modify your local clone of the issue; "
-                    "please record your current changes before proceeding."
+                    "Your ticket folder at {path} is out-of-date "
+                    "and must be updated. "
+                    "Although migrations will "
+                    "never affect the JIRA issue itself, "
+                    "they may modify your local clone of the issue.".format(
+                        path=self.path
+                    )
                 )
                 result = utils.convert_to_boolean(input("Continue? (N/Y): "))
                 if not result:
