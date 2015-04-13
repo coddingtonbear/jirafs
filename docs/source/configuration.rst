@@ -37,3 +37,23 @@ example, ``MYISSUE-1024``):
   are in addition to the patterns entered into ``~/.jirafs_remote_ignore``
   above.  See :ref:`ignore-file-format` for details.
 
+Using an untrusted HTTPS certificate
+------------------------------------
+
+If your JIRA instance uses a self-signed certificate or you are working
+in an enterprise environment having a non-standard certificate authority,
+you can manually configure your JIRA connection to either not verify the
+certificate, or to instead use a non-standard certificate authority
+certificate.
+
+1. First, find the configuration section in your ``~/.jirafs_config`` named
+   after the address of your JIRA server.
+2. Then, after the lines starting with ``username`` and ``password``, add a
+   line reading ``verify = <VALUE>`` replacing ``<VALUE>`` with one of two
+   options:
+   * If your JIRA instance uses a self-signed certificate: the string ``false``.
+   * If your JIRA instance's certificate uses a non-standard certificate
+     authority, the absolute path to a place on your computer where your
+     certificate authority's certificate is stored.
+
+

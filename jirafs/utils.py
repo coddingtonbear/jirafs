@@ -15,9 +15,17 @@ from .plugin import CommandPlugin, Plugin
 
 
 def convert_to_boolean(string):
-    if string.upper().strip() in ['Y', 'YES', 'ON', 'ENABLED', 'ENABLE']:
+    if (
+        string.upper().strip() in [
+            'Y', 'YES', 'ON', 'ENABLED', 'ENABLE', 'TRUE'
+        ]
+    ):
         return True
-    elif string.upper().strip() in ['N', 'NO', 'OFF', 'DISABLED', 'DISABLE']:
+    elif (
+        string.upper().strip() in [
+            'N', 'NO', 'OFF', 'DISABLED', 'DISABLE', 'FALSE'
+        ]
+    ):
         return False
     return None
 
@@ -205,9 +213,15 @@ def get_jira(domain=None, config=None):
         login_data['password'] = config.get(section, 'password')
 
     if config.has_option(section, 'verify'):
-        login_data['verify'] = convert_to_boolean(
+        value = convert_to_boolean(
             config.get(section, 'verify')
         )
+        if value is None:
+            # This means that we weren't able to convert the string's value
+            # to a boolean, and it's probably instead a path to a PEM file.
+            login_data['verify'] = config.get(section, 'verify')
+        else:
+            login_data['verify'] = value
 
     basic_auth = (
         login_data.pop('username'),
