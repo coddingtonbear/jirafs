@@ -163,7 +163,9 @@ def get_jira(domain=None, config=None):
     if config is None:
         config = get_config()
 
-    login_data = {}
+    login_data = {
+        'verify': True
+    }
 
     if domain is None:
         section = constants.CONFIG_JIRA
@@ -201,6 +203,11 @@ def get_jira(domain=None, config=None):
             config.set(section, 'password', value)
     else:
         login_data['password'] = config.get(section, 'password')
+
+    if config.has_option(section, 'verify'):
+        login_data['verify'] = convert_to_boolean(
+            config.get(section, 'verify')
+        )
 
     basic_auth = (
         login_data.pop('username'),
