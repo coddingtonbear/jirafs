@@ -1,11 +1,17 @@
 language: python
 python:
-  - 2.7
-  - 3.3
+- 2.7
+- 3.3
+env:
+  global:
+  - secure: E50KlH8AnVuKB7ApAhjeS15+69SlgRtWA2rSq9poIgQMHn5pLxqn5OQvo/3Iiad8DpjlbSfeDWRpPdz6BKedc3y/RawNomuk/52zpvsd1Blt5TIN+862RWWjt+K1bDysAT0N+YtCO14O43ghQhoicQTTjYcEQDrWgR+k1CYMx1E=
+  - secure: ChoN9Lx2T4jh/6tAWWG5+PyrDuucn+TsJ0Oqy29mXyLkz0wx5VlqBb5vWOZuLePUcO75OCvNBg5bKswbElnUd+iOSbZmd4DNHszPgcOIapO1uBpBSmCgbODMBiv/fnArlHa9m0IL0xJ1zbMUZmbebzu8LkePgJYu26aEYhG6//A=
+  - secure: VuK2cPI0eiSlighXr/q1Pwcp9ONOhNqN/hjvhUNVhAfN5o0k2MSCt6p5wM4St+C21hlZKVqBUrPQEKQKySFjiHkrfOdt+KCLakoVEdO+2EiiCAyd9kC/ft1DyMXIBgIlugO8vdM9vmD50XlRgQuulxQkgHlkjVa6pAa7k/Rm8Rk=
+  - secure: HGujhcLN5MAm2E5aPW0gEOYvXeA2G9QwXcVqnS7L/aZrrsUambdqRvz/elWhb+vAN+VK1opCDWlL4YBu21UFtWm58KBiZY3CTlDyjdffwgLnBOTXMjDOABcHYUD1iaXxV05d8ssW2ggEZxR4YiIA/ixPh3R1fKJV3xai0aXLEZE=
 before_install:
-  - pip install -r requirements.txt
-  - pip install pytest mock pretend freezegun
-  - pip install -e .
-  - git config --global user.email "gitbot@adamcoddington.net"
-  - git config --global user.name "I'm a Robot"
+- pip install -r requirements.txt
+- pip install pytest mock pretend freezegun
+- pip install -e .
+- git config --global user.email "gitbot@adamcoddington.net"
+- git config --global user.name "I'm a Robot"
 script: py.test
