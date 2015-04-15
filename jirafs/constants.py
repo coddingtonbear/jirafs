@@ -4,6 +4,7 @@ from jirafs import __version__ as version
 TICKET_DETAILS = 'fields.jira'
 TICKET_COMMENTS = 'comments.read_only.jira'
 TICKET_NEW_COMMENT = 'new_comment.jira'
+TICKET_LINKS = 'links.jira'
 TICKET_FILE_FIELD_TEMPLATE = '{field_name}.jira'
 
 # Generic settings
