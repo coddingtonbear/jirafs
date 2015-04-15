@@ -114,6 +114,34 @@ class Command(CommandPlugin):
                     for line in value.replace('\r\n', '\n').split('\n'):
                         dets.write(six.text_type('    %s\n' % line))
 
+        links_path = folder.get_shadow_path(constants.TICKET_LINKS)
+        with io.open(links_path, 'w', encoding='utf-8') as links_handle:
+            # Write issue links
+            for link in folder.issue.fields.issuelinks:
+                links_handle.write(
+                    six.u("* {status}: {key}\n").format(
+                        status=link.type.name,
+                        key=link.inwardIssue.key
+                    )
+                )
+
+            # Write remote links
+            for link in folder.jira.remote_links(folder.issue):
+                if link.object.title:
+                    links_handle.write(
+                        six.u("* {title}: {url}\n").format(
+                            title=link.object.title,
+                            url=link.object.url
+                        )
+                    )
+                else:
+                    links_handle.write(
+                        six.u("* {url}\n").format(
+                            title=link.object.title,
+                            url=link.object.url
+                        )
+                    )
+
         comments_filename = folder.get_shadow_path(constants.TICKET_COMMENTS)
         with io.open(comments_filename, 'w', encoding='utf-8') as comm:
             for comment in folder.issue.fields.comment.comments:
