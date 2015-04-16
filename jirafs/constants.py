@@ -34,7 +34,8 @@ FILE_FIELDS = [
 ]
 FILE_FIELD_BLACKLIST = [
     'new_comment',
-    'fields'
+    'fields',
+    'links',
 ]
 
 CURRENT_REPO_VERSION = 14

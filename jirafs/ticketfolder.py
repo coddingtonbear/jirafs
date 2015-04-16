@@ -18,6 +18,7 @@ from . import constants
 from . import exceptions
 from . import migrations
 from . import utils
+from .jiralinkmanager import JiraLinkManager
 from .jirafieldmanager import JiraFieldManager
 from .plugin import PluginValidationError
 
@@ -530,6 +531,7 @@ class TicketFolder(object):
             constants.TICKET_DETAILS,
             constants.TICKET_COMMENTS,
             constants.TICKET_NEW_COMMENT,
+            constants.TICKET_LINKS,
         ]
         for field in constants.FILE_FIELDS:
             all_globs.append(
@@ -590,6 +592,9 @@ class TicketFolder(object):
             'fields': (
                 self.get_fields('HEAD') - self.get_fields(self.git_merge_base)
             ),
+            'links': (
+                self.get_links('HEAD') - self.get_links(self.git_merge_base)
+            ),
             'files': changed_files,
             'new_comment': self.get_new_comment(ready=True)
         }
@@ -613,6 +618,7 @@ class TicketFolder(object):
                 constants.GIT_EXCLUDE_FILE,
             ),
             'fields': self.get_fields() - self.get_fields('HEAD'),
+            'links': self.get_links() - self.get_links('HEAD'),
             'new_comment': self.get_new_comment(ready=False)
         }
 
@@ -698,6 +704,17 @@ class TicketFolder(object):
             single_response=True,
         )
 
+    def get_links(self, revision=None, path=None):
+        kwargs = {}
+        if not revision:
+            kwargs['path'] = path if path else self.path
+        else:
+            kwargs['revision'] = revision
+        return JiraLinkManager.create(
+            self,
+            **kwargs
+        )
+
     def get_fields(self, revision=None, path=None):
         kwargs = {}
         if not revision:
@@ -705,6 +722,17 @@ class TicketFolder(object):
         else:
             kwargs['revision'] = revision
         return JiraFieldManager.create(
+            self,
+            **kwargs
+        )
+
+    def get_links(self, revision=None, path=None):
+        kwargs = {}
+        if not revision:
+            kwargs['path'] = path if path else self.path
+        else:
+            kwargs['revision'] = revision
+        return JiraLinkManager.create(
             self,
             **kwargs
         )

@@ -31,6 +31,13 @@ class Command(CommandPlugin):
     def status_json(self, folder, status):
         print(json.dumps(status))
 
+    def has_changes(self, section, *keys):
+        if not keys:
+            keys = ['files', 'fields', 'new_comment', 'links']
+        for key in keys:
+            if section[key]:
+                return True
+
     def status_text(self, folder, folder_status):
         t = Terminal()
         print(
@@ -48,7 +55,7 @@ class Command(CommandPlugin):
 
         printed_changes = False
         ready = folder_status['ready']
-        if ready['files'] or ready['fields'] or ready['new_comment']:
+        if self.has_changes(ready):
             printed_changes = True
             print('')
             print(
@@ -59,7 +66,7 @@ class Command(CommandPlugin):
             )
 
         staged = folder_status['uncommitted']
-        if staged['files'] or staged['fields'] or staged['new_comment']:
+        if self.has_changes(staged):
             printed_changes = True
             print('')
             print(
@@ -71,7 +78,7 @@ class Command(CommandPlugin):
             )
 
         local_uncommitted = folder_status['local_uncommitted']
-        if local_uncommitted['files']:
+        if self.has_changes(local_uncommitted, 'files'):
             printed_changes = True
             print('')
             print(
@@ -115,6 +122,54 @@ class Command(CommandPlugin):
                     ' (save to repository)' if no_upload else ' (file upload)'
                 )
             )
+        for link, data in changes.get('links', {}).get('remote', {}).items():
+            orig = data[0]
+            new = data[1]
+            if new is not None:
+                if new.get('description'):
+                    description = new['description']
+                else:
+                    description = '(Untitled)'
+                lines.append(
+                    '\t' + color + description +
+                    ': ' + link + normal + (
+                        ' (changed remote link)'
+                        if orig else ' (new remote link)'
+                    )
+                )
+            else:
+                if orig.get('description'):
+                    description = orig['description']
+                else:
+                    description = '(Untitled)'
+                lines.append(
+                    '\t' + color + description +
+                    ': ' + link + normal + ' (removed remote link)'
+                )
+        for link, data in changes.get('links', {}).get('issue', {}).items():
+            orig = data[0]
+            new = data[1]
+            if new is not None:
+                if new.get('status'):
+                    status = new['status']
+                else:
+                    status = '(Untitled)'
+                lines.append(
+                    '\t' + color + status.title() +
+                    ': ' + link + normal + (
+                        ' (changed issue link)'
+                        if orig else ' (new issue link)'
+                    )
+                )
+            else:
+                if orig.get('status'):
+                    status = orig['status']
+                else:
+                    status = '(Untitled)'
+                lines.append(
+                    '\t' + color + status.title() +
+                    ': ' + link + normal + ' (removed issue link)'
+                )
         for field, value_set in changes.get('fields', {}).items():
             lines.append(
                 '\t' + color + field + normal
