@@ -32,11 +32,13 @@ class BaseTestCase(TestCase):
         return {
             'ready': {
                 'files': [],
+                'links': {},
                 'fields': {},
                 'new_comment': '',
             },
             'uncommitted': {
                 'files': [],
+                'links': {},
                 'fields': {},
                 'new_comment': '',
             },
