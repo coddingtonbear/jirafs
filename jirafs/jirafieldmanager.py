@@ -1,9 +1,9 @@
-import io
 import json
 import os
 import re
 
 from jirafs import constants
+from jirafs.readers import GitRevisionReader, WorkingCopyReader
 
 
 class JiraFieldManager(dict):
@@ -113,22 +113,7 @@ class JiraFieldManager(dict):
         return fields
 
 
-class LocalFileJiraFieldManager(JiraFieldManager):
-    def __init__(self, folder, path):
-        self.folder = folder
-        self.path = path
-        super(LocalFileJiraFieldManager, self).__init__()
-
-    def get_file_contents(self, path):
-        full_path = os.path.join(self.path, path)
-
-        with io.open(
-            self.folder.get_local_path(full_path),
-            'r',
-            encoding='utf-8'
-        ) as _in:
-            return _in.read().strip()
-
+class LocalFileJiraFieldManager(WorkingCopyReader, JiraFieldManager):
     def get_used_per_ticket_fields(self):
         fields = []
         for filename in os.listdir(self.path):
@@ -136,27 +121,13 @@ class LocalFileJiraFieldManager(JiraFieldManager):
             matched = self.FIELD_MATCHER.match(filename)
             if matched and os.path.isfile(full_path):
                 field_name = matched.group(1)
-                if not field_name in constants.FILE_FIELD_BLACKLIST:
+                if field_name not in constants.FILE_FIELD_BLACKLIST:
                     fields.append(field_name)
 
         return fields
 
-    def save(self):
-        raise NotImplementedError()
 
-
-class GitRevisionJiraFieldManager(JiraFieldManager):
-    def __init__(self, folder, revision):
-        self.folder = folder
-        self.revision = revision
-        super(GitRevisionJiraFieldManager, self).__init__()
-
-    def get_file_contents(self, path):
-        return self.folder.get_local_file_at_revision(
-            path,
-            self.revision
-        )
-
+class GitRevisionJiraFieldManager(GitRevisionReader, JiraFieldManager):
     def get_used_per_ticket_fields(self):
         files = self.folder.run_git_command(
             'ls-tree',
@@ -169,7 +140,7 @@ class GitRevisionJiraFieldManager(JiraFieldManager):
             matched = self.FIELD_MATCHER.match(filename)
             if matched:
                 field_name = matched.group(1)
-                if not field_name in constants.FILE_FIELD_BLACKLIST:
+                if field_name not in constants.FILE_FIELD_BLACKLIST:
                     fields.append(field_name)
 
         return fields

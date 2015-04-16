@@ -34,3 +34,7 @@ class GitCommandError(JirafsError):
     @property
     def output(self):
         return self._inner_exception.output
+
+
+class IssueValidationError(JirafsError):
+    pass

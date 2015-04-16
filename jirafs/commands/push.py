@@ -14,7 +14,37 @@ class Command(CommandPlugin):
     def handle(self, folder, **kwargs):
         return self.push(folder)
 
+    def get_valid_issue_link_types(self, folder):
+        if not hasattr(self, '_valid_issue_link_types'):
+            data = {}
+            for item in folder.jira.issue_link_types():
+                data[item.outward.lower()] = ('outward', item)
+                data[item.inward.lower()] = ('inward', item)
+
+            self._valid_issue_link_types = data
+        return self._valid_issue_link_types
+
+    def validate_issue(self, folder):
+        status = folder.status()
+
+        # Validate issue statuses
+        valid_types = self.get_valid_issue_link_types(folder)
+        links = status['ready']['links'].get('issue', {})
+        for target, data in links.items():
+            if data[1] is None:
+                continue
+            if data[1].get('status') not in valid_types:
+                raise exceptions.IssueValidationError(
+                    "{status} is not a valid issue link type for {target}; "
+                    "options include the following: {options}".format(
+                        status=data[1].get('status'),
+                        target=target,
+                        options=', '.join(valid_types.keys())
+                    )
+                )
+
     def push(self, folder):
+        self.validate_issue(folder)
         with utils.stash_local_changes(folder):
             status = folder.status()
 
@@ -71,6 +101,86 @@ class Command(CommandPlugin):
                     (collected_updates, )
                 )
                 folder.issue.update(**collected_updates)
+
+            links = status['ready']['links']
+            statuses = self.get_valid_issue_link_types(folder)
+            for target, data in links.get('issue', {}).items():
+                orig = data[0]
+                new = data[1]
+                other = folder.jira.issue(target)
+                if orig is None:
+                    # New links
+                    status_data = statuses[new['status']]
+                    args = [
+                        status_data[1].name,
+                    ]
+                    if status_data[0] == 'inward':
+                        args.extend([
+                            other,
+                            folder.issue
+                        ])
+                    elif status_data[0] == 'outward':
+                        args.extend([
+                            folder.issue,
+                            other,
+                        ])
+                    folder.jira.create_issue_link(*args)
+                elif new is None:
+                    # Deleted links
+                    for existing_link in folder.issue.fields.issuelinks:
+                        if (
+                            hasattr(existing_link, 'inwardIssue') and
+                            existing_link.inwardIssue.key == target
+                        ):
+                            existing_link.delete()
+                        if (
+                            hasattr(existing_link, 'outwardIssue') and
+                            existing_link.outwardIssue.key == target
+                        ):
+                            existing_link.delete()
+                else:
+                    # Changed links
+                    for existing_link in folder.issue.fields.issuelinks:
+                        if (
+                            hasattr(existing_link, 'inwardIssue') and
+                            existing_link.inwardIssue.key == target
+                        ):
+                            existing_link.type = statuses[new['status']][1]
+                            existing_link.update()
+                        if (
+                            hasattr(existing_link, 'outwardIssue') and
+                            existing_link.outwardIssue.key == target
+                        ):
+                            existing_link.type = statuses[new['status']][1]
+                            existing_link.update()
+
+            links = status['ready']['links']
+            remote_links = folder.jira.remote_links(folder.issue)
+            # Workaround for bug in python-jira:
+            folder.jira._applicationlinks = []
+            for target, data in links.get('remote', {}).items():
+                orig = data[0]
+                new = data[1]
+                if orig is None:
+                    # New links
+                    link_object = {
+                        'url': target,
+                        'title': new['description'],
+                    }
+                    folder.jira.add_remote_link(folder.issue, link_object)
+                elif new is None:
+                    # Deleted links
+                    for existing_link in remote_links:
+                        if existing_link.object.url == target:
+                            existing_link.delete()
+                else:
+                    # Changed links
+                    for existing_link in remote_links:
+                        if existing_link.object.url == target:
+                            existing_link.update({
+                                'url': target,
+                                'title': new['description']
+                            })
 
             # Commit local copy
             folder.run_git_command('reset', '--soft', failure_ok=True)
