@@ -37,7 +37,8 @@ The following text files are created:
 * ``fields.jira``:  This file will show all currently-set field values
   for this JIRA issue (except fields written to their own files; see
   ``description.jira`` below).  You **can** change field values here
-  by editing the field values in the file.
+  by editing the field values in the file.  See :ref:`editing_fields`
+  for more information.
 * ``description.jira``: This file will show the issue's current
   description.  You **can** change the issue's description by editing
   the contents of this file.
@@ -51,13 +52,6 @@ The following text files are created:
 * ``new_comment.jira``: This file starts out empty, but if you would
   like to add a new comment, you **can** create one by entering text
   into this file.
-
-.. note::
-
-   For many fields from JIRA, the incoming data is a JSON dictionary
-   or list.  If you see fields having values starting with either a
-   "[" or "{", you may need to consult with JIRA's documentation to
-   develop an understanding of how to change those values.
 
 In order to update any of the above data or upload an asset, either
 make the change to a field in ``fields.jira``, edit the issue's
@@ -104,6 +98,29 @@ for more details.
 
    If you are a VIM user, there is a :ref:`vim-plugin`  available that provides
    syntax highlighting for JIRA/Confluence's wikimarkup.
+
+.. _editing_fields:
+
+Editing Issue Fields
+--------------------
+
+In most cases, you can simply edit the field's contents directly -- just
+make sure to indent the field contents by four spaces.
+
+For text fields, editing field contents is as simple as typing-in a new
+value, but many issue fields are are JSON dictionaries or lists that
+require you to edit the data in a more-structured way.  If the data
+you enter is not valid JSON, when ``push``-ing up changes, you will
+receive an error, but don't worry -- if you encounter such an error, edit
+the contents to be valid JSON, ``commit``, and ``push`` again.  You 
+may need to consult with JIRA's documentation to develop an understanding
+of how to change these values.
+
+.. note::
+
+   You don't always need to enter values for every field in a JSON
+   dictionary; in some cases, JIRA will infer the missing information
+   for you.
 
 .. _adding_removing_links:
 
