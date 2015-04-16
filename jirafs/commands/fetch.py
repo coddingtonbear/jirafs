@@ -118,10 +118,14 @@ class Command(CommandPlugin):
         with io.open(links_path, 'w', encoding='utf-8') as links_handle:
             # Write issue links
             for link in folder.issue.fields.issuelinks:
+                category = 'outward'
+                if 'inwardIssue' in link.raw:
+                    category = 'inward'
+
                 links_handle.write(
                     six.u("* {status}: {key}\n").format(
-                        status=link.type.name,
-                        key=link.inwardIssue.key
+                        status=getattr(link.type, category).title(),
+                        key=getattr(link, '%sIssue' % category).key
                     )
                 )
 
