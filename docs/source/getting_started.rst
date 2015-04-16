@@ -41,6 +41,10 @@ The following text files are created:
 * ``description.jira``: This file will show the issue's current
   description.  You **can** change the issue's description by editing
   the contents of this file.
+* ``links.jira``: This file lists all of the links associated with this
+  JIRA issue.  You can add new links (or remove links) by adding or
+  removing bulleted items from this list; see :ref:`adding_removing_links`
+  for more information.
 * ``comments.read_only.jira``: This file shows all comments currently
   posted to this issue.  Note that you **cannot** edit the comments in
   this file.
@@ -100,4 +104,49 @@ for more details.
 
    If you are a VIM user, there is a :ref:`vim-plugin`  available that provides
    syntax highlighting for JIRA/Confluence's wikimarkup.
+
+.. _adding_removing_links:
+
+Adding, Removing or Changing Links
+----------------------------------
+
+Each line of ``links.jira`` starts with a bullet (``*``), and although 
+links to other issues (in JIRA terminology -- "issue links") and links
+to arbitrary URLs ("remote links") appear similar, they have slightly
+different formats.
+
+Issue Links
+~~~~~~~~~~~
+
+You can link other issues to your JIRA issue by adding bulleted lines in
+the following format::
+
+    * LINK TYPE: TICKET NUMBER
+
+So, if there is an issue relationship named "blocks", and your JIRA issue
+is blocked by a ticket numbered "JFS-284", you could add a line::
+
+    * Blocks: JFS-284
+
+
+.. note::
+
+   Both the issue relationship and ticket number are case-insensitive,
+   but that if you enter a relationship name that does not exist, you will
+   receive an error message when ``push``-ing up your changes.  If you see
+   such an error message, don't fret -- just change your relationship name
+   to one of the suggested names, ``commit``, and ``push`` again.
+
+Remote Links
+~~~~~~~~~~~~
+
+You can add links to arbitrary URLs by adding bulleted lines in the following
+format::
+
+    * NAME: URL
+
+If you, for example, wanted to add a link to your issue that pointed users
+toward your favorite cat video, you could, for example, add a line::
+
+    * Cat scares compilation: https://www.youtube.com/watch?v=DBRgFLHra48
 
