@@ -10,6 +10,7 @@ import six
 
 from jirafs import exceptions
 from jirafs.utils import run_command_method_with_kwargs
+from jirafs.jirafieldmanager import JiraFieldManager
 
 from .base import BaseTestCase
 
@@ -88,12 +89,14 @@ class TestTicketFolder(BaseTestCase):
             )
             self.assertTrue(clear_cache.called)
 
-        expected_result = self.get_asset_contents('test_fetch/fetched.jira')
+        expected_result = JiraFieldManager(
+            self.get_asset_contents('test_fetch/fetched.jira')
+        )
         with io.open(
             self.ticketfolder.get_shadow_path('fields.jira'),
             encoding='utf-8'
         ) as _in:
-            actual_result = _in.read()
+            actual_result = JiraFieldManager(_in.read())
 
         self.assertEqual(actual_result, expected_result)
 

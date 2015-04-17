@@ -15,8 +15,11 @@ class JiraFieldManager(dict):
         )
     )
 
-    def __init__(self):
-        self._data = self.load()
+    def __init__(self, data=None, prepared=False):
+        if not prepared:
+            self._data = self.get_fields_from_string(data)
+        else:
+            self._data = data
         super(JiraFieldManager, self).__init__(self._data)
 
     def __sub__(self, other):
@@ -37,7 +40,7 @@ class JiraFieldManager(dict):
         if revision:
             return GitRevisionJiraFieldManager(folder, revision)
         else:
-            return LocalFileJiraFieldManager(folder, path)
+            return WorkingCopyJiraFieldManager(folder, path)
 
     def get_requested_per_ticket_fields(self):
         return constants.FILE_FIELDS
@@ -91,6 +94,12 @@ class JiraFieldManager(dict):
 
         return data
 
+
+class AutomaticJiraFieldManager(JiraFieldManager):
+    def __init__(self):
+        data = self.load()
+        super(AutomaticJiraFieldManager, self).__init__(data, prepared=True)
+
     def load(self):
         fields = self.get_fields_from_string(
             self.get_file_contents(constants.TICKET_DETAILS)
@@ -112,8 +121,13 @@ class JiraFieldManager(dict):
         fields.update(file_fields)
         return fields
 
+    def get_file_contents(self, path):
+        raise NotImplemented()
 
-class LocalFileJiraFieldManager(WorkingCopyReader, JiraFieldManager):
+
+class WorkingCopyJiraFieldManager(
+    WorkingCopyReader, AutomaticJiraFieldManager
+):
     def get_used_per_ticket_fields(self):
         fields = []
         for filename in os.listdir(self.path):
@@ -127,7 +141,9 @@ class LocalFileJiraFieldManager(WorkingCopyReader, JiraFieldManager):
         return fields
 
 
-class GitRevisionJiraFieldManager(GitRevisionReader, JiraFieldManager):
+class GitRevisionJiraFieldManager(
+    GitRevisionReader, AutomaticJiraFieldManager
+):
     def get_used_per_ticket_fields(self):
         files = self.folder.run_git_command(
             'ls-tree',

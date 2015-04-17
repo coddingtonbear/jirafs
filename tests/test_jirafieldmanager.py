@@ -3,16 +3,10 @@ from unittest import TestCase
 
 from mock import patch
 
-from jirafs.jirafieldmanager import LocalFileJiraFieldManager
+from jirafs.jirafieldmanager import JiraFieldManager
 
 
 class TestJiraFieldManager(TestCase):
-    def setUp(self):
-        with patch(
-            'jirafs.jirafieldmanager.JiraFieldManager.load'
-        ):
-            self.jirafieldmanager = LocalFileJiraFieldManager(None, None)
-
     def test_decode(self):
         encoded_values = dedent("""
             * summary:
@@ -32,7 +26,7 @@ class TestJiraFieldManager(TestCase):
             )
         }
 
-        actual_result = self.jirafieldmanager.get_fields_from_string(
+        actual_result = JiraFieldManager(
             encoded_values
         )
 
@@ -74,7 +68,7 @@ class TestJiraFieldManager(TestCase):
             ]
         }
 
-        actual_result = self.jirafieldmanager.get_fields_from_string(
+        actual_result = JiraFieldManager(
             encoded_values
         )
 
@@ -107,7 +101,7 @@ class TestJiraFieldManager(TestCase):
             )
         }
 
-        actual_result = self.jirafieldmanager.get_fields_from_string(
+        actual_result = JiraFieldManager(
             encoded_values
         )
 

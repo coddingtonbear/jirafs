@@ -8,8 +8,11 @@ from jirafs.readers import GitRevisionReader, WorkingCopyReader
 class JiraLinkManager(dict):
     TICKET_MATCHER = re.compile('[A-Za-z]+-\d+')
 
-    def __init__(self):
-        self._data = self.load()
+    def __init__(self, data, prepared=False):
+        if not prepared:
+            self._data = self.get_fields_from_string(data)
+        else:
+            self._data = data
         super(JiraLinkManager, self).__init__(self._data)
 
     @classmethod
@@ -24,16 +27,12 @@ class JiraLinkManager(dict):
         else:
             return WorkingCopyJiraLinkManager(folder, path)
 
-    def load(self):
-        return self.get_links_from_string(
-            self.get_file_contents(constants.TICKET_LINKS)
-        )
-
     def __sub__(self, other):
         differing = {}
 
-        slf = copy.deepcopy(self)
+        slf = {}
         for category in ['remote', 'issue']:
+            slf[category] = self[category].copy()
             for k, v in other[category].items():
                 if k not in slf[category]:
                     if category not in differing:
@@ -88,9 +87,23 @@ class JiraLinkManager(dict):
         return links
 
 
-class GitRevisionJiraLinkManager(GitRevisionReader, JiraLinkManager):
+class AutomaticJiraLinkManager(JiraLinkManager):
+    def __init__(self):
+        data = self.load()
+        super(AutomaticJiraLinkManager, self).__init__(data, prepared=True)
+
+    def load(self):
+        return self.get_links_from_string(
+            self.get_file_contents(constants.TICKET_LINKS)
+        )
+
+    def get_file_contents(self, path):
+        raise NotImplemented()
+
+
+class GitRevisionJiraLinkManager(GitRevisionReader, AutomaticJiraLinkManager):
     pass
 
 
-class WorkingCopyJiraLinkManager(WorkingCopyReader, JiraLinkManager):
+class WorkingCopyJiraLinkManager(WorkingCopyReader, AutomaticJiraLinkManager):
     pass
