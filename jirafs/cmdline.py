@@ -42,13 +42,12 @@ def main():
     )
     parser.add_argument(
         'command',
-        nargs=1,
         type=six.text_type,
         choices=commands.keys()
     )
     args, extra = parser.parse_known_args()
 
-    command_name = args.command[0]
+    command_name = args.command
     cmd_class = commands[command_name]
 
     started = time.time()
