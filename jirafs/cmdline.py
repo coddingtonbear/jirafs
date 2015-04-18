@@ -45,10 +45,19 @@ def main():
         type=six.text_type,
         choices=commands.keys()
     )
+    parser.add_argument(
+        '--subtasks',
+        action='store_true',
+        default=False
+    )
     args, extra = parser.parse_known_args()
 
     command_name = args.command
     cmd_class = commands[command_name]
+
+    # Subtasks
+    if args.subtasks:
+        cmd_class.RUN_FOR_SUBTASKS = True
 
     started = time.time()
     logger.debug(
