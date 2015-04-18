@@ -1,3 +1,16 @@
+1.8.0
+-----
+
+* Adds link-management functionality.  You can now create, remove, and modify
+  remote (arbitrary http links) and issue (links to other JIRA issues) by
+  editing the ``links.rst`` file.
+* Adds new ``--subtask`` command-line argument allowing one to run a command
+  upon subtasks even if that command is not configured to do so automatically.
+  This is particularly useful for getting the status of a task and all
+  subtasks simultaneously by running ``jirafs status --subtask``.
+* Now displays a summary of changes from JIRA when ``merge``-ing or
+  ``pull``-ing.
+
 1.7.0
 -----
 
