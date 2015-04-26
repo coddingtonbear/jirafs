@@ -1,7 +1,7 @@
-import copy
 import os
 from unittest import TestCase, SkipTest
 import shutil
+import subprocess
 import tempfile
 
 from jira.client import JIRA
@@ -83,3 +83,17 @@ class IntegrationTestBase(TestCase):
 
     def run_command(self, name, **kwargs):
         return run_command_method_with_kwargs(name, **kwargs)
+
+    def run_from_shell(self, *args, **kwargs):
+        if 'path' not in kwargs:
+            path = self.path
+        else:
+            path = kwargs['path']
+
+        return subprocess.Popen(
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=path
+        )

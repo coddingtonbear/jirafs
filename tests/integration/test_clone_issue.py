@@ -67,3 +67,34 @@ class TestCloneIssue(IntegrationTestBase):
                 data['description'],
                 handle.read().strip(),
             )
+
+    def test_post_cloning_status(self):
+        issue_path = os.path.join(self.path, 'issue')
+        data = {
+            'description': 'This is a test description',
+            'summary': 'This is a test summary',
+        }
+
+        issue = self.create_issue(data)
+
+        self.run_command(
+            'clone',
+            path=issue_path,
+            url=issue.permalink(),
+            jira=self.get_jira
+        )
+
+        proc = self.run_from_shell('jirafs', 'status', path=issue_path)
+
+        stdout = proc.communicate()[0].decode('utf-8')
+
+        assert_strings = [
+            'On ticket %s' % issue.key,
+            'browse/%s' % issue.key,
+            'No changes found',
+        ]
+        for expectation in assert_strings:
+            self.assertIn(
+                expectation,
+                stdout,
+            )
