@@ -1,4 +1,4 @@
-from jirafs import utils
+from jirafs import constants, utils
 from jirafs.plugin import CommandPlugin
 from jirafs.jirafieldmanager import JiraFieldManager
 from jirafs.jiralinkmanager import JiraLinkManager
@@ -19,6 +19,20 @@ class Command(CommandPlugin):
             original_merge_base = folder.git_merge_base
             folder.run_git_command('merge', 'jira')
             final_merge_base = folder.git_merge_base
+
+            new_comments = folder.run_git_command(
+                'diff',
+                '%s..%s' % (
+                    original_merge_base,
+                    final_merge_base
+                ),
+                '--',
+                constants.TICKET_COMMENTS,
+            ).strip()
+            if new_comments:
+                folder.log(
+                    "New comment(s) have been posted."
+                )
 
             jira_fields = JiraFieldManager.create(
                 folder, revision='jira'
