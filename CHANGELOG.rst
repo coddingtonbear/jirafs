@@ -1,3 +1,15 @@
+1.9.0
+-----
+
+* Adds new ``search_users`` command allowing one to search for users.  This
+  is particularly useful for when attempting to mention somebody in a ticket
+  comment, but you're not sure what their user name is.
+* When running ``merge`` (even via ``pull``) messages will be displayed
+  indicating remote changes that are being merged-in to your working copy.
+* Adds basic integration tests; this should add a lot of insulation preventing
+  me (or anybody else) from accidentally breaking Jirafs for versions of
+  Python not in use by the writer.
+
 1.8.0
 -----
 
