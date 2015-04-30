@@ -82,6 +82,7 @@ setup(
             'field = jirafs.commands.field:Command',
             'subtask = jirafs.commands.subtask:Command',
             'assign = jirafs.commands.assign:Command',
+            'search_users = jirafs.commands.search_users:Command',
         ]
     },
 )
