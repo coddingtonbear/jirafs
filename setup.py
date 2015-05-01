@@ -83,6 +83,7 @@ setup(
             'subtask = jirafs.commands.subtask:Command',
             'assign = jirafs.commands.assign:Command',
             'search_users = jirafs.commands.search_users:Command',
+            'create = jirafs.commands.create:Command',
         ]
     },
 )

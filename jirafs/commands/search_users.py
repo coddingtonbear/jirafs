@@ -10,7 +10,7 @@ from jirafs.ticketfolder import TicketFolder
 
 
 class Command(CommandPlugin):
-    """ Get, set, or list global or per-folder configuration values """
+    """Search for users matching the specified search term"""
     MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
     AUTOMATICALLY_INSTANTIATE_FOLDER = False

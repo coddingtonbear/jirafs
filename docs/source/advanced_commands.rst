@@ -82,3 +82,28 @@ operations directly.
 From within an issue folder, will open up a python shell having access
 to a variable named ``folder`` holding the Python object representing
 the ticket folder you are currently within.
+
+``search_users <term>``
+-----------------------
+
+Search for users matching the specified search term.  This is particularly
+useful if you're not sure what somebody's username and you were hoping to
+mention them in a ticket so they get an e-mail notification.
+
+``create``
+----------
+
+Creates a new issue.  Provides the following options:
+
+* ``--summary``: The summary to use for your new issue.
+* ``--description``: The description to use for your new issue.
+* ``--issuetype``: The issue type to use for your new issue (defaults
+  to 'Task').
+* ``--project``: The project key to use for your new issue.  This is
+  the short, capitalized string you see next to issues.  For example,
+  if your tickets were named something like KITTENS-12084, 'KITTENS'
+  is the project key.
+* ``--quiet``: Do not prompt user to provide values interactively.
+
+If any of the above values are not specified, the user will be prompted to
+provide them interactively.
