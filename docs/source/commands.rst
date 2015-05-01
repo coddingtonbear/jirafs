@@ -35,6 +35,14 @@ Although by default, the issue will be cloned into a folder matching the name
 of the issue, you may specify a path into which the issue should be cloned
 by specifying an additional parameter (``PATH`` in the example forms above).
 
+``submit``
+----------
+
+Commit outstanding changes, push them to the remote server, and pull
+outstanding changes.
+
+This is exactly equivalent to running a ``commit`` followed by a ``push``.
+
 ``commit``
 ----------
 

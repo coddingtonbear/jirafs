@@ -84,6 +84,7 @@ setup(
             'assign = jirafs.commands.assign:Command',
             'search_users = jirafs.commands.search_users:Command',
             'create = jirafs.commands.create:Command',
+            'submit = jirafs.commands.submit:Command',
         ]
     },
 )
