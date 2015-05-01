@@ -3,7 +3,7 @@ from jirafs.plugin import CommandPlugin
 
 
 class Command(CommandPlugin):
-    """ Fetch remote changes """
+    """Create a subtask of a given issue."""
     MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
 

@@ -4,7 +4,7 @@ from jirafs.plugin import CommandPlugin
 
 
 class Command(CommandPlugin):
-    """ Clone a new ticketfolder for the specified ticket URL"""
+    """Assign the current task to a user"""
     MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
 
