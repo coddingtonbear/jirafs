@@ -83,6 +83,12 @@ JIRA, run::
 
     jirafs push
 
+.. note::
+
+   **Protip**: Since most people have little use for commiting changes
+   prior to pushing, there is also the ``submit`` command which performs
+   a ``commit`` immediately followed by a ``push`` using a single command.
+
 Please keep in mind that updates that others have made in JIRA outside of 
 Jirafs won't be available in your local copy until you pull them in by
 running::
