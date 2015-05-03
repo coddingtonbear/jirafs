@@ -508,6 +508,8 @@ class TicketFolder(object):
             command = ' '.join(cmd)
             raise exceptions.GitCommandError(
                 "Error running command `%s`" % command,
+                returncode=handle.returncode,
+                stdout=result,
                 cmd=command
             )
         if not binary:
