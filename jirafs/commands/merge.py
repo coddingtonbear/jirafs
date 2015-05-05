@@ -59,7 +59,7 @@ class Command(CommandPlugin):
                 values_dict = (jira_links - master_links).get(category, {})
                 for field, values in values_dict.items():
                     folder.log(
-                        "Link {field} changed: \"{fr}\" -> \"{to}\"".format(
+                        u"Link {field} changed: \"{fr}\" -> \"{to}\"".format(
                             field=field,
                             fr=values[0],
                             to=values[1]

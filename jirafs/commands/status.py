@@ -41,7 +41,7 @@ class Command(CommandPlugin):
     def status_text(self, folder, folder_status):
         t = Terminal()
         print(
-            "On ticket {ticket} ({url})".format(
+            u"On ticket {ticket} ({url})".format(
                 ticket=folder.ticket_number,
                 url=folder.cached_issue.permalink(),
             )

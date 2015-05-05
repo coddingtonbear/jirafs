@@ -35,8 +35,8 @@ class Command(CommandPlugin):
                 continue
             if data[1].get('status') not in valid_types:
                 raise exceptions.IssueValidationError(
-                    "{status} is not a valid issue link type for {target}; "
-                    "options include the following: {options}".format(
+                    u"{status} is not a valid issue link type for {target}; "
+                    u"options include the following: {options}".format(
                         status=data[1].get('status'),
                         target=target,
                         options=', '.join(valid_types.keys())

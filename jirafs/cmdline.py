@@ -72,26 +72,26 @@ def main():
         )
     except GitCommandError as e:
         print(
-            "{t.red}Error (code: {code}) while running git "
-            "command.{t.normal}".format(
+            u"{t.red}Error (code: {code}) while running git "
+            u"command.{t.normal}".format(
                 t=term,
                 code=e.returncode
             )
         )
         print("")
-        print("{t.red}Command:{t.normal}{t.red}{t.bold}".format(t=term))
-        print("    {cmd}".format(cmd=e.command))
-        print("{t.normal}".format(t=term))
-        print("{t.red}Output:{t.normal}{t.red}{t.bold}".format(t=term))
+        print(u"{t.red}Command:{t.normal}{t.red}{t.bold}".format(t=term))
+        print(u"    {cmd}".format(cmd=e.command))
+        print(u"{t.normal}".format(t=term))
+        print(u"{t.red}Output:{t.normal}{t.red}{t.bold}".format(t=term))
         for line in e.output.decode('utf8').split('\n'):
-            print("    %s" % line)
-        print("{t.normal}".format(t=term))
+            print(u"    %s" % line)
+        print(u"{t.normal}".format(t=term))
         sys.exit(10)
     except NotTicketFolderException:
         if not getattr(cmd_class, 'TRY_SUBFOLDERS', False):
             print(
-                "{t.red}The command '{cmd}' must be ran from "
-                "within an issue folder.{t.normal}".format(
+                u"{t.red}The command '{cmd}' must be ran from "
+                u"within an issue folder.{t.normal}".format(
                     t=term,
                     cmd=command_name
                 )
@@ -114,9 +114,9 @@ def main():
                 pass
         if count_runs == 0:
             print(
-                "{t.red}The command '{cmd}' must be ran from "
-                "within an issue folder or from within a folder containing "
-                "issue folders.{t.normal}".format(
+                u"{t.red}The command '{cmd}' must be ran from "
+                u"within an issue folder or from within a folder containing "
+                u"issue folders.{t.normal}".format(
                     t=term,
                     cmd=command_name
                 )
@@ -124,8 +124,8 @@ def main():
             sys.exit(21)
     except JiraInteractionFailed as e:
         print(
-            "{t.red}JIRA was unable to satisfy your "
-            "request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
+            u"{t.red}JIRA was unable to satisfy your "
+            u"request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
                 t=term,
                 error=str(e)
             )
@@ -133,8 +133,8 @@ def main():
         sys.exit(80)
     except JirafsError as e:
         print(
-            "{t.red}Jirafs encountered an error processing your "
-            "request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
+            u"{t.red}Jirafs encountered an error processing your "
+            u"request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
                 t=term,
                 error=str(e)
             )
