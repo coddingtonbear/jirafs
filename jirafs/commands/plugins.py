@@ -1,4 +1,5 @@
 from blessings import Terminal
+import six
 
 from jirafs import utils
 from jirafs.plugin import CommandPlugin
@@ -10,12 +11,12 @@ class Command(CommandPlugin):
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, parser, **kwargs):
-        enabled_plugins = folder.load_plugins()
+        installed_plugins = utils.get_installed_plugins()
         if args.disabled_only and args.enabled_only:
             parser.error(
                 "--disabled-only and --enabled-only are mutually exclusive."
             )
-        if args.enable and args.enable not in enabled_plugins:
+        if args.enable and args.enable not in installed_plugins:
             parser.error(
                 "Plugin '%s' is not installed." % args.enable
             )
@@ -38,9 +39,11 @@ class Command(CommandPlugin):
         )
         parser.add_argument(
             '--enable',
+            type=six.u,
         )
         parser.add_argument(
             '--disable',
+            type=six.u,
         )
         parser.add_argument(
             '--global',
