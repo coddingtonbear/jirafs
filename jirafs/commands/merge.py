@@ -42,7 +42,7 @@ class Command(CommandPlugin):
             )
             for field, values in (jira_fields - master_fields).items():
                 folder.log(
-                    "Field {field} changed: \"{fr}\" -> \"{to}\"".format(
+                    u"Field {field} changed: \"{fr}\" -> \"{to}\"".format(
                         field=field,
                         fr=values[0],
                         to=values[1]
