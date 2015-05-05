@@ -204,7 +204,7 @@ class TicketFolder(object):
     @property
     def jira_base(self):
         parts = parse.urlparse(self.issue_url)
-        return '{scheme}://{netloc}'.format(
+        return u'{scheme}://{netloc}'.format(
             scheme=parts.scheme,
             netloc=parts.netloc,
         )
@@ -508,6 +508,8 @@ class TicketFolder(object):
             command = ' '.join(cmd)
             raise exceptions.GitCommandError(
                 "Error running command `%s`" % command,
+                returncode=handle.returncode,
+                stdout=result,
                 cmd=command
             )
         if not binary:
@@ -811,18 +813,18 @@ class TicketFolder(object):
         else:
             if not os.path.exists(self.get_metadata_path('git')):
                 raise exceptions.JirafsError(
-                    "{path} is not a valid ticket folder!".format(
+                    u"{path} is not a valid ticket folder!".format(
                         path=self.path
                     )
                 )
 
             if self.version < constants.CURRENT_REPO_VERSION:
                 print(
-                    "Your ticket folder at {path} is out-of-date "
-                    "and must be updated. "
-                    "Although migrations will "
-                    "never affect the JIRA issue itself, "
-                    "they may modify your local clone of the issue.".format(
+                    u"Your ticket folder at {path} is out-of-date "
+                    u"and must be updated. "
+                    u"Although migrations will "
+                    u"never affect the JIRA issue itself, "
+                    u"they may modify your local clone of the issue.".format(
                         path=self.path
                     )
                 )

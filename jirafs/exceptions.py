@@ -16,10 +16,9 @@ class JiraInteractionFailed(JirafsError):
 
 class GitCommandError(JirafsError):
     def __init__(self, *args, **kwargs):
-        inner_exception = kwargs.pop('inner_exception', None)
-        command = kwargs.pop('cmd', None)
-        self._inner_exception = inner_exception
-        self._command = command
+        self._command = kwargs.pop('cmd', None)
+        self._returncode = kwargs.pop('returncode', None)
+        self._output = kwargs.pop('stdout', None)
 
         super(GitCommandError, self).__init__(*args, **kwargs)
 
@@ -29,11 +28,11 @@ class GitCommandError(JirafsError):
 
     @property
     def returncode(self):
-        return self._inner_exception.returncode
+        return self._returncode
 
     @property
     def output(self):
-        return self._inner_exception.output
+        return self._output
 
 
 class IssueValidationError(JirafsError):

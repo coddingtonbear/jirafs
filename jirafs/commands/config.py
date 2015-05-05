@@ -83,7 +83,7 @@ class Command(CommandPlugin):
             parameters = config.items(section)
             for key, value in parameters:
                 line = (
-                    "{section}.{key}={value}".format(
+                    u"{section}.{key}={value}".format(
                         section=section,
                         key=key,
                         value=value

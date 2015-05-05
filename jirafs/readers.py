@@ -1,6 +1,8 @@
 import io
 import os
 
+from .exceptions import GitCommandError
+
 
 class GitRevisionReader(object):
     def __init__(self, folder, revision):
@@ -9,10 +11,14 @@ class GitRevisionReader(object):
         super(GitRevisionReader, self).__init__()
 
     def get_file_contents(self, path):
-        return self.folder.get_local_file_at_revision(
-            path,
-            self.revision
-        )
+        try:
+            return self.folder.get_local_file_at_revision(
+                path,
+                self.revision,
+                failure_ok=False
+            )
+        except GitCommandError:
+            return ''
 
 
 class WorkingCopyReader(object):

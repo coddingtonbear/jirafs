@@ -66,9 +66,9 @@ class JiraLinkManager(dict):
                 left, right = line.split(': ')
             except ValueError:
                 raise exceptions.IssueValidationError(
-                    "Remote links must have a description; format your "
-                    "link to {url} like '* Your Title: {url}' "
-                    "to continue.".format(
+                    u"Remote links must have a description; format your "
+                    u"link to {url} like '* Your Title: {url}' "
+                    u"to continue.".format(
                         url=line.strip()
                     )
                 )
