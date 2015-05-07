@@ -51,9 +51,20 @@ certificate.
 2. Then, after the lines starting with ``username`` and ``password``, add a
    line reading ``verify = <VALUE>`` replacing ``<VALUE>`` with one of two
    options:
+
    * If your JIRA instance uses a self-signed certificate: the string ``false``.
    * If your JIRA instance's certificate uses a non-standard certificate
      authority, the absolute path to a place on your computer where your
      certificate authority's certificate is stored.
 
+For example:
+
+.. code-block:: python
+   :linenos:
+   :emphasize-lines: 4
+
+   [https://jira.mycompany.org]
+   username = myusername
+   password = mypassword
+   verify = /path/to/certificate/or/false
 
