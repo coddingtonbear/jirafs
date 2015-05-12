@@ -42,4 +42,5 @@ Requirements
   `Github <http://github.com/coddingtonbear/jirafs/issues>`_.
 - Test status available on
   `Travis-CI <https://travis-ci.org/coddingtonbear/jirafs>`_.
-
+- Questions? Ask them on
+  `Gitter <https://gitter.im/coddingtonbear/jirafs>`_.
