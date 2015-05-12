@@ -9,6 +9,13 @@ before_install:
 - git config --global user.email "gitbot@adamcoddington.net"
 - git config --global user.name "I'm a Robot"
 script: py.test
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/a79205de9fd79c70ee19
+    on_success: change  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: false     # default: false
 env:
   global:
   - secure: kvHtlbvzL0JOQ9nhO5yqXnIL6uDfxR6FWZIUz169AUuzUp4Vz7W40QESKwZzRsg5W7sIel8Sshy2X+sSXmqVFK9wDliPVYlaP+TXyRSdrRqfspXMJyIeGnfArqfQMmADmq6VdfwoPguwsVvXIH2r6gAiUC4sFONXnzOph4wiRV0=
