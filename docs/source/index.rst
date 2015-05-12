@@ -15,6 +15,9 @@ Welcome to Jirafs's documentation!
 .. image:: https://pypip.in/d/jirafs/badge.png
     :target: https://pypi.python.org/pypi/jirafs
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+    :target: https://gitter.im/coddingtonbear/python-myfitnesspal
+
 Pronounced like 'giraffes', but totally unrelated to wildlife, this
 library lets you stay out of JIRA as much as possible by letting
 you edit your JIRA issues as text files using an interface
