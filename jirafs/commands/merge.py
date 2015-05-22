@@ -44,8 +44,8 @@ class Command(CommandPlugin):
                 folder.log(
                     u"Field {field} changed: \"{fr}\" -> \"{to}\"".format(
                         field=field,
-                        fr=values[0],
-                        to=values[1]
+                        fr=self.truncate_field_value(values[0]),
+                        to=self.truncate_field_value(values[1])
                     )
                 )
 

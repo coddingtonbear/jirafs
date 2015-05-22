@@ -914,7 +914,7 @@ class TicketFolder(object):
         logger.log(level, message, *args)
         with io.open(self.log_path, 'a', encoding='utf-8') as log_file:
             log_file.write(
-                six.text_type("%s\t%s\t%s\n") % (
+                six.text_type(u"%s\t%s\t%s\n") % (
                     datetime.datetime.utcnow().isoformat(),
                     logging.getLevelName(level),
                     (message % args).replace('\n', '\\n')
@@ -922,7 +922,7 @@ class TicketFolder(object):
             )
         if level >= logging.INFO and not self.quiet:
             print(
-                "[%s %s] %s" % (
+                u"[%s %s] %s" % (
                     logging.getLevelName(level),
                     self.issue,
                     message % args

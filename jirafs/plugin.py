@@ -93,6 +93,19 @@ class CommandPlugin(JirafsPluginBase):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def truncate_field_value(self, original_value, length=30):
+        value = unicode(original_value).strip()
+        for newline in ('\n', '\r'):
+            if newline in value:
+                value = value[0:value.find(newline)]
+
+        value = value[0:length]
+
+        if value != original_value:
+            value = value[0:length-1] + u'\u2026'
+
+        return value
+
     def get_description(self):
         try:
             return self.__doc__.strip()
