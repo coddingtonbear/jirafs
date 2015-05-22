@@ -4,7 +4,6 @@ import logging
 import os
 import sys
 
-import six
 from verlib import NormalizedVersion
 
 from . import __version__
@@ -95,7 +94,7 @@ class CommandPlugin(JirafsPluginBase):
             setattr(self, k, v)
 
     def truncate_field_value(self, original_value, length=30):
-        value = six.u(original_value).strip()
+        value = original_value.strip()
         for newline in ('\n', '\r'):
             if newline in value:
                 value = value[0:value.find(newline)]
