@@ -80,7 +80,9 @@ class Command(CommandPlugin):
 
         for field in self.FIELDS:
             if getattr(args, field['name']) is not None:
-                self.set_field_value(issue_data, field, args.field)
+                self.set_field_value(
+                    issue_data, field, getattr(args, field['name'])
+                )
             elif args.quiet:
                 self.set_field_value(issue_data, field, field.get('default'))
             else:
