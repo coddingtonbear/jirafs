@@ -103,7 +103,8 @@ class Command(CommandPlugin):
         if not printed_changes:
             print('No changes found')
         else:
-            print('')
+            print("")
+            print('For more detail about these changes, run `jirafs diff`')
 
     def format_field_changes(
         self, changes, color, no_upload=False, terminal=None

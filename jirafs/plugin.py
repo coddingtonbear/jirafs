@@ -95,8 +95,10 @@ class CommandPlugin(JirafsPluginBase):
             setattr(self, k, v)
 
     def truncate_field_value(self, original_value, length=30):
-        if not isinstance(original_value, six.string_types):
-            original_value = six.u(original_value)
+        if original_value is None:
+            original_value = ""
+        elif not isinstance(original_value, six.string_types):
+            original_value = six.text_type(original_value)
         value = original_value.strip()
         for newline in ('\n', '\r'):
             if newline in value:

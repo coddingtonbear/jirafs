@@ -87,7 +87,9 @@ class Command(CommandPlugin):
             comment = folder.get_new_comment(clear=True, ready=True)
             if comment:
                 folder.log(
-                    'Adding comment "%s..."' % comment[0:30].replace('%', '%%')
+                    u'Adding comment "{comment}"'.format(
+                        self.truncate_field_value(comment)
+                    )
                 )
                 folder.jira.add_comment(folder.ticket_number, comment)
 
