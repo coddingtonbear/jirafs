@@ -50,7 +50,15 @@ def main():
         action='store_true',
         default=False
     )
+    parser.add_argument(
+        '--log-level',
+        default=None,
+        dest='log_level',
+    )
     args, extra = parser.parse_known_args()
+
+    if args.log_level is not None:
+        logging.basicConfig(level=logging.getLevelName(args.log_level))
 
     command_name = args.command
     cmd_class = commands[command_name]
