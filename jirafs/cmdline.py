@@ -1,4 +1,5 @@
 import argparse
+import codecs
 import logging
 import os
 import sys
@@ -15,6 +16,11 @@ from .exceptions import (
     JirafsError,
     NotTicketFolderException
 )
+
+
+# Write data to stdout as UTF-8 bytes when there's no encoding specified
+if sys.version_info < (3, ) and sys.stdout.encoding is None:
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 
 logger = logging.getLogger(__name__)
