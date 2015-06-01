@@ -88,7 +88,7 @@ class Command(CommandPlugin):
             if comment:
                 folder.log(
                     u'Adding comment "{comment}"'.format(
-                        self.truncate_field_value(comment)
+                        comment=self.truncate_field_value(comment)
                     )
                 )
                 folder.jira.add_comment(folder.ticket_number, comment)
