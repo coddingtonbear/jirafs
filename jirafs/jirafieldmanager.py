@@ -3,7 +3,9 @@ import os
 import re
 
 from jirafs import constants
+from jirafs.plugin import MacroPlugin
 from jirafs.readers import GitRevisionReader, WorkingCopyReader
+from jirafs.utils import get_installed_plugins
 
 
 class JiraFieldManager(dict):
@@ -29,6 +31,24 @@ class JiraFieldManager(dict):
                 differing[k] = (v, self.get(k), )
 
         return differing
+
+    def get_macro_plugins(self):
+        if not hasattr(self, '_macro_plugins'):
+            self._macro_plugins = get_installed_plugins(MacroPlugin)
+        return self._macro_plugins
+
+    def get_transformed(self, field_name, default=None):
+        macro_plugins = self.get_macro_plugins()
+
+        try:
+            value = self[field_name]
+        except KeyError:
+            return default
+
+        for plugin in macro_plugins:
+            value = plugin.execute_macro()
+
+        return value
 
     @classmethod
     def create(cls, folder, revision=None, path=None):

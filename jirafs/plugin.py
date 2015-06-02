@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 
 import six
@@ -212,3 +213,36 @@ class CommandPlugin(JirafsPluginBase):
             'AUTOMATICALLY_INSTANTIATE_FOLDER',
             True,
         )
+
+
+class MacroPlugin(JirafsPluginBase):
+    COMPONENT_NAME = None
+    MATCHER = None
+
+    def get_matcher(self):
+        return re.compile(
+            self.BASE_REGEX.format(tag_name=self.COMPONENT_NAME),
+            re.MULTILINE | re.DOTALL
+        )
+
+    def get_attributes(self):
+        return {}
+
+    def get_content(self):
+        return ''
+
+    def execute_macro(self):
+        raise NotImplementedError()
+
+
+class BlockElementMacroPlugin(MacroPlugin):
+    BASE_REGEX = (
+        r'^(?P<start>{{tag_name}})(?P<content>.*?)'
+        r'(?P<end>{{tag_name}})$'
+    )
+
+
+class VoidElementMacroPlugin(MacroPlugin):
+    BASE_REGEX = (
+        r'^(?P<tag>{{tag_name}})'
+    )
