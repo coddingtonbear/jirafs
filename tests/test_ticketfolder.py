@@ -106,7 +106,7 @@ class TestTicketFolder(BaseTestCase):
 
         status = self.get_empty_status()
         status['ready']['fields'][changed_field] = (
-            'Something', changed_value,
+            'Something', changed_value, {}
         )
         with patch('jirafs.commands.pull.Command.pull') as pull:
             with patch.object(self.ticketfolder, 'status') as status_method:
@@ -177,7 +177,8 @@ class TestTicketFolder(BaseTestCase):
                     u"-Atlantis)"
                 ),
                 "name": "acoddington",
-            }
+            },
+            {}
         )
         actual_output = self.ticketfolder.status()
 
