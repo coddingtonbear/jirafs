@@ -37,3 +37,11 @@ class GitCommandError(JirafsError):
 
 class IssueValidationError(JirafsError):
     pass
+
+
+class MacroError(JirafsError):
+    pass
+
+
+class MacroContentError(MacroError):
+    pass

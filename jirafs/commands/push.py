@@ -93,9 +93,13 @@ class Command(CommandPlugin):
                 )
                 folder.jira.add_comment(folder.ticket_number, comment)
 
+            transformations = folder.get_transformation_data(shadow=False)
             collected_updates = {}
             for field, diff_values in status['ready']['fields'].items():
                 collected_updates[field] = diff_values[1]
+                transformations[field] = diff_values[2]
+
+            folder.set_transformation_data(transformations, shadow=False)
 
             if collected_updates:
                 folder.log(
@@ -188,6 +192,9 @@ class Command(CommandPlugin):
             folder.run_git_command('reset', '--soft', failure_ok=True)
             folder.run_git_command(
                 'add', '.jirafs/remote_files.json', failure_ok=True
+            )
+            folder.run_git_command(
+                'add', '.jirafs/macro_transformations.json', failure_ok=True
             )
             folder.run_git_command(
                 'add', constants.TICKET_NEW_COMMENT, failure_ok=True

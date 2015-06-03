@@ -26,9 +26,10 @@ class JiraFieldManager(dict):
 
     def __sub__(self, other):
         differing = {}
-        for k, v in other.items():
-            if self.get(k) != v:
-                differing[k] = (v, self.get(k), )
+        for k, v in other.items_transformed():
+            if self.get_transformed(k) != v:
+                x, r = self.get_transformed_with_replacements(k)
+                differing[k] = (v, x, r, )
 
         return differing
 
@@ -37,18 +38,32 @@ class JiraFieldManager(dict):
             self._macro_plugins = get_installed_plugins(MacroPlugin)
         return self._macro_plugins
 
-    def get_transformed(self, field_name, default=None):
+    def _process_field_macros(self, data):
         macro_plugins = self.get_macro_plugins()
+        all_replacements = {}
 
+        for name, cls in macro_plugins.items():
+            if isinstance(data, basestring):
+                data, plugin_replacements = cls().process_text_data(data)
+            else:
+                continue
+            all_replacements.update(plugin_replacements)
+
+        return data, all_replacements
+
+    def items_transformed(self):
+        for k, v in self.items():
+            result, _ = self._process_field_macros(v)
+            yield k, result
+
+    def get_transformed(self, field_name, default=None):
+        return self.get_transformed_with_replacements(field_name, default)[0]
+
+    def get_transformed_with_replacements(self, field_name, default=None):
         try:
-            value = self[field_name]
+            return self._process_field_macros(self[field_name])
         except KeyError:
-            return default
-
-        for plugin in macro_plugins:
-            value = plugin.execute_macro()
-
-        return value
+            return default, None
 
     @classmethod
     def create(cls, folder, revision=None, path=None):

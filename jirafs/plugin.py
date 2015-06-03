@@ -219,30 +219,68 @@ class MacroPlugin(JirafsPluginBase):
     COMPONENT_NAME = None
     MATCHER = None
 
+    def __init__(self):
+        pass
+
     def get_matcher(self):
         return re.compile(
             self.BASE_REGEX.format(tag_name=self.COMPONENT_NAME),
             re.MULTILINE | re.DOTALL
         )
 
-    def get_attributes(self):
-        return {}
+    def get_matches(self, content):
+        return self.get_matcher().finditer(content)
 
-    def get_content(self):
-        return ''
+    def get_attributes(self, tag):
+        if ':' not in tag:
+            return {}
 
-    def execute_macro(self):
+        attributes = {}
+
+        attribute_content = tag[tag.find(':'):-1]
+        for segment in attribute_content.split('|'):
+            if '=' not in segment:
+                attributes[segment] = True
+                continue
+
+            attribute, value = segment.split('=', 1)
+            attributes[attribute] = value
+
+        return attributes
+
+    def process_text_data(self, content):
+        replacements = {}
+
+        for match_data in self.get_matches(content):
+            data = match_data.groupdict()
+            replace_with = self.execute_macro(
+                data.get('content'),
+                **self.get_attributes(data.get('start', ''))
+            )
+            if replace_with is None:
+                replace_with = ''
+
+            replacements[replace_with] = match_data.group(0)
+            content = (
+                content[0:match_data.start(0)] +
+                replace_with +
+                content[match_data.end(0):]
+            )
+
+        return content, replacements
+
+    def execute_macro(self, data, **attributes):
         raise NotImplementedError()
 
 
 class BlockElementMacroPlugin(MacroPlugin):
     BASE_REGEX = (
-        r'^(?P<start>{{tag_name}})(?P<content>.*?)'
-        r'(?P<end>{{tag_name}})$'
+        r'^(?P<start>{{{tag_name}}})(?P<content>.*?)'
+        r'(?P<end>{{{tag_name}}})$'
     )
 
 
 class VoidElementMacroPlugin(MacroPlugin):
     BASE_REGEX = (
-        r'^(?P<tag>{{tag_name}})'
+        r'^(?P<start>{{{tag_name}}})'
     )

@@ -350,6 +350,44 @@ class TicketFolder(object):
                 )
             )
 
+    def set_transformation_data(self, data, shadow=True):
+        xform_path = self.get_path(
+            '.jirafs/macro_transformations.json',
+            shadow=shadow,
+        )
+        with io.open(xform_path, 'w', encoding='utf-8') as out:
+            out.write(
+                six.text_type(
+                    json.dumps(
+                        data,
+                        indent=4,
+                        sort_keys=True,
+                        ensure_ascii=False,
+                    )
+                )
+            )
+
+    def get_transformation_data(self, shadow=True):
+        xform_path = self.get_path(
+            '.jirafs/macro_transformations.json',
+            shadow=shadow,
+        )
+        try:
+            with io.open(xform_path, 'r', encoding='utf-8') as _in:
+                data = json.loads(_in.read())
+        except ValueError as e:
+            self.log(
+                'Error encountered while reading transformation data; '
+                'transformations were discarded!: %s',
+                args=[e],
+                level=logging.ERROR,
+            )
+            data = {}
+        except IOError:
+            data = {}
+
+        return data
+
     def get_local_path(self, *args):
         return os.path.join(
             self.path,
@@ -821,16 +859,10 @@ class TicketFolder(object):
             if self.version < constants.CURRENT_REPO_VERSION:
                 print(
                     u"Your ticket folder at {path} is out-of-date "
-                    u"and must be updated. "
-                    u"Although migrations will "
-                    u"never affect the JIRA issue itself, "
-                    u"they may modify your local clone of the issue.".format(
+                    u"and is being automatically updated.".format(
                         path=self.path
                     )
                 )
-                result = utils.convert_to_boolean(input("Continue? (N/Y): "))
-                if not result:
-                    sys.exit(1)
         while self.version < constants.CURRENT_REPO_VERSION:
             migrator = getattr(
                 migrations,

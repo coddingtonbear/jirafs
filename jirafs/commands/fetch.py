@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import os
 import textwrap
 
@@ -53,6 +54,7 @@ class Command(CommandPlugin):
 
         folder.set_remote_file_metadata(file_meta, shadow=True)
 
+        xforms = folder.get_transformation_data(shadow=True)
         field_map = self.get_field_map(folder)
         detail_path = folder.get_shadow_path(constants.TICKET_DETAILS)
         with io.open(detail_path, 'w', encoding='utf-8') as dets:
@@ -72,6 +74,23 @@ class Command(CommandPlugin):
                         indent=4,
                         ensure_ascii=False
                     )
+
+                if field in xforms:
+                    for k, v in xforms[field].items():
+                        if k not in value:
+                            folder.log(
+                                'Unused macro transformation on field %s; '
+                                '"""%s""" cannot be transformed '
+                                'back to """%s"""',
+                                args=(
+                                    field,
+                                    k,
+                                    v,
+                                ),
+                                level=logging.WARNING
+                            )
+                        else:
+                            value = value.replace(k, v)
 
                 if field in constants.FILE_FIELDS:
                     # Write specific fields to their own files without
