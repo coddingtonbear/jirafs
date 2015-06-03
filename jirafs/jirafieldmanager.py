@@ -2,6 +2,8 @@ import json
 import os
 import re
 
+import six
+
 from jirafs import constants
 from jirafs.plugin import MacroPlugin
 from jirafs.readers import GitRevisionReader, WorkingCopyReader
@@ -43,7 +45,7 @@ class JiraFieldManager(dict):
         all_replacements = {}
 
         for name, cls in macro_plugins.items():
-            if isinstance(data, basestring):
+            if isinstance(data, six.string_types):
                 data, plugin_replacements = cls().process_text_data(data)
             else:
                 continue
