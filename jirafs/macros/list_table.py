@@ -25,9 +25,11 @@ class Plugin(BlockElementMacroPlugin):
                 if current_column:
                     columns.append(current_column)
                     current_column = []
-                current_column.append(line[1:].strip())
-            elif line.startswith('**'):
-                current_column.append(line[2:].strip())
+                line_content = line[1:].strip()
+                current_column.append(line_content if line_content else ' ')
+            elif line.startswith('** '):
+                line_content = line[2:].strip()
+                current_column.append(line_content if line_content else ' ')
             else:
                 last_row = current_column[len(current_column)-1]
                 last_row = '\n'.join([last_row, line[2:].strip()])
