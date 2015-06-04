@@ -38,7 +38,10 @@ class JiraFieldManager(dict):
         return differing
 
     def get_human_name_for_field(self, field):
-        return self._names[field]
+        try:
+            return self._names[field]
+        except KeyError:
+            return field
 
     def get_macro_plugins(self):
         if not hasattr(self, '_macro_plugins'):

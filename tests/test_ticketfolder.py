@@ -178,7 +178,15 @@ class TestTicketFolder(BaseTestCase):
                 ),
                 "name": "acoddington",
             },
-            {}
+            {
+                "active": True,
+                "displayName": (
+                    u"Coddington, Adam (\u0410\u0440\u0431\u0438\u0442"
+                    u"\u0440\u0430\u0440\u0438\u041a\u043e\u0440\u043f"
+                    u"-Atlantis)"
+                ),
+                "name": "acoddington",
+            },
         )
         actual_output = self.ticketfolder.status()
 
