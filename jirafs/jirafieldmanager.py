@@ -109,7 +109,7 @@ class JiraFieldManager(dict):
         human_names = {}
         value = ''
         if not string:
-            return data
+            return data, human_names
         lines = string.split('\n')
         for idx, line in enumerate(lines):
             if line.startswith('*'):
