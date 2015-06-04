@@ -463,8 +463,11 @@ class TicketFolder(object):
         )
 
         # It's '1' because we always write a newline character
-        if os.path.getsize(macro_patch_filename) > 1:
-            return True
+        try:
+            if os.path.getsize(macro_patch_filename) > 1:
+                return True
+        except OSError:
+            pass
 
         return False
 
