@@ -6,13 +6,11 @@ import json
 import logging
 import os
 import re
-import sys
 import subprocess
 
 from jira.resources import Issue
 import six
 from six.moves.urllib import parse
-from six.moves import input
 
 from . import constants
 from . import exceptions
@@ -350,44 +348,6 @@ class TicketFolder(object):
                 )
             )
 
-    def set_transformation_data(self, data, shadow=True):
-        xform_path = self.get_path(
-            '.jirafs/macro_transformations.json',
-            shadow=shadow,
-        )
-        with io.open(xform_path, 'w', encoding='utf-8') as out:
-            out.write(
-                six.text_type(
-                    json.dumps(
-                        data,
-                        indent=4,
-                        sort_keys=True,
-                        ensure_ascii=False,
-                    )
-                )
-            )
-
-    def get_transformation_data(self, shadow=True):
-        xform_path = self.get_path(
-            '.jirafs/macro_transformations.json',
-            shadow=shadow,
-        )
-        try:
-            with io.open(xform_path, 'r', encoding='utf-8') as _in:
-                data = json.loads(_in.read())
-        except ValueError as e:
-            self.log(
-                'Error encountered while reading transformation data; '
-                'transformations were discarded!: %s',
-                args=[e],
-                level=logging.ERROR,
-            )
-            data = {}
-        except IOError:
-            data = {}
-
-        return data
-
     def get_local_path(self, *args):
         return os.path.join(
             self.path,
@@ -495,6 +455,18 @@ class TicketFolder(object):
             out.write(six.text_type(''))
 
         return instance
+
+    def applied_macros_exist(self, shadow=False):
+        macro_patch_filename = self.get_path(
+            '.jirafs/macros_applied.patch',
+            shadow=shadow,
+        )
+
+        # It's '1' because we always write a newline character
+        if os.path.getsize(macro_patch_filename) > 1:
+            return True
+
+        return False
 
     def run_git_command(self, command, *args, **kwargs):
         failure_ok = kwargs.get('failure_ok', False)
@@ -729,8 +701,8 @@ class TicketFolder(object):
                 if self.file_matches_globs(filename, ignore_globs):
                     continue
                 if (
-                    not attachment
-                    and not os.path.isfile(os.path.join(self.path, filename))
+                    not attachment and
+                    not os.path.isfile(os.path.join(self.path, filename))
                 ):
                     continue
                 if filename.startswith('.'):
@@ -762,17 +734,6 @@ class TicketFolder(object):
         else:
             kwargs['revision'] = revision
         return JiraFieldManager.create(
-            self,
-            **kwargs
-        )
-
-    def get_links(self, revision=None, path=None):
-        kwargs = {}
-        if not revision:
-            kwargs['path'] = path if path else self.path
-        else:
-            kwargs['revision'] = revision
-        return JiraLinkManager.create(
             self,
             **kwargs
         )

@@ -249,8 +249,6 @@ class MacroPlugin(JirafsPluginBase):
         return attributes
 
     def process_text_data(self, content):
-        replacements = {}
-
         for match_data in self.get_matches(content):
             data = match_data.groupdict()
             replace_with = self.execute_macro(
@@ -260,14 +258,13 @@ class MacroPlugin(JirafsPluginBase):
             if replace_with is None:
                 replace_with = ''
 
-            replacements[replace_with] = match_data.group(0)
             content = (
                 content[0:match_data.start(0)] +
                 replace_with +
                 content[match_data.end(0):]
             )
 
-        return content, replacements
+        return content
 
     def execute_macro(self, data, **attributes):
         raise NotImplementedError()
