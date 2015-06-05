@@ -1,9 +1,14 @@
+import io
 import json
 import os
 import re
 
+import six
+
 from jirafs import constants
+from jirafs.plugin import MacroPlugin
 from jirafs.readers import GitRevisionReader, WorkingCopyReader
+from jirafs.utils import get_installed_plugins
 
 
 class JiraFieldManager(dict):
@@ -15,20 +20,55 @@ class JiraFieldManager(dict):
         )
     )
 
-    def __init__(self, data=None, prepared=False):
-        if not prepared:
-            self._data = self.get_fields_from_string(data)
+    def __init__(self, data=None, names=None):
+        if names is None:
+            self._data, self._names = self.get_fields_from_string(data)
         else:
             self._data = data
+            self._names = names
         super(JiraFieldManager, self).__init__(self._data)
 
     def __sub__(self, other):
         differing = {}
-        for k, v in other.items():
-            if self.get(k) != v:
-                differing[k] = (v, self.get(k), )
+        for k, v in other.items_transformed():
+            if self.get_transformed(k) != v:
+                tx = self.get_transformed(k)
+                differing[k] = (v, tx, self[k], )
 
         return differing
+
+    def get_human_name_for_field(self, field):
+        try:
+            return self._names[field]
+        except KeyError:
+            return field
+
+    def get_macro_plugins(self):
+        if not hasattr(self, '_macro_plugins'):
+            self._macro_plugins = get_installed_plugins(MacroPlugin)
+        return self._macro_plugins
+
+    def _process_field_macros(self, data):
+        macro_plugins = self.get_macro_plugins()
+
+        for name, cls in macro_plugins.items():
+            if isinstance(data, six.string_types):
+                data = cls().process_text_data(data)
+            else:
+                continue
+
+        return data
+
+    def items_transformed(self):
+        for k, v in self.items():
+            result = self._process_field_macros(v)
+            yield k, result
+
+    def get_transformed(self, field_name, default=None):
+        try:
+            return self._process_field_macros(self[field_name])
+        except KeyError:
+            return default
 
     @classmethod
     def create(cls, folder, revision=None, path=None):
@@ -69,22 +109,25 @@ class JiraFieldManager(dict):
         """
         data = {}
         field_name = ''
+        human_names = {}
         value = ''
         if not string:
-            return data
+            return data, human_names
         lines = string.split('\n')
         for idx, line in enumerate(lines):
             if line.startswith('*'):
-                if value:
+                if value:  # If so, we just need to store previous loop data
                     self.set_data_value(data, field_name, value)
                     value = ''
                 raw_field_name = re.match('^\* ([^:]+):$', line).group(1)
                 if '(' in raw_field_name:
                     # This field name's real name doesn't match the field ID
-                    field_name = re.match(
-                        '.*\(([^)]+)\)',
+                    match = re.match(
+                        '(.*) \(([^)]+)\)',
                         raw_field_name
-                    ).group(1)
+                    )
+                    field_name = match.group(2)
+                    human_names[field_name] = match.group(1)
                 else:
                     field_name = raw_field_name.replace(' ', '_')
             elif field_name:
@@ -92,16 +135,18 @@ class JiraFieldManager(dict):
         if value:
             self.set_data_value(data, field_name, value)
 
-        return data
+        return data, human_names
 
 
 class AutomaticJiraFieldManager(JiraFieldManager):
     def __init__(self):
-        data = self.load()
-        super(AutomaticJiraFieldManager, self).__init__(data, prepared=True)
+        data, names = self.load()
+        super(AutomaticJiraFieldManager, self).__init__(
+            data, names=names
+        )
 
     def load(self):
-        fields = self.get_fields_from_string(
+        fields, names = self.get_fields_from_string(
             self.get_file_contents(constants.TICKET_DETAILS)
         )
 
@@ -119,7 +164,7 @@ class AutomaticJiraFieldManager(JiraFieldManager):
                 pass
 
         fields.update(file_fields)
-        return fields
+        return fields, names
 
     def get_file_contents(self, path):
         raise NotImplemented()
@@ -139,6 +184,47 @@ class WorkingCopyJiraFieldManager(
                     fields.append(field_name)
 
         return fields
+
+    def write(self):
+        folder_path = self.folder.get_path(constants.TICKET_DETAILS)
+
+        used_fields = set(self.get_used_per_ticket_fields())
+        requested_fields = set(self.get_requested_per_ticket_fields())
+
+        with io.open(folder_path, 'w', encoding='utf-8') as out:
+            for field in sorted(self.keys()):
+                if field not in used_fields | requested_fields:
+                    out.write(
+                        u'* {human} ({field}):\n'.format(
+                            human=self.get_human_name_for_field(field),
+                            field=field,
+                        )
+                    )
+
+                    field_string = self[field]
+                    if field_string is None:
+                        field_string = ''
+                    elif not isinstance(field_string, six.string_types):
+                        field_string = json.dumps(
+                            field_string,
+                            sort_keys=True,
+                            indent=4,
+                            ensure_ascii=False,
+                        )
+
+                    # Each line is preceded by 4 spaces of whitespace
+                    padded_lines = [
+                        u'    %s\n' % f for f in field_string.split('\n')
+                    ]
+                    for line in padded_lines:
+                        out.write(line)
+                else:
+                    field_path = constants.TICKET_FILE_FIELD_TEMPLATE.format(
+                        field_name=field
+                    )
+                    with io.open(field_path, 'w', encoding='utf-8') as fout:
+                        fout.write(self[field])
+                        fout.write(u'\n')
 
 
 class GitRevisionJiraFieldManager(

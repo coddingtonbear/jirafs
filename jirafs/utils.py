@@ -106,7 +106,7 @@ def get_installed_commands():
     return possible_commands
 
 
-def get_installed_plugins():
+def get_installed_plugins(subclass=Plugin):
     possible_plugins = {}
     for entry_point in (
         pkg_resources.iter_entry_points(group='jirafs_plugins')
@@ -115,7 +115,7 @@ def get_installed_plugins():
             loaded_class = entry_point.load()
         except ImportError:
             continue
-        if not issubclass(loaded_class, Plugin):
+        if not issubclass(loaded_class, subclass):
             continue
         possible_plugins[entry_point.name] = loaded_class
 

@@ -6,13 +6,11 @@ import json
 import logging
 import os
 import re
-import sys
 import subprocess
 
 from jira.resources import Issue
 import six
 from six.moves.urllib import parse
-from six.moves import input
 
 from . import constants
 from . import exceptions
@@ -458,6 +456,23 @@ class TicketFolder(object):
 
         return instance
 
+    def applied_macros_exist(self, shadow=False):
+        macro_patch_filename = self.get_path(
+            '.jirafs/macros_applied.patch',
+            shadow=shadow,
+        )
+
+        # It's '2' because we always write two newline characters to
+        # work around a weird problem where it complains about the patch
+        # being corrupt otherwise.  Not sure why; maybe you know?
+        try:
+            if os.path.getsize(macro_patch_filename) > 2:
+                return True
+        except OSError:
+            pass
+
+        return False
+
     def run_git_command(self, command, *args, **kwargs):
         failure_ok = kwargs.get('failure_ok', False)
         shadow = kwargs.get('shadow', False)
@@ -691,8 +706,8 @@ class TicketFolder(object):
                 if self.file_matches_globs(filename, ignore_globs):
                     continue
                 if (
-                    not attachment
-                    and not os.path.isfile(os.path.join(self.path, filename))
+                    not attachment and
+                    not os.path.isfile(os.path.join(self.path, filename))
                 ):
                     continue
                 if filename.startswith('.'):
@@ -724,17 +739,6 @@ class TicketFolder(object):
         else:
             kwargs['revision'] = revision
         return JiraFieldManager.create(
-            self,
-            **kwargs
-        )
-
-    def get_links(self, revision=None, path=None):
-        kwargs = {}
-        if not revision:
-            kwargs['path'] = path if path else self.path
-        else:
-            kwargs['revision'] = revision
-        return JiraLinkManager.create(
             self,
             **kwargs
         )
@@ -821,16 +825,10 @@ class TicketFolder(object):
             if self.version < constants.CURRENT_REPO_VERSION:
                 print(
                     u"Your ticket folder at {path} is out-of-date "
-                    u"and must be updated. "
-                    u"Although migrations will "
-                    u"never affect the JIRA issue itself, "
-                    u"they may modify your local clone of the issue.".format(
+                    u"and is being automatically updated.".format(
                         path=self.path
                     )
                 )
-                result = utils.convert_to_boolean(input("Continue? (N/Y): "))
-                if not result:
-                    sys.exit(1)
         while self.version < constants.CURRENT_REPO_VERSION:
             migrator = getattr(
                 migrations,

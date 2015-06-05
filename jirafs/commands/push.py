@@ -1,3 +1,5 @@
+import io
+
 import six
 
 from jirafs import constants, exceptions, utils
@@ -88,7 +90,7 @@ class Command(CommandPlugin):
             if comment:
                 folder.log(
                     u'Adding comment "{comment}"'.format(
-                        self.truncate_field_value(comment)
+                        comment=self.truncate_field_value(comment)
                     )
                 )
                 folder.jira.add_comment(folder.ticket_number, comment)
@@ -187,14 +189,53 @@ class Command(CommandPlugin):
             # Commit local copy
             folder.run_git_command('reset', '--soft', failure_ok=True)
             folder.run_git_command(
-                'add', '.jirafs/remote_files.json', failure_ok=True
+                'add',
+                folder.get_path('.jirafs/remote_files.json'),
+                failure_ok=True
             )
             folder.run_git_command(
-                'add', constants.TICKET_NEW_COMMENT, failure_ok=True
+                'add',
+                folder.get_path(constants.TICKET_NEW_COMMENT),
+                failure_ok=True
             )
             folder.run_git_command(
                 'commit', '-m', 'Pushed local changes', failure_ok=True
             )
+
+            # Apply macros and record the changes so we can reverse
+            # them a little later.
+            macro_patch_filename = folder.get_path(
+                '.jirafs/macros_applied.patch'
+            )
+            folder.run_git_command(
+                'apply',
+                macro_patch_filename,
+                failure_ok=True
+            )
+            fields = folder.get_fields()
+            for field, value in collected_updates.items():
+                fields[field] = value
+            fields.write()
+            result = folder.run_git_command('diff')
+            if result.strip():
+                with io.open(macro_patch_filename, 'w', encoding='utf-8') as o:
+                    o.write(result)
+                    o.write(u'\n\n')
+                folder.run_git_command(
+                    'add',
+                    macro_patch_filename,
+                    failure_ok=True
+                )
+                folder.run_git_command(
+                    'commit', '-m', 'Updating macro patch', failure_ok=True
+                )
+                # Re-set the applied changes we just made above
+                folder.run_git_command(
+                    'checkout', '--', '.'
+                )
+            else:
+                with io.open(macro_patch_filename, 'w', encoding='utf-8') as o:
+                    o.write(u'\n\n')
 
             # Commit changes to remote copy, too, so we record remote
             # file metadata.

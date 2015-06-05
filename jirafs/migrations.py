@@ -494,3 +494,23 @@ def migration_0014(repo, init=False, **kwargs):
     )
 
     set_repo_version(repo, 14)
+
+
+def migration_0015(repo, init=False, **kwargs):
+    """ No-op; was previously something else."""
+    set_repo_version(repo, 15)
+
+
+def migration_0016(repo, init=False, **kwargs):
+    """ Add the 'macros_applied.patch' file to the repository."""
+    macro_path = repo.get_metadata_path('macros_applied.patch')
+    if not os.path.exists(macro_path):
+        with open(macro_path, 'w') as out:
+            out.write('')
+
+    repo.run_git_command('add', '-f', macro_path)
+    repo.run_git_command(
+        'commit', '-m', 'Completing migration_0015', failure_ok=True
+    )
+
+    set_repo_version(repo, 16)

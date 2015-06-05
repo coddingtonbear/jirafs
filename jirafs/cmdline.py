@@ -1,4 +1,5 @@
 import argparse
+import codecs
 import logging
 import os
 import sys
@@ -15,6 +16,11 @@ from .exceptions import (
     JirafsError,
     NotTicketFolderException
 )
+
+
+# Write data to stdout as UTF-8 bytes when there's no encoding specified
+if sys.version_info < (3, ) and sys.stdout.encoding is None:
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +56,15 @@ def main():
         action='store_true',
         default=False
     )
+    parser.add_argument(
+        '--log-level',
+        default=None,
+        dest='log_level',
+    )
     args, extra = parser.parse_known_args()
+
+    if args.log_level is not None:
+        logging.basicConfig(level=logging.getLevelName(args.log_level))
 
     command_name = args.command
     cmd_class = commands[command_name]

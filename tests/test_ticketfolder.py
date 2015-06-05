@@ -101,12 +101,12 @@ class TestTicketFolder(BaseTestCase):
         self.assertEqual(actual_result, expected_result)
 
     def test_push(self):
-        changed_field = 'description'
-        changed_value = 'Something Else'
+        changed_field = u'description'
+        changed_value = u'Something Else'
 
         status = self.get_empty_status()
         status['ready']['fields'][changed_field] = (
-            'Something', changed_value,
+            u'Something', changed_value, changed_value
         )
         with patch('jirafs.commands.pull.Command.pull') as pull:
             with patch.object(self.ticketfolder, 'status') as status_method:
@@ -177,7 +177,16 @@ class TestTicketFolder(BaseTestCase):
                     u"-Atlantis)"
                 ),
                 "name": "acoddington",
-            }
+            },
+            {
+                "active": True,
+                "displayName": (
+                    u"Coddington, Adam (\u0410\u0440\u0431\u0438\u0442"
+                    u"\u0440\u0430\u0440\u0438\u041a\u043e\u0440\u043f"
+                    u"-Atlantis)"
+                ),
+                "name": "acoddington",
+            },
         )
         actual_output = self.ticketfolder.status()
 

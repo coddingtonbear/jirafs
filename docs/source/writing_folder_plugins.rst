@@ -1,8 +1,10 @@
-Writing Folder Plugins
-======================
+Writing Plugins
+===============
 
 For a working example of a folder plugin, check out
 `Jirafs-Pandoc's Github Repository <https://github.com/coddingtonbear/jirafs-pandoc>`_.
+
+.. _entry_points:
 
 Setuptools Entrypoint
 ---------------------
@@ -16,10 +18,10 @@ Setuptools Entrypoint
     }
 
 * Write a subclass of ``jirafs.plugin.Plugin`` implementing
-  one or more methods using the interface described in `Plugin API`_.
+  one or more methods using the interface described in `Folder Plugin API`_.
 
-Plugin API
-----------
+Folder Plugin API
+-----------------
 
 The following properties **must** be defined:
 
@@ -138,3 +140,99 @@ The plugin will have the following properties and methods at its disposal:
   for this plugin.
 * ``self.set_metadata(dict)``: Allows plugin to store metadata.  Data **must**
   be JSON serializable.
+
+
+.. _macro_plugins:
+
+Macro Plugin API
+----------------
+
+Macro plugins are special kinds of plugins that are instead subclasses of
+either ``jirafs.plugin.BlockElementMacroPlugin`` or ``jirafs.plugin.VoidElementMacroPlugin``,
+but same setuptools entrypoints apply as are described in :ref:`entry_points`.
+
+Block Element Macros
+~~~~~~~~~~~~~~~~~~~~
+
+Block element macros are macros that wrap a body of text -- for example::
+
+    {my-macro}
+    Some content
+    {my-macro}
+
+Note that -- following JIRA's markup conventions, the macro both begins and ends
+with the name of your macro.  Your macro class needs to have only one method --
+``execute_macro`` which receives both the text content wrapped by the two
+``{my-macro}`` markers, as well as any parameters (as keyword arguments).
+
+.. note::
+    
+   See :ref:`macro_parameters` for more information about parameters.
+
+Your ``execute_macro`` method is expected to return text that should be sent
+to JIRA instead of your macro.
+
+Void Element Macros
+~~~~~~~~~~~~~~~~~~~
+
+Void element macros and block element macros share a lot of similarities, except
+that void element macros do not need to be closed; for example::
+
+    {my-void-element-macro}
+
+Your ``execute_macro`` method is expected to return text that should be sent
+to JIRA instead of your macro.  Note that the method signature remains
+identical to that of a block element macro, but instead of receiving
+the content of the block, you will receive ``None``.
+
+.. _macro_parameters:
+
+Parameters
+~~~~~~~~~~
+
+Both block and void elements can receive any number of parameters; they're
+specified following JIRA's conventions in which each parameter is separated
+by a pipe, and the key and value (if specified) are separated by an equal sign;
+for example the following void element has three parameters::
+
+    {flag-image:country_code=US|size=300|alternate}
+
+* ``country_code``: ``US``
+* ``size``: ``300``
+* ``alternate``: ``True``
+
+.. note::
+
+   All parameters -- except ``True`` in the third example above --
+   are passed as strings, and ``True`` is only a default value for
+   parameters that do not have a value specified.
+
+Example Macro Plugin
+~~~~~~~~~~~~~~~~~~~~
+
+The following plugin isn't exactly useful, but it does demonstrate
+the basic functionality of a plugin:
+
+.. code-block:: python
+
+    class Plugin(BlockElementMacroPlugin):
+        COMPONENT_NAME = 'upper-cased'
+
+        def execute_macro(self, data, prefix='', **kwargs):
+            return prefix + data.upper()
+
+When you enter the following text into a JIRA ticket field::
+
+    {upper-cased:prefix=Hello, }
+    my name is Adam.
+    {upper-cased}
+
+the following content will be sent to JIRA instead::
+
+    Hello, MY NAME IS ADAM.
+
+.. warning::
+
+   Note that it's always a good idea to make sure your ``execute_macro``
+   method has a final parameter of ``**kwargs``!  In future versions of
+   Jirafs, we may add more keyword arguments that will be sent automatically.

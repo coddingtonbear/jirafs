@@ -63,6 +63,9 @@ setup(
         'console_scripts': [
             'jirafs = jirafs.cmdline:main'
         ],
+        'jirafs_plugins': [
+            'list_table = jirafs.macros.list_table:Plugin',
+        ],
         'jirafs_commands': [
             'fetch = jirafs.commands.fetch:Command',
             'pull = jirafs.commands.pull:Command',
