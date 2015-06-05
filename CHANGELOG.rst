@@ -1,3 +1,23 @@
+1.11.0
+------
+
+* Adds new "Macro Plugins" support including a new built-in macro --
+  ``{list-table}`` used for making tables a little bit simpler.
+* Alters ``field`` command to return text *after* being processed
+  by macros.  Use the ``--raw`` argument to instead return the
+  pre-processed field contents.
+
+1.10.0
+------
+
+* Adds new ``create`` command providing you with a way of interactively
+  creating a new issue.  Note that ``create`` will automatically
+  clone the issue once you've supplied the requisite informaiton.
+* Adds new ``submit`` command which runs a ``commit`` followed by
+  a ``push`` (which itself automatically runs ``pull``); although
+  the lower-level git-like commands are still available, using ``submit``
+  is now the preferred method of interacting with Jirafs.
+
 1.9.0
 -----
 
