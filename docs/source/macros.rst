@@ -12,8 +12,8 @@ Built-in Macros
 Currently there's just one built-in macro -- ``{list-table}``:
 
 
-List Table (``{list-table}``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+List Table ``{list-table}``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The list table macro is used for transforming a list into a table, for example::
 

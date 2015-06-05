@@ -12,9 +12,6 @@ Welcome to Jirafs's documentation!
 .. image:: https://badge.fury.io/py/jirafs.png
     :target: http://badge.fury.io/py/jirafs
 
-.. image:: https://pypip.in/d/jirafs/badge.png
-    :target: https://pypi.python.org/pypi/jirafs
-
 .. image:: https://badges.gitter.im/Join%20Chat.svg
     :target: https://gitter.im/coddingtonbear/python-myfitnesspal
 
