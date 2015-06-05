@@ -58,9 +58,10 @@ make the change to a field in ``fields.jira``, edit the issue's
 description in ``description.jira``, write a comment into
 ``new_comment.jira``, or copy a new asset into this folder, then run::
 
-    jirafs commit
+    jirafs status
 
-from within the folder ``jirafs`` created earlier.
+to see both what changes you've marked as ready for being submitted
+to JIRA as well as which changes you have made, but not yet committed.
 
 .. note::
 
@@ -70,32 +71,20 @@ from within the folder ``jirafs`` created earlier.
    automatically be included in any commit made.  This behavior will likely
    be surprising only to users who have not worked with mercurial (hg).
 
-Running this command will mark the changes you've made as ready for
-submission to JIRA.  At any time, you can run::
-
-    jirafs status
-
-to see both what changes you've marked as ready for being submitted
-to JIRA as well as which changes you have made, but not yet committed.
-
 Once you're satisfied with the changes that are about to be submitted to
 JIRA, run::
 
-    jirafs push
+    jirafs submit
 
 .. note::
 
-   **Protip**: Since most people have little use for commiting changes
-   prior to pushing, there is also the ``submit`` command which performs
-   a ``commit`` immediately followed by a ``push`` using a single command.
+   ``jirafs submit`` really just runs ``jirafs commit`` followed by
+   ``jirafs push`` (which itself runs ``jirafs pull`` to get your
+   local copy up-to-date with what it saw in JIRA), so although
+   ``jirafs submit`` is probably the path you want to take, feel
+   free to use the lower-level more-git-like commands if you want.
 
-Please keep in mind that updates that others have made in JIRA outside of 
-Jirafs won't be available in your local copy until you pull them in by
-running::
-
-    jirafs pull
-
-Please consider the above to be just a simple overview -- there are a
+Please consider this to be just a simple overview -- there are a
 variety of other commands you can run to have finer-grained control
 over how the issue folder is synchronized with JIRA; see :doc:`commands`
 for more details.

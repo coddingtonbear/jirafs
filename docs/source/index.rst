@@ -33,6 +33,7 @@ modeled off of ``git`` and ``hg``.
    advanced_commands
    configuration
    plugins
+   macros
    details
 
 
