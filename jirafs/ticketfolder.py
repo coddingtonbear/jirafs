@@ -462,9 +462,11 @@ class TicketFolder(object):
             shadow=shadow,
         )
 
-        # It's '1' because we always write a newline character
+        # It's '2' because we always write two newline characters to
+        # work around a weird problem where it complains about the patch
+        # being corrupt otherwise.  Not sure why; maybe you know?
         try:
-            if os.path.getsize(macro_patch_filename) > 1:
+            if os.path.getsize(macro_patch_filename) > 2:
                 return True
         except OSError:
             pass
