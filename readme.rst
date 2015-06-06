@@ -16,8 +16,8 @@ modeled off of ``git`` and ``hg``.
 
 Read more details in `the docs <http://jirafs.readthedocs.org/>`_.
 
-Plugins, Too
-------------
+Plugins and Macros Too
+----------------------
 
 Additionally provides a Plugin API allowing one to write scripts to simplify
 your workflow.  Currently, existing plugins include:
@@ -28,11 +28,8 @@ your workflow.  Currently, existing plugins include:
   Automatically transform graphviz (dot) files into PNG digraphs during
   upload.
 
-And even macros
----------------
-
-There are also built-in macros, including one used for making tables a little
-bit easier, and you can even write your own.
+and makes it possible for you to write your own "macros" for processing content
+you enter into ticket fields.
 
 Requirements
 ------------
