@@ -215,12 +215,15 @@ class CommandPlugin(JirafsPluginBase):
         )
 
 
-class MacroPlugin(JirafsPluginBase):
+class MacroPlugin(Plugin):
     COMPONENT_NAME = None
     MATCHER = None
 
-    def __init__(self):
-        pass
+    def __init__(self, folder, plugin_name, *args, **kwargs):
+        self.ticketfolder = folder
+        self.plugin_name = plugin_name
+        self._args = args
+        self._kwargs = kwargs
 
     def get_matcher(self):
         return re.compile(

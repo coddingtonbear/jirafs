@@ -22,14 +22,15 @@ Plugins and Macros Too
 Additionally provides a Plugin API allowing one to write scripts to simplify
 your workflow.  Currently, existing plugins include:
 
-* `jirafs-pandoc <http://github.com/coddingtonbear/jirafs-pandoc>`_: Automatically
-  transform RST/Markdown markup into fancy PDFs during upload.
 * `jirafs-graphviz <http://github.com/coddingtonbear/jirafs-graphviz>`_:
   Automatically transform graphviz (dot) files into PNG digraphs during
   upload.
-
-and makes it possible for you to write your own "macros" for processing content
-you enter into ticket fields.
+* `jirafs-latex <http://github.com/coddingtonbear/jirafs-latex>`_:
+  Automatically transform Latex markup into PDFs during upload.
+* `jirafs-pandoc <http://github.com/coddingtonbear/jirafs-pandoc>`_:
+  Automatically transform RST/Markdown markup into fancy PDFs during upload.
+* `jirafs-list-table <http://github.com/coddingtonbear/jirafs-list-table>`_:
+  Make JIRA tables a little more easily using a simple list-based markup.
 
 Requirements
 ------------

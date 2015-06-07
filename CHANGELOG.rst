@@ -1,3 +1,15 @@
+1.12.0
+------
+
+* Adds enable/disable functionality to macro plugins.
+* Moved ``{list-table}`` plugin out into its own repository.  To install this
+  macro again, see https://github.com/coddingtonbear/jirafs-list-table.
+* Adds new ``macropatch`` command allowing you to reset or see the existing
+  macropatch.  This is especially important for use in situations where you
+  disable a macro plugin.
+* Fixed a bug in config handling where on Python 2.7 configparser would
+  raise an error when attempting to enable a plugin.
+
 1.11.0
 ------
 

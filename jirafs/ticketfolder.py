@@ -190,7 +190,7 @@ class TicketFolder(object):
                 config.add_section(section)
             config.set(section, key, value)
 
-            with io.open(local_config_file, 'w', encoding='utf-8') as out:
+            with open(local_config_file, 'w') as out:
                 config.write(out)
 
             self.run_git_command('add', '.jirafs/config')

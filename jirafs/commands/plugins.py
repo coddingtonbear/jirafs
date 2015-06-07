@@ -90,6 +90,16 @@ class Command(CommandPlugin):
                 folder.set_config_value(
                     'plugins', args.disable, 'disabled'
                 )
+
+            print(
+                "{t.red}{t.bold}Warning{t.normal}{t.red}: Disabling of macro "
+                "plugins may result in you encountering problems working with "
+                "folders using a macro.  If you encounter a problem, consider "
+                "running `jirafs macropatch reset` to clear the "
+                "currently-applied macros on a given ticket.{t.normal}".format(
+                    t=t
+                )
+            )
         else:
             all_plugins = self.build_plugin_dict(
                 enabled_plugins,

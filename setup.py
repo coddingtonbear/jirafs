@@ -63,9 +63,6 @@ setup(
         'console_scripts': [
             'jirafs = jirafs.cmdline:main'
         ],
-        'jirafs_plugins': [
-            'list_table = jirafs.macros.list_table:Plugin',
-        ],
         'jirafs_commands': [
             'fetch = jirafs.commands.fetch:Command',
             'pull = jirafs.commands.pull:Command',
@@ -88,6 +85,7 @@ setup(
             'search_users = jirafs.commands.search_users:Command',
             'create = jirafs.commands.create:Command',
             'submit = jirafs.commands.submit:Command',
+            'macropatch = jirafs.commands.macropatch:Command',
         ]
     },
 )

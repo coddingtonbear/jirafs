@@ -1,14 +1,14 @@
 import io
 import json
+import logging
 import os
 import re
 
 import six
 
-from jirafs import constants
-from jirafs.plugin import MacroPlugin
+from jirafs import constants, utils
+from jirafs.plugin import MacroPlugin, PluginValidationError
 from jirafs.readers import GitRevisionReader, WorkingCopyReader
-from jirafs.utils import get_installed_plugins
 
 
 class JiraFieldManager(dict):
@@ -45,15 +45,52 @@ class JiraFieldManager(dict):
 
     def get_macro_plugins(self):
         if not hasattr(self, '_macro_plugins'):
-            self._macro_plugins = get_installed_plugins(MacroPlugin)
+            config = self.folder.get_config()
+            plugins = []
+
+            if not config.has_section(constants.CONFIG_PLUGINS):
+                return plugins
+
+            installed_plugins = utils.get_installed_plugins(MacroPlugin)
+
+            for name, status in config.items(constants.CONFIG_PLUGINS):
+                if not utils.convert_to_boolean(status):
+                    # This plugin is not turned on.
+                    continue
+                if name not in installed_plugins:
+                    # This plugin is not installed.
+                    self.folder.log(
+                        "Macro plugin '%s' is not available; "
+                        "this is probably because this plugin is not a "
+                        "macro.",
+                        (name, ),
+                        level=logging.DEBUG
+                    )
+                    continue
+
+                plugin = installed_plugins[name](self.folder, name)
+
+                try:
+                    plugin.validate()
+                except PluginValidationError as e:
+                    self.folder.log(
+                        "Plugin '%s' did not pass validation; "
+                        "not loading: %s.",
+                        (name, e,),
+                    )
+
+                plugins.append(plugin)
+
+            self._macro_plugins = plugins
+
         return self._macro_plugins
 
     def _process_field_macros(self, data):
         macro_plugins = self.get_macro_plugins()
 
-        for name, cls in macro_plugins.items():
+        for cls in macro_plugins:
             if isinstance(data, six.string_types):
-                data = cls().process_text_data(data)
+                data = cls.process_text_data(data)
             else:
                 continue
 
