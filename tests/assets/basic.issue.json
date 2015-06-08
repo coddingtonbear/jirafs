@@ -8,7 +8,8 @@
         "rest_api_version": "2",
         "rest_path": "api",
         "server": "https://jira.arbitrary.com",
-        "verify": true
+        "verify": true,
+        "async": false
     },
     "raw": {
         "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog",

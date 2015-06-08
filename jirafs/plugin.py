@@ -254,10 +254,21 @@ class MacroPlugin(Plugin):
     def process_text_data(self, content):
         for match_data in self.get_matches(content):
             data = match_data.groupdict()
-            replace_with = self.execute_macro(
-                data.get('content'),
-                **self.get_attributes(data.get('start', ''))
-            )
+            try:
+                replace_with = self.execute_macro(
+                    data.get('content'),
+                    **self.get_attributes(data.get('start', ''))
+                )
+            except Exception as e:
+                self.ticketfolder.log(
+                    "Error encountered while running macro %s: %s",
+                    args=(
+                        self.plugin_name,
+                        e
+                    ),
+                    level=logging.ERROR,
+                )
+                replace_with = content
             if replace_with is None:
                 replace_with = ''
 
