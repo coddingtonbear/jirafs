@@ -1,7 +1,7 @@
 import io
 from unittest import SkipTest
 
-from mock import call, patch
+from mock import call, Mock, patch
 
 from jirafs.utils import run_command_method_with_kwargs
 
@@ -68,6 +68,13 @@ class TestPushCommandWithMacropatch(BaseCommandTestCase):
                 "jira-list-table package to be installed."
             )
         super(TestPushCommandWithMacropatch, self).setUp()
+        run_command_method_with_kwargs(
+            'plugins',
+            folder=self.ticketfolder,
+            args=Mock(
+                enable='list_table',
+            )
+        )
 
     def test_push_change_patched_content(self):
         # First, let's write out a patch
@@ -100,7 +107,7 @@ class TestPushCommandWithMacropatch(BaseCommandTestCase):
                 )
 
         description_two = u"""
-            {list-table}
+            {list-table:horizontal}
             * -
             ** Location
             ** Company
@@ -128,3 +135,4 @@ class TestPushCommandWithMacropatch(BaseCommandTestCase):
                     'push',
                     folder=self.ticketfolder,
                 )
+
