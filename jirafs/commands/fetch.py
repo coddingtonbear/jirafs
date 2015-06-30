@@ -141,19 +141,12 @@ class Command(CommandPlugin):
                         continue
 
                     human_readable = field_map.get(field)
-                    if human_readable is None or human_readable == field:
-                        dets.write(
-                            six.text_type('* %s:\n') % (
-                                field
-                            )
+                    dets.write(
+                        six.text_type('* %s (%s):\n') % (
+                            human_readable,
+                            field
                         )
-                    else:
-                        dets.write(
-                            six.text_type('* %s (%s):\n') % (
-                                human_readable,
-                                field
-                            )
-                        )
+                    )
                     for line in value.replace('\r\n', '\n').split('\n'):
                         dets.write(six.text_type('    %s\n' % line))
 
