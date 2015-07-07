@@ -98,10 +98,16 @@ class JiraFieldManager(dict):
 
     def items_transformed(self):
         for k, v in self.items():
-            result = self._process_field_macros(v)
-            yield k, result
+            if k in self.get_requested_per_ticket_fields():
+                result = self._process_field_macros(v)
+                yield k, result
+            else:
+                yield k, v
 
     def get_transformed(self, field_name, default=None):
+        if field_name not in self.get_requested_per_ticket_fields():
+            return self[field_name]
+
         try:
             return self._process_field_macros(self[field_name])
         except KeyError:
