@@ -1,3 +1,9 @@
+1.13.1
+------
+
+* Patch version bump because I ran the release for 1.13.0 from the wrong
+  branch, so it was missing some minor bugfixes.
+
 1.13.0
 ------
 
