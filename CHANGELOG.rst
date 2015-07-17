@@ -1,3 +1,10 @@
+1.13.0
+------
+
+* Changes functionality of "Macro Plugins" to apply only to file-based
+  fields.  This will prevent misbehaving macros from making the general
+  field file from becoming conflicted.
+
 1.12.0
 ------
 
