@@ -1,3 +1,9 @@
+1.13.2
+------
+
+* Fixing a bug that prevented multiple macros from successfully being
+  applied to a file.
+
 1.13.1
 ------
 

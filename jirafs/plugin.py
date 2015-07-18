@@ -252,33 +252,25 @@ class MacroPlugin(Plugin):
         return attributes
 
     def process_text_data(self, content):
-        for match_data in self.get_matches(content):
+        def run_replacement(match_data):
             data = match_data.groupdict()
-            try:
-                replace_with = self.execute_macro(
-                    data.get('content'),
-                    **self.get_attributes(data.get('start', ''))
-                )
-            except Exception as e:
-                self.ticketfolder.log(
-                    "Error encountered while running macro %s: %s",
-                    args=(
-                        self.plugin_name,
-                        e
-                    ),
-                    level=logging.ERROR,
-                )
-                replace_with = content
-            if replace_with is None:
-                replace_with = ''
 
-            content = (
-                content[0:match_data.start(0)] +
-                replace_with +
-                content[match_data.end(0):]
+            return self.execute_macro(
+                data.get('content'),
+                **self.get_attributes(data.get('start', ''))
             )
 
-        return content
+        try:
+            return self.get_matcher().sub(run_replacement, content)
+        except Exception as e:
+            self.ticketfolder.log(
+                "Error encountered while running macro %s: %s",
+                args=(
+                    self.plugin_name,
+                    e
+                ),
+                level=logging.ERROR,
+            )
 
     def execute_macro(self, data, **attributes):
         raise NotImplementedError()
