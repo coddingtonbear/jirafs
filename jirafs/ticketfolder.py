@@ -669,7 +669,7 @@ class TicketFolder(object):
 
         assets = []
         attachments = self.filter_ignored_files(
-            self.issue.fields.attachment,
+            getattr(self.issue.fields, 'attachment', []),
             constants.REMOTE_IGNORE_FILE
         )
         for attachment in attachments:
