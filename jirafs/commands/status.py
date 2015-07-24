@@ -71,7 +71,8 @@ class Command(CommandPlugin):
             print('')
             print(
                 "Uncommitted changes; use `jirafs commit` to mark these "
-                "for JIRA."
+                "for sending to JIRA during your next push, or "
+                "`jirafs submit` to send these changes directly to JIRA."
             )
             print(
                 self.format_field_changes(staged, 'red', terminal=t)
@@ -84,7 +85,7 @@ class Command(CommandPlugin):
             print(
                 "Uncommitted changes prevented from being sent to JIRA "
                 "because they match at least one of the patterns in your "
-                ".jirafs_ignore file; use `jirafs commit` to commit these "
+                "`.jirafs_local` file; use `jirafs commit` to track these "
                 "changes."
             )
             print(
@@ -120,7 +121,8 @@ class Command(CommandPlugin):
         for filename in changes.get('files', []):
             lines.append(
                 '\t' + color + filename + normal + (
-                    ' (save to repository)' if no_upload else ' (file upload)'
+                    ' (track in repository)'
+                    if no_upload else ' (upload attachment)'
                 )
             )
         for link, data in changes.get('links', {}).get('remote', {}).items():
