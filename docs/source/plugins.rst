@@ -12,5 +12,4 @@ Using Plugins
 .. toctree::
    :maxdepth: 2
 
-   available_plugins
    writing_plugins

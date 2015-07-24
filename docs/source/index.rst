@@ -17,10 +17,10 @@ Welcome to Jirafs's documentation!
 
 Pronounced like 'giraffes', but totally unrelated to wildlife, this
 library lets you stay out of JIRA as much as possible by letting
-you edit your JIRA issues as text files using an interface
-modeled off of ``git`` and ``hg``.
+you edit your JIRA issues as a collection of text files using an
+interface inspired by ``git`` and ``hg``.
 
-.. image:: https://s3-us-west-2.amazonaws.com/coddingtonbear-public/github/jirafs/readme_demo_final.gif
+.. image:: http://coddingtonbear-public.s3.amazonaws.com/github/jirafs/readme_demo_20150719.gif
 
 .. toctree::
    :maxdepth: 3
