@@ -10,7 +10,7 @@ from jira.client import JIRA
 from six.moves import configparser, input
 from verlib import NormalizedVersion
 
-from . import constants
+from . import constants, password
 from .plugin import CommandPlugin, Plugin
 
 
@@ -208,9 +208,16 @@ def get_jira(domain=None, config=None):
 
         save = get_user_input("Save JIRA Password (Y/N)?", boolean=True)
         if save:
-            config.set(section, 'password', value)
+            passphrase = get_user_input("Passphrase:", password=True)
+            config.set(section, 'password_encrypted', True)
+            config.set(section, 'password', password.encrypt_password(value, passphrase))
+            password.cache_password(value)
     else:
         login_data['password'] = config.get(section, 'password')
+        login_data['password_encrypted'] = config.get(section, 'password_encrypted', False)
+        pwd = password.get_password_from_login_data(login_data)
+        password.cache_password(pwd)
+
 
     if config.has_option(section, 'verify'):
         value = convert_to_boolean(
@@ -228,7 +235,7 @@ def get_jira(domain=None, config=None):
 
     basic_auth = (
         login_data.pop('username'),
-        login_data.pop('password'),
+        password.get_password_from_login_data(login_data),
     )
     jira = JIRA(login_data, basic_auth=basic_auth)
 
