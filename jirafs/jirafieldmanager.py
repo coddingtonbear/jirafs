@@ -162,7 +162,7 @@ class JiraFieldManager(dict):
                 if value:  # If so, we just need to store previous loop data
                     self.set_data_value(data, field_name, value)
                     value = ''
-                raw_field_name = re.match('^\* ([^:]+):$', line).group(1)
+                raw_field_name = re.match('^\* +(.*?)(\(.*?\)):$', line).group(1)
                 if '(' in raw_field_name:
                     # This field name's real name doesn't match the field ID
                     match = re.match(
