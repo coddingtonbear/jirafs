@@ -80,6 +80,7 @@ setup(
             'config = jirafs.commands.config:Command',
             'transition = jirafs.commands.transition:Command',
             'field = jirafs.commands.field:Command',
+            'setfield = jirafs.commands.setfield:Command',
             'subtask = jirafs.commands.subtask:Command',
             'assign = jirafs.commands.assign:Command',
             'search_users = jirafs.commands.search_users:Command',

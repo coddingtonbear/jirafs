@@ -55,10 +55,20 @@ class Command(CommandPlugin):
         if key_dotpath:
             try:
                 for component in key_dotpath.split('.'):
-                    if component not in data:
-                        data = None
+                    if not isinstance(data, dict):
+                        raise JirafsError(
+                            "Key '%s' (of dotpath '%s') is not an object "
+                            "in field '%s'." % (
+                                component,
+                                key_dotpath,
+                                field_name,
+                            )
+                        )
+                    elif component not in data:
+                        data = ''
                         break
-                    data = data[component]
+                    else:
+                        data = data[component]
             except (ValueError, TypeError):
                 raise JirafsError(
                     "Field '%s' could not be parsed as JSON for retrieving "
