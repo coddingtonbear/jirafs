@@ -7,6 +7,7 @@ import sys
 import time
 
 from blessings import Terminal
+from jira.utils import JIRAError
 import six
 from verlib import NormalizedVersion
 
@@ -137,6 +138,16 @@ def main():
                 )
             )
             sys.exit(21)
+    except JIRAError as e:
+        print(
+            u"{t.red}Jirafs encountered an error while interacting with "
+            u"your JIRA instance: {t.normal}{t.red}{t.bold}{error}"
+            u"{t.normal}".format(
+                t=term,
+                error=str(e)
+            )
+        )
+        sys.exit(70)
     except JiraInteractionFailed as e:
         print(
             u"{t.red}JIRA was unable to satisfy your "
