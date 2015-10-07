@@ -26,6 +26,20 @@ class PluginOperationError(PluginError):
     pass
 
 
+class CommandResult(unicode):
+    def __init__(self, string, return_code=None):
+        super(CommandResult, self).__init__(string)
+        self.return_code = return_code
+
+    @property
+    def return_code(self):
+        return self._return_code
+
+    @return_code.setter
+    def return_code(self, value):
+        self._return_code = int(value) if value is not None else None
+
+
 class JirafsPluginBase(object):
     MIN_VERSION = None
     MAX_VERSION = None
@@ -125,6 +139,17 @@ class CommandPlugin(JirafsPluginBase):
         return parser.parse_args(extra_args)
 
     @classmethod
+    def get_command_result(cls, result, original=None):
+        if not isinstance(result, CommandResult):
+            result = CommandResult(result)
+
+        if original and isinstance(original, CommandResult):
+            if original.return_code is not None and result.return_code is None:
+                result.return_code = original.return_code
+
+        return result
+
+    @classmethod
     def execute_command(cls, extra_args, jira, path, command_name, **ckwargs):
         from .ticketfolder import TicketFolder
         cmd = cls(
@@ -169,7 +194,9 @@ class CommandPlugin(JirafsPluginBase):
                 kwargs = result
 
         cmd.validate(**kwargs)
-        result = cmd.handle(**kwargs)
+        result = self.get_command_result(
+            cmd.handle(**kwargs)
+        )
 
         for plugin in folder_plugins:
             if not hasattr(plugin, post_method):
@@ -177,7 +204,10 @@ class CommandPlugin(JirafsPluginBase):
             method = getattr(plugin, post_method)
             post_result = method(result)
             if post_result is not None:
-                result = post_result
+                result = self.get_command_result(
+                    post_result,
+                    original=result
+                )
 
         if getattr(cls, 'RUN_FOR_SUBTASKS', False):
             for subfolder in folder.subtasks:

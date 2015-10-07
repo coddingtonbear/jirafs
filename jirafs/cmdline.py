@@ -83,9 +83,18 @@ def main():
     )
     jira = utils.lazy_get_jira()
     try:
-        cmd_class.execute_command(
+        value = cmd_class.execute_command(
             extra, jira=jira, path=os.getcwd(), command_name=command_name
         )
+        logger.debug(
+            'Command %s(%s) finished in %s seconds',
+            command_name,
+            extra,
+            (time.time() - started)
+        )
+        if value:
+            print(value)
+        sys.exit(value.return_code)
     except GitCommandError as e:
         print(
             u"{t.red}Error (code: {code}) while running git "
@@ -166,10 +175,3 @@ def main():
             )
         )
         sys.exit(90)
-
-    logger.debug(
-        'Command %s(%s) finished in %s seconds',
-        command_name,
-        extra,
-        (time.time() - started)
-    )
