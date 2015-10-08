@@ -1,7 +1,8 @@
 import json
 
 from jirafs.exceptions import JirafsError
-from jirafs.plugin import CommandPlugin
+from jirafs.plugin import CommandPlugin, CommandResult
+from jirafs.utils import run_command_method_with_kwargs
 
 
 class Command(CommandPlugin):
@@ -14,6 +15,11 @@ class Command(CommandPlugin):
         return self.match(
             folder,
             args.field_name,
+            args.field_value,
+            isjson=args.json,
+            negate=args.negate,
+            raw=args.raw,
+            quiet=args.quiet,
         )
 
     def add_arguments(self, parser):
@@ -48,4 +54,43 @@ class Command(CommandPlugin):
             ),
             action='store_true',
             default=False
+        )
+        parser.add_argument(
+            '--quiet',
+            help=(
+                'Print no message to stdout indicating success or failure'
+            ),
+            action='store_true',
+            default=False
+        )
+
+    def match(self, folder, field_name, field_value, isjson, negate, raw, quiet):
+        actual_value = run_command_method_with_kwargs(
+            'field',
+            method='get_field_value_by_dotpath',
+            folder=folder,
+            field_name=field_name,
+            raw=raw,
+        )
+
+        if isjson:
+            field_value = json.loads(field_value)
+
+        success = actual_value == field_value
+
+        comparison_result = u" != "
+        if success:
+            comparison_result = u" == "
+        message = u"{left} {comparison} {right}".format(
+            left=actual_value,
+            comparison=comparison_result,
+            right=field_value,
+        )
+
+        if negate:
+            result = not result
+
+        return CommandResult(
+            message if not quiet else None,
+            return_code=0 if success else 1
         )

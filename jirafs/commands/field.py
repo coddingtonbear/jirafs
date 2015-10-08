@@ -1,7 +1,7 @@
 import json
 
 from jirafs.exceptions import JirafsError
-from jirafs.plugin import CommandPlugin
+from jirafs.plugin import CommandPlugin, CommandResult
 
 
 class Command(CommandPlugin):
@@ -37,7 +37,9 @@ class Command(CommandPlugin):
             'field_name',
         )
 
-    def field(self, folder, field_name, raw=False, formatted=False):
+    def get_field_value_by_dotpath(
+        self, folder, field_name, raw=False, formatted=False
+    ):
         fields = folder.get_fields()
 
         key_dotpath = None
@@ -78,6 +80,15 @@ class Command(CommandPlugin):
                     )
                 )
 
+        return data
+
+    def field(
+        self, folder, field_name, raw=False, formatted=False
+    ):
+        data = self.get_field_value_by_dotpath(
+            folder, field_name, raw, formatted
+        )
+
         if isinstance(data, (list, dict)):
             kwargs = {}
             if formatted:
@@ -87,4 +98,4 @@ class Command(CommandPlugin):
                 }
             data = json.dumps(data, **kwargs)
 
-        print(data)
+        return CommandResult(data)

@@ -27,9 +27,13 @@ class PluginOperationError(PluginError):
 
 
 class CommandResult(unicode):
-    def __init__(self, string, return_code=None):
-        super(CommandResult, self).__init__(string)
+    def __new__(cls, string, return_code=None):
+        if string is None:
+            string = ''
+
+        self = super(CommandResult, cls).__new__(cls, string)
         self.return_code = return_code
+        return self
 
     @property
     def return_code(self):
@@ -194,7 +198,7 @@ class CommandPlugin(JirafsPluginBase):
                 kwargs = result
 
         cmd.validate(**kwargs)
-        result = self.get_command_result(
+        result = cls.get_command_result(
             cmd.handle(**kwargs)
         )
 
@@ -204,7 +208,7 @@ class CommandPlugin(JirafsPluginBase):
             method = getattr(plugin, post_method)
             post_result = method(result)
             if post_result is not None:
-                result = self.get_command_result(
+                result = cls.get_command_result(
                     post_result,
                     original=result
                 )
