@@ -1,3 +1,16 @@
+1.2
+---
+
+* Adds new ``match`` command allowing you to test whether fields match (or
+  do not match) expected values.  This is particularly useful for running
+  commands on any ticket folders in a specific folder that might match a
+  certain condition (e.g: that they're closed).
+* Cleanup of existing internal plugins such that the ``main`` method
+  performs the majority of the task's work instead of the method named
+  after the command's name.
+* Added functionality to existing plugin architecture allowing one to
+  control the return value of the command.
+
 1.13.2
 ------
 

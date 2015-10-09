@@ -63,6 +63,10 @@ def main():
         default=None,
         dest='log_level',
     )
+    parser.add_argument(
+        '--folder',
+        default=os.getcwd()
+    )
     args, extra = parser.parse_known_args()
 
     if args.log_level is not None:
@@ -84,7 +88,7 @@ def main():
     jira = utils.lazy_get_jira()
     try:
         value = cmd_class.execute_command(
-            extra, jira=jira, path=os.getcwd(), command_name=command_name
+            extra, jira=jira, path=args.folder, command_name=command_name
         )
         logger.debug(
             'Command %s(%s) finished in %s seconds',
@@ -125,7 +129,7 @@ def main():
         count_runs = 0
         for folder in os.listdir(os.getcwd()):
             try:
-                cmd_class.execute_command(
+                value = cmd_class.execute_command(
                     extra,
                     jira=jira,
                     path=os.path.join(
@@ -134,6 +138,8 @@ def main():
                     ),
                     command_name=command_name,
                 )
+                if value:
+                    print(value)
                 count_runs += 1
             except NotTicketFolderException:
                 pass
