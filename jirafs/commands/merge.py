@@ -8,13 +8,10 @@ class Command(CommandPlugin):
     """ Merge remote changes into your local copy """
     RUN_FOR_SUBTASKS = True
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
-    def handle(self, folder, **kwargs):
-        return self.merge(folder)
-
-    def merge(self, folder):
+    def main(self, folder, **kwargs):
         with utils.stash_local_changes(folder):
             original_merge_base = folder.git_merge_base
             folder.run_git_command('merge', 'jira')

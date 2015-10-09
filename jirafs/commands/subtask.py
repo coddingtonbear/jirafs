@@ -4,10 +4,10 @@ from jirafs.plugin import CommandPlugin
 
 class Command(CommandPlugin):
     """Create a subtask of a given issue."""
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
-    def handle(self, folder, args, **kwargs):
+    def main(self, folder, args, **kwargs):
         summary = ' '.join(args.summary)
 
         folder.jira.create_issue(

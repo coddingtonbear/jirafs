@@ -11,11 +11,11 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """Search for users matching the specified search term"""
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
-    def handle(self, args, jira, path, parser, **kwargs):
+    def main(self, args, jira, path, parser, **kwargs):
         search_term = ' '.join(args.terms)
 
         try:

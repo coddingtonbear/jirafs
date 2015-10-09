@@ -8,11 +8,11 @@ from jirafs.utils import run_command_method_with_kwargs
 class Command(CommandPlugin):
     """ Check whether a given dotpath matches an expected value """
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.14'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, **kwargs):
-        return self.match(
+        return self.cmd(
             folder,
             args.field_name,
             args.field_value,
@@ -64,7 +64,7 @@ class Command(CommandPlugin):
             default=False
         )
 
-    def match(self, folder, field_name, field_value, isjson, negate, raw, quiet):
+    def main(self, folder, field_name, field_value, isjson, negate, raw, quiet):
         actual_value = run_command_method_with_kwargs(
             'field',
             method='get_field_value_by_dotpath',
@@ -90,7 +90,12 @@ class Command(CommandPlugin):
         if negate:
             result = not result
 
-        return CommandResult(
+        return (
             message if not quiet else None,
-            return_code=0 if success else 1
+            0 if success else 1,
         )
+
+    def cmd(self, *args, **kwargs):
+        message, return_code = self.main(*args, **kwargs)
+
+        return CommandResult(message, return_code)

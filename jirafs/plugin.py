@@ -60,8 +60,7 @@ class JirafsPluginBase(object):
         if not min_version <= curr_version <= max_version:
             raise PluginValidationError(
                 "Plugin '%s' is not compatible with version %s of Jirafs; "
-                "minimum version: %s; maximum version %s.",
-                (
+                "minimum version: %s; maximum version %s." % (
                     self.plugin_name,
                     __version__,
                     self.MIN_VERSION,
@@ -235,7 +234,14 @@ class CommandPlugin(JirafsPluginBase):
 
         return result
 
-    def handle(self, folder, args, **kwargs):
+    def handle(self, *args, **kwargs):
+        return self.cmd(*args, **kwargs)
+
+    def cmd(self, *args, **kwargs):
+        # By default, no return value; just execute and move along
+        self.main(*args, **kwargs)
+
+    def main(self, *args, **kwargs):
         raise NotImplementedError()
 
     def try_subfolders(self):

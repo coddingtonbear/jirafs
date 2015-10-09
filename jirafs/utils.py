@@ -85,7 +85,7 @@ def get_user_input(message, options=None, boolean=False, password=False):
 
 def run_command_method_with_kwargs(command, method=None, **kwargs):
     if method is None:
-        method = command
+        method = 'main'
     installed_commands = get_installed_commands()
     return getattr(installed_commands[command](), method)(**kwargs)
 

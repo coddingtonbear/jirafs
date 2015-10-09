@@ -15,11 +15,8 @@ class Command(CommandPlugin):
     """ Fetch remote changes """
     TRY_SUBFOLDERS = True
     RUN_FOR_SUBTASKS = False
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
-
-    def handle(self, folder, **kwargs):
-        return self.fetch(folder)
 
     def get_field_map(self, folder):
         fields = {}
@@ -69,7 +66,7 @@ class Command(CommandPlugin):
             failure_ok=True,
         )
 
-    def fetch(self, folder):
+    def main(self, folder, **kwargs):
         folder.clear_cache()
 
         file_meta = folder.get_remote_file_metadata(shadow=True)

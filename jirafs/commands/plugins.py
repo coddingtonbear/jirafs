@@ -7,7 +7,7 @@ from jirafs.plugin import CommandPlugin
 
 class Command(CommandPlugin):
     """ Enable/Disable or display information about installed issue plugins """
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, parser, **kwargs):
@@ -21,7 +21,7 @@ class Command(CommandPlugin):
                 "Plugin '%s' is not installed." % args.enable
             )
 
-        return self.plugins(folder, args)
+        return self.cmd(folder, args)
 
     def add_arguments(self, parser):
         parser.add_argument('--verbose', action='store_true', default=False)
@@ -66,7 +66,7 @@ class Command(CommandPlugin):
 
         return all_plugins
 
-    def plugins(self, folder, args):
+    def main(self, folder, args):
         t = Terminal()
 
         enabled_plugins = folder.load_plugins()

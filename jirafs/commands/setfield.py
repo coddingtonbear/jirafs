@@ -7,11 +7,11 @@ from jirafs.plugin import CommandPlugin
 class Command(CommandPlugin):
     """ Get the status of the current ticketfolder """
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, **kwargs):
-        return self.setfield(
+        return self.cmd(
             folder, args.field_name, args.value, as_json=args.json
         )
 
@@ -31,7 +31,7 @@ class Command(CommandPlugin):
             default=False
         )
 
-    def setfield(self, folder, field_name, value, as_json=False):
+    def main(self, folder, field_name, value, as_json=False):
         fields = folder.get_fields()
 
         if as_json:

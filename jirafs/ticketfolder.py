@@ -32,7 +32,6 @@ class TicketFolder(object):
         self.quiet = quiet
         self.issue_url = self.get_ticket_url()
         self.get_jira = jira
-        self.plugins = self.load_plugins()
 
         if not os.path.isdir(self.metadata_dir):
             raise exceptions.NotTicketFolderException(
@@ -40,6 +39,8 @@ class TicketFolder(object):
                     path
                 )
             )
+
+        self.plugins = self.load_plugins()
 
         if migrate:
             self.run_migrations()

@@ -14,7 +14,7 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Clone a new ticketfolder for the specified ticket URL"""
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
@@ -34,7 +34,7 @@ class Command(CommandPlugin):
 
         path = args.path[0] if args.path else None
 
-        return self.clone(path, ticket_url, jira)
+        return self.cmd(path, ticket_url, jira)
 
     def clone_from_issue(self, match, ticket_url, path, jira):
         if not path:
@@ -165,7 +165,7 @@ class Command(CommandPlugin):
         )
         return folder
 
-    def clone(self, path, url, jira):
+    def main(self, path, url, jira):
         match = self.TICKET_RE.match(url)
         if match:
             return self.clone_from_issue(

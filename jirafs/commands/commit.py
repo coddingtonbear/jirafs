@@ -4,11 +4,11 @@ from jirafs.plugin import CommandPlugin
 
 class Command(CommandPlugin):
     """ Commit local changes for later submission to JIRA """
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, **kwargs):
-        return self.commit(folder, args.message, *args.git_arguments)
+        return self.cmd(folder, args.message, *args.git_arguments)
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -18,7 +18,7 @@ class Command(CommandPlugin):
             'git_arguments', nargs='*'
         )
 
-    def commit(self, folder, message, *args):
+    def main(self, folder, message, *args):
         original_hash = folder.run_git_command('rev-parse', 'master')
         folder.run_git_command(
             'add', '-A'

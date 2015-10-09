@@ -9,16 +9,16 @@ from jirafs.exceptions import JiraInteractionFailed
 
 class Command(CommandPlugin):
     """ Transition the current issue into a new state """
-    MIN_VERSION = '1.0'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, **kwargs):
         state = self.get_state_from_string(folder, args.state)
         if state is None:
             state = self.get_state_from_user(folder)
-        return self.transition(folder, state)
+        return self.cmd(folder, state)
 
-    def transition(self, folder, state_id):
+    def main(self, folder, state_id):
         folder.jira.transition_issue(folder.issue, state_id)
         starting_status = folder.get_fields()['status']
         pull_result = run_command_method_with_kwargs('pull', folder=folder)

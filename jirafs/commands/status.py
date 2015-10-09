@@ -8,11 +8,11 @@ from jirafs.plugin import CommandPlugin
 class Command(CommandPlugin):
     """ Get the status of the current ticketfolder """
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, **kwargs):
-        return self.status(folder, args.format)
+        return self.cmd(folder, args.format)
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -21,7 +21,7 @@ class Command(CommandPlugin):
             choices=['text', 'json']
         )
 
-    def status(self, folder, output_format='text'):
+    def main(self, folder, output_format='text'):
         status = folder.status()
         if output_format == 'json':
             self.status_json(folder, status)

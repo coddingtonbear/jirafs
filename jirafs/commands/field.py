@@ -7,11 +7,11 @@ from jirafs.plugin import CommandPlugin, CommandResult
 class Command(CommandPlugin):
     """ Get the status of the current ticketfolder """
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
     def handle(self, args, folder, **kwargs):
-        return self.field(
+        return self.cmd(
             folder, args.field_name, raw=args.raw, formatted=args.formatted
         )
 
@@ -82,7 +82,7 @@ class Command(CommandPlugin):
 
         return data
 
-    def field(
+    def main(
         self, folder, field_name, raw=False, formatted=False
     ):
         data = self.get_field_value_by_dotpath(
@@ -97,5 +97,10 @@ class Command(CommandPlugin):
                     'sort_keys': True,
                 }
             data = json.dumps(data, **kwargs)
+
+        return data
+
+    def cmd(self, *args, **kwargs):
+        data = self.main(*args, **kwargs)
 
         return CommandResult(data)

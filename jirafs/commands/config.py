@@ -12,7 +12,7 @@ class Command(CommandPlugin):
     MAX_VERSION = '1.99.99'
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
-    def handle(self, args, jira, path, parser, **kwargs):
+    def main(self, args, jira, path, parser, **kwargs):
         if args.global_config:
             config = utils.get_config()
         else:

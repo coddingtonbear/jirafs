@@ -10,11 +10,8 @@ from jirafs.utils import run_command_method_with_kwargs
 class Command(CommandPlugin):
     """ Push locally-committed changes to JIRA """
     TRY_SUBFOLDERS = True
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
-
-    def handle(self, folder, **kwargs):
-        return self.push(folder)
 
     def get_valid_issue_link_types(self, folder):
         if not hasattr(self, '_valid_issue_link_types'):
@@ -45,7 +42,7 @@ class Command(CommandPlugin):
                     )
                 )
 
-    def push(self, folder):
+    def main(self, folder, **kwargs):
         self.validate_issue(folder)
         with utils.stash_local_changes(folder):
             status = folder.status()

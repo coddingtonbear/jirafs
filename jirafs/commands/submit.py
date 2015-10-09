@@ -4,7 +4,7 @@ from jirafs.utils import run_command_method_with_kwargs
 
 class Command(CommandPlugin):
     """Commit current changes, push changes to JIRA, and pull changes"""
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
 
     def add_arguments(self, parser):
@@ -13,9 +13,9 @@ class Command(CommandPlugin):
         )
 
     def handle(self, args, folder, **kwargs):
-        return self.submit(folder, args.message)
+        return self.cmd(folder, args.message)
 
-    def submit(self, folder, message):
+    def main(self, folder, message):
         commit_result = run_command_method_with_kwargs(
             'commit', folder=folder, message=message
         )

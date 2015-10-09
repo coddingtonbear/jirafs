@@ -7,7 +7,7 @@ from jirafs.utils import run_command_method_with_kwargs
 
 class Command(CommandPlugin):
     """Create a new JIRA issue"""
-    MIN_VERSION = '1.0a1'
+    MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
@@ -71,7 +71,7 @@ class Command(CommandPlugin):
             elif not field.get('required'):
                 return value
 
-    def handle(self, args, jira, path, parser, **kwargs):
+    def main(self, args, jira, path, parser, **kwargs):
         server = args.server
         if not server:
             server = utils.get_default_jira_server()
