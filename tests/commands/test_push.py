@@ -14,7 +14,7 @@ class TestPushCommand(BaseCommandTestCase):
 
     def test_push_no_changes(self):
         with patch.object(self.ticketfolder.issue, 'update') as update:
-            with patch('jirafs.commands.pull.Command.pull') as pull:
+            with patch('jirafs.commands.pull.Command.main') as pull:
                 pull.return_value = True, True
                 run_command_method_with_kwargs(
                     'push',
@@ -38,7 +38,7 @@ class TestPushCommand(BaseCommandTestCase):
         with patch.object(self.ticketfolder, 'status') as status:
             status.return_value = status_result
             with patch.object(self.ticketfolder.issue, 'update') as update:
-                with patch('jirafs.commands.pull.Command.pull') as pull:
+                with patch('jirafs.commands.pull.Command.main') as pull:
                     pull.return_value = True, True
                     run_command_method_with_kwargs(
                         'push',

@@ -108,7 +108,7 @@ class TestTicketFolder(BaseTestCase):
         status['ready']['fields'][changed_field] = (
             u'Something', changed_value, changed_value
         )
-        with patch('jirafs.commands.pull.Command.pull') as pull:
+        with patch('jirafs.commands.pull.Command.main') as pull:
             with patch.object(self.ticketfolder, 'status') as status_method:
                 status_method.return_value = status
                 with patch.object(self.ticketfolder.issue, 'update') as out:
