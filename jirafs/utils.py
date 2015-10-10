@@ -224,7 +224,7 @@ def get_jira(domain=None, config=None):
             login_data['verify'] = value
 
     # Prevent python-jira from checking to see if its out of date.
-    login_data['check_update'] = True
+    login_data['check_update'] = False
 
     basic_auth = (
         login_data.pop('username'),
