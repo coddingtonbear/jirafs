@@ -26,7 +26,7 @@ class PluginOperationError(PluginError):
     pass
 
 
-class CommandResult(unicode):
+class CommandResult(six.text_type):
     def __new__(cls, string, return_code=None):
         if string is None:
             string = ''
