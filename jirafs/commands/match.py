@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 
 from jirafs.exceptions import JirafsError
 from jirafs.plugin import CommandPlugin, CommandResult
@@ -20,6 +22,8 @@ class Command(CommandPlugin):
             negate=args.negate,
             raw=args.raw,
             quiet=args.quiet,
+            execute=args.execute,
+            execute_here=args.execute_here,
         )
 
     def add_arguments(self, parser):
@@ -33,6 +37,27 @@ class Command(CommandPlugin):
             '--json',
             help=(
                 'Process the provided field value as JSON'
+            ),
+            action='store_true',
+            default=False
+        )
+        parser.add_argument(
+            '--execute',
+            help=(
+                'Execute a command for each matching result; by default,'
+                ' will be executed from within the matching folder directory'
+                ' when executed on a folder containing multiple ticket'
+                ' folders.  See --execute-here to change this behavior.'
+                ' The string {} will be replaced with the folder directory '
+                ' path.'
+            ),
+            default=None,
+        )
+        parser.add_argument(
+            '--execute-here',
+            help=(
+                'Do not switch directories to matching folders\'s paths'
+                ' when using --execute.'
             ),
             action='store_true',
             default=False
@@ -64,7 +89,10 @@ class Command(CommandPlugin):
             default=False
         )
 
-    def main(self, folder, field_name, field_value, isjson, negate, raw, quiet):
+    def main(
+        self, folder, field_name, field_value, isjson,
+        negate, raw, quiet, execute, execute_here
+    ):
         actual_value = run_command_method_with_kwargs(
             'field',
             method='get_field_value_by_dotpath',
@@ -88,7 +116,15 @@ class Command(CommandPlugin):
         )
 
         if negate:
-            result = not result
+            success = not success
+
+        if execute and success:
+            execute = execute.replace('{}', folder.path)
+            subprocess.call(
+                execute,
+                shell=True,
+                cwd=os.getcwd() if execute_here else folder.path
+            )
 
         return (
             message if not quiet else None,

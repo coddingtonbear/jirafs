@@ -1,14 +1,17 @@
 import argparse
 
 import codecs
+import copy
 import logging
 import os
+import subprocess
 import sys
 import time
 
 from blessings import Terminal
 from jira.utils import JIRAError
 import six
+from six.moves import shlex_quote
 from verlib import NormalizedVersion
 
 from . import utils
@@ -66,6 +69,11 @@ def main():
     parser.add_argument(
         '--folder',
         default=os.getcwd()
+    )
+    parser.add_argument(
+        '--no-subfolders',
+        action='store_true',
+        default=False,
     )
     args, extra = parser.parse_known_args()
 
@@ -126,32 +134,32 @@ def main():
                 )
             )
             sys.exit(20)
+        elif args.no_subfolders:
+            sys.exit(20)
+
         count_runs = 0
         for folder in os.listdir(os.getcwd()):
+            full_path = os.path.join(
+                os.getcwd(),
+                folder,
+            )
+            if not os.path.isdir(full_path):
+                continue
+
             try:
-                value = cmd_class.execute_command(
-                    extra,
-                    jira=jira,
-                    path=os.path.join(
-                        os.getcwd(),
-                        folder,
-                    ),
-                    command_name=command_name,
+                full_args = copy.copy(sys.argv)
+                if '--no-subfolders' not in full_args:
+                    full_args.append('--no-subfolders')
+                result = subprocess.call(
+                    ' '.join([shlex_quote(a) for a in full_args]),
+                    cwd=full_path,
+                    shell=True
                 )
-                if value:
-                    print(value)
-                count_runs += 1
+                if result == 0:
+                    count_runs += 1
             except NotTicketFolderException:
                 pass
         if count_runs == 0:
-            print(
-                u"{t.red}The command '{cmd}' must be ran from "
-                u"within an issue folder or from within a folder containing "
-                u"issue folders.{t.normal}".format(
-                    t=term,
-                    cmd=command_name
-                )
-            )
             sys.exit(21)
     except JIRAError as e:
         print(
