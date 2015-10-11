@@ -5,11 +5,11 @@ import json
 from prettytable import PrettyTable
 
 from jirafs import utils
-from jirafs.plugin import CommandPlugin
+from jirafs.plugin import CommandResult, DirectOutputCommandPlugin
 from jirafs.ticketfolder import TicketFolder
 
 
-class Command(CommandPlugin):
+class Command(DirectOutputCommandPlugin):
     """Search for users matching the specified search term"""
     MIN_VERSION = '1.15'
     MAX_VERSION = '1.99.99'
@@ -36,6 +36,9 @@ class Command(CommandPlugin):
             )
             return
 
+        if not users:
+            return CommandResult('No matching users were found', return_code=1)
+
         table = PrettyTable(['Name', 'Username', 'Email Address', 'Time Zone'])
         table.align = 'l'
         for user in users:
@@ -47,7 +50,8 @@ class Command(CommandPlugin):
                     user.timeZone
                 ]
             )
-        print(table)
+
+        return CommandResult(unicode(table))
 
     def add_arguments(self, parser):
         parser.add_argument('terms', nargs='*')
