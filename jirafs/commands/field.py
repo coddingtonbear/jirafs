@@ -103,4 +103,4 @@ class Command(CommandPlugin):
     def cmd(self, *args, **kwargs):
         data = self.main(*args, **kwargs)
 
-        return CommandResult(data)
+        return CommandResult(data, no_format=True)

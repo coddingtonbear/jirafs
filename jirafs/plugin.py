@@ -30,16 +30,26 @@ class PluginOperationError(PluginError):
 
 
 class CommandResult(six.text_type):
-    def __new__(cls, string=None, return_code=None, cursor=0, **kwargs):
+    def __new__(
+        cls, string=None, return_code=None, cursor=0, no_format=False, **kwargs
+    ):
         if string is None:
             string = ''
         if string and not string.endswith('\n'):
             string = string + '\n'
 
         terminal = Terminal()
-        if kwargs:
+        if not no_format:
             kwargs['t'] = terminal
-            string = string.format(**kwargs)
+            try:
+                string = string.format(**kwargs)
+            except KeyError:
+                logger.warning(
+                    "An error was encountered while attempting to format "
+                    "string; returning the original string unformatted. "
+                    "The caller may want to use the 'no_format' option if "
+                    "the outgoing string includes curly braces.",
+                )
 
         self = super(CommandResult, cls).__new__(cls, string)
         self.return_code = return_code
@@ -57,13 +67,21 @@ class CommandResult(six.text_type):
 
         return self
 
-    def add_line(self, line, **kwargs):
+    def add_line(self, line, no_format=False, **kwargs):
         if not line.endswith('\n'):
             line = line + '\n'
 
-        if kwargs:
+        if not no_format:
             kwargs['t'] = self.terminal
-            line = line.format(**kwargs)
+            try:
+                line = line.format(**kwargs)
+            except KeyError:
+                logger.warning(
+                    "An error was encountered while attempting to format "
+                    "string; returning the original string unformatted. "
+                    "The caller may want to use the 'no_format' option if "
+                    "the outgoing string includes curly braces.",
+                )
 
         new_result = CommandResult(line)
         return self + new_result
