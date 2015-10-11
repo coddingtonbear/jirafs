@@ -9,7 +9,10 @@ import sys
 import time
 
 from blessings import Terminal
-from jira.utils import JIRAError
+try:
+    from jira.utils import JIRAError
+except ImportError:
+    from jira.exceptions import JIRAError
 import six
 from six.moves import shlex_quote
 from verlib import NormalizedVersion
