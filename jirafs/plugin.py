@@ -28,13 +28,18 @@ class PluginOperationError(PluginError):
 
 
 class CommandResult(six.text_type):
-    def __new__(cls, string=None, return_code=None):
+    def __new__(cls, string=None, return_code=None, **kwargs):
         if string is None:
             string = ''
 
+        terminal = Terminal()
+        kwargs['t'] = terminal
+        string = string.format(**kwargs)
+
         self = super(CommandResult, cls).__new__(cls, string)
         self.return_code = return_code
-        self.terminal = Terminal()
+        self.terminal = terminal
+
         return self
 
     def add_line(self, line, **kwargs):
