@@ -202,16 +202,19 @@ class TicketFolder(object):
 
     @property
     def jira_base(self):
-        parts = parse.urlparse(self.issue_url)
-        return u'{scheme}://{netloc}'.format(
-            scheme=parts.scheme,
-            netloc=parts.netloc,
-        )
+        match = re.match('(.*)\/browse\/.*', self.issue_url)
+        if not match:
+            raise ValueError(
+                "Could not infer JIRA server URL from issue URL %s" % (
+                    self.issue_url,
+                )
+            )
+        return match.group(1)
 
     @property
     def ticket_number(self):
         parts = parse.urlparse(self.issue_url)
-        match = re.match('\/browse\/(\w+-\d+)\/?.*', parts.path)
+        match = re.match('.*\/browse\/(\w+-\d+)\/?.*', parts.path)
         if not match:
             raise ValueError(
                 "Could not infer ticket number from URL %s" % self.issue_url
