@@ -33,7 +33,7 @@ class CommandResult(six.text_type):
     def __new__(cls, string=None, cursor=0, return_code=None, **kwargs):
         if string is None:
             string = ''
-        if not string.endswith('\n'):
+        if string and not string.endswith('\n'):
             string = string + '\n'
 
         terminal = Terminal()
@@ -48,7 +48,7 @@ class CommandResult(six.text_type):
         return self
 
     def _echo(self, message):
-        print(message)
+        print(message, end='')
 
     def echo(self):
         self._echo(self[self.cursor:])
@@ -296,6 +296,11 @@ class CommandPlugin(JirafsPluginBase):
             'AUTOMATICALLY_INSTANTIATE_FOLDER',
             True,
         )
+
+
+class DirectOutputCommandPlugin(CommandPlugin):
+    def cmd(self, *args, **kwargs):
+        return self.main(*args, **kwargs)
 
 
 class MacroPlugin(Plugin):

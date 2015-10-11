@@ -2,11 +2,11 @@ from six.moves import configparser
 
 from jirafs import utils
 from jirafs.exceptions import NotTicketFolderException
-from jirafs.plugin import CommandPlugin
+from jirafs.plugin import CommandResult, DirectOutputCommandPlugin
 from jirafs.ticketfolder import TicketFolder
 
 
-class Command(CommandPlugin):
+class Command(DirectOutputCommandPlugin):
     """ Get, set, or list global or per-folder configuration values """
     MIN_VERSION = '1.0a1'
     MAX_VERSION = '1.99.99'
@@ -72,25 +72,23 @@ class Command(CommandPlugin):
     def get(self, config, section, key):
         try:
             value = config.get(section, key)
-            print(value)
-            return value
+            return CommandResult(value)
         except configparser.Error:
             pass
 
     def list(self, config):
-        lines = []
+        lines = CommandResult()
+
         for section in config.sections():
             parameters = config.items(section)
             for key, value in parameters:
-                line = (
-                    u"{section}.{key}={value}".format(
-                        section=section,
-                        key=key,
-                        value=value
-                    )
+                lines = lines.add_line(
+                    u"{section}.{key}={value}",
+                    section=section,
+                    key=key,
+                    value=value
                 )
-                lines.append(line)
-                print(line)
+
         return lines
 
     def add_arguments(self, parser):
