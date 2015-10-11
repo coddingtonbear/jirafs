@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import argparse
 import json
 import logging
@@ -28,9 +30,11 @@ class PluginOperationError(PluginError):
 
 
 class CommandResult(six.text_type):
-    def __new__(cls, string=None, return_code=None, **kwargs):
+    def __new__(cls, string=None, cursor=0, return_code=None, **kwargs):
         if string is None:
             string = ''
+        if not string.endswith('\n'):
+            string = string + '\n'
 
         terminal = Terminal()
         kwargs['t'] = terminal
@@ -39,6 +43,16 @@ class CommandResult(six.text_type):
         self = super(CommandResult, cls).__new__(cls, string)
         self.return_code = return_code
         self.terminal = terminal
+        self.cursor = cursor
+
+        return self
+
+    def _echo(self, message):
+        print(message)
+
+    def echo(self):
+        self._echo(self[self.cursor:])
+        self.cursor = len(self)
 
         return self
 
@@ -59,7 +73,11 @@ class CommandResult(six.text_type):
         if isinstance(other, CommandResult) and other.return_code is not None:
             return_code = other.return_code
 
-        return CommandResult(joined_strings, return_code=return_code)
+        return CommandResult(
+            joined_strings,
+            return_code=return_code,
+            cursor=self.cursor
+        )
 
     @property
     def return_code(self):
