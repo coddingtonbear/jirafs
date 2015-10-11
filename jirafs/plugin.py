@@ -30,15 +30,16 @@ class PluginOperationError(PluginError):
 
 
 class CommandResult(six.text_type):
-    def __new__(cls, string=None, cursor=0, return_code=None, **kwargs):
+    def __new__(cls, string=None, return_code=None, cursor=0, **kwargs):
         if string is None:
             string = ''
         if string and not string.endswith('\n'):
             string = string + '\n'
 
         terminal = Terminal()
-        kwargs['t'] = terminal
-        string = string.format(**kwargs)
+        if kwargs:
+            kwargs['t'] = terminal
+            string = string.format(**kwargs)
 
         self = super(CommandResult, cls).__new__(cls, string)
         self.return_code = return_code
@@ -57,11 +58,14 @@ class CommandResult(six.text_type):
         return self
 
     def add_line(self, line, **kwargs):
-        kwargs['t'] = self.terminal
         if not line.endswith('\n'):
             line = line + '\n'
 
-        new_result = CommandResult(line.format(**kwargs))
+        if kwargs:
+            kwargs['t'] = self.terminal
+            line = line.format(**kwargs)
+
+        new_result = CommandResult(line)
         return self + new_result
 
     def __add__(self, other):

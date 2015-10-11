@@ -134,4 +134,4 @@ class Command(CommandPlugin):
     def cmd(self, *args, **kwargs):
         message, return_code = self.main(*args, **kwargs)
 
-        return CommandResult(message, return_code)
+        return CommandResult(message, return_code=return_code)
