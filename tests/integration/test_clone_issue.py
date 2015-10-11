@@ -107,7 +107,11 @@ class TestCloneIssue(IntegrationTestBase):
             jira=self.get_jira
         )
 
-        stdout = self.run_command('status', method='cmd')
+        stdout = self.run_command(
+            'status',
+            method='cmd',
+            folder=self.get_ticket_folder_for_path(issue_path)
+        )
 
         assert_strings = [
             'On ticket %s' % issue.key,

@@ -167,9 +167,8 @@ class CommandPlugin(JirafsPluginBase):
         if not isinstance(result, CommandResult):
             result = CommandResult(result)
 
-        if original and isinstance(original, CommandResult):
-            if original.return_code is not None and result.return_code is None:
-                result.return_code = original.return_code
+        if original is not None:
+            result = original + result
 
         return result
 
