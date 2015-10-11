@@ -90,6 +90,8 @@ class Command(CommandPlugin):
                     )
                 )
             value = data
+        else:
+            data = value
 
         fields[field_name] = data
         fields.write()
