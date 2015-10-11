@@ -16,7 +16,7 @@ GIT_EXCLUDE_FILE = '.jirafs/git/info/exclude'
 TICKET_OPERATION_LOG = 'operation.log'
 METADATA_DIR = '.jirafs'
 GLOBAL_CONFIG = '.jirafs_config'
-GIT_AUTHOR = 'Jirafs %s <jirafs@adamcoddington.net>' % (
+GIT_AUTHOR = 'Jirafs %s <jirafs@localhost>' % (
     version
 )
 
