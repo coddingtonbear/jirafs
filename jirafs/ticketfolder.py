@@ -18,7 +18,7 @@ from . import migrations
 from . import utils
 from .jiralinkmanager import JiraLinkManager
 from .jirafieldmanager import JiraFieldManager
-from .plugin import PluginValidationError
+from .plugin import MacroPlugin, PluginValidationError
 
 
 logger = logging.getLogger(__name__)
@@ -723,6 +723,59 @@ class TicketFolder(object):
             single_response=True,
         )
 
+    def get_macro_plugins(self):
+        if not hasattr(self, '_macro_plugins'):
+            config = self.get_config()
+            plugins = []
+
+            if not config.has_section(constants.CONFIG_PLUGINS):
+                return plugins
+
+            installed_plugins = utils.get_installed_plugins(MacroPlugin)
+
+            for name, status in config.items(constants.CONFIG_PLUGINS):
+                if not utils.convert_to_boolean(status):
+                    # This plugin is not turned on.
+                    continue
+                if name not in installed_plugins:
+                    # This plugin is not installed.
+                    self.log(
+                        "Macro plugin '%s' is not available; "
+                        "this is probably because this plugin is not a "
+                        "macro.",
+                        (name, ),
+                        level=logging.DEBUG
+                    )
+                    continue
+
+                plugin = installed_plugins[name](self, name)
+
+                try:
+                    plugin.validate()
+                except PluginValidationError as e:
+                    self.log(
+                        "Plugin '%s' did not pass validation; "
+                        "not loading: %s.",
+                        (name, e,),
+                    )
+
+                plugins.append(plugin)
+
+            self._macro_plugins = plugins
+
+        return self._macro_plugins
+
+    def process_macros(self, data):
+        macro_plugins = self.get_macro_plugins()
+
+        for cls in macro_plugins:
+            if isinstance(data, six.string_types):
+                data = cls.process_text_data(data)
+            else:
+                continue
+
+        return data
+
     def get_links(self, revision=None, path=None):
         kwargs = {}
         if not revision:
@@ -777,6 +830,9 @@ class TicketFolder(object):
                     c.truncate()
         except IOError:
             contents = ''
+
+        # Apply macro plugins
+        contents = self.process_macros(contents)
 
         return self.execute_plugin_method_series(
             name='alter_new_comment',

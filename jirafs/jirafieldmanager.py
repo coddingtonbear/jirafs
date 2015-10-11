@@ -7,7 +7,6 @@ import re
 import six
 
 from jirafs import constants, utils
-from jirafs.plugin import MacroPlugin, PluginValidationError
 from jirafs.readers import GitRevisionReader, WorkingCopyReader
 
 
@@ -43,63 +42,10 @@ class JiraFieldManager(dict):
         except KeyError:
             return field
 
-    def get_macro_plugins(self):
-        if not hasattr(self, '_macro_plugins'):
-            config = self.folder.get_config()
-            plugins = []
-
-            if not config.has_section(constants.CONFIG_PLUGINS):
-                return plugins
-
-            installed_plugins = utils.get_installed_plugins(MacroPlugin)
-
-            for name, status in config.items(constants.CONFIG_PLUGINS):
-                if not utils.convert_to_boolean(status):
-                    # This plugin is not turned on.
-                    continue
-                if name not in installed_plugins:
-                    # This plugin is not installed.
-                    self.folder.log(
-                        "Macro plugin '%s' is not available; "
-                        "this is probably because this plugin is not a "
-                        "macro.",
-                        (name, ),
-                        level=logging.DEBUG
-                    )
-                    continue
-
-                plugin = installed_plugins[name](self.folder, name)
-
-                try:
-                    plugin.validate()
-                except PluginValidationError as e:
-                    self.folder.log(
-                        "Plugin '%s' did not pass validation; "
-                        "not loading: %s.",
-                        (name, e,),
-                    )
-
-                plugins.append(plugin)
-
-            self._macro_plugins = plugins
-
-        return self._macro_plugins
-
-    def _process_field_macros(self, data):
-        macro_plugins = self.get_macro_plugins()
-
-        for cls in macro_plugins:
-            if isinstance(data, six.string_types):
-                data = cls.process_text_data(data)
-            else:
-                continue
-
-        return data
-
     def items_transformed(self):
         for k, v in self.items():
             if k in self.get_requested_per_ticket_fields():
-                result = self._process_field_macros(v)
+                result = self.folder.process_macros(v)
                 yield k, result
             else:
                 yield k, v
@@ -109,7 +55,7 @@ class JiraFieldManager(dict):
             return self[field_name]
 
         try:
-            return self._process_field_macros(self[field_name])
+            return self.folder.process_macros(self[field_name])
         except KeyError:
             return default
 
