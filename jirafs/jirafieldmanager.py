@@ -131,6 +131,31 @@ class JiraFieldManager(dict):
     def get_used_per_ticket_fields(self):
         raise NotImplementedError()
 
+    def get_field_data_files(self):
+        all_files = [
+            constants.TICKET_DETAILS,
+        ]
+
+        used_per_ticket_fields = []
+        try:
+            for field in self.get_used_per_ticket_fields():
+                all_files.append(
+                    constants.TICKET_FILE_FIELD_TEMPLATE.format(
+                        field_name=field,
+                    )
+                )
+        except NotImplementedError:
+            pass
+
+        for field in self.get_requested_per_ticket_fields():
+            all_files.append(
+                constants.TICKET_FILE_FIELD_TEMPLATE.format(
+                    field_name=field,
+                )
+            )
+
+        return all_files
+
     def set_data_value(self, data, field_name, raw_value):
         raw_value = raw_value.strip()
         try:

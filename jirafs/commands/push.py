@@ -213,7 +213,9 @@ class Command(CommandPlugin):
             for field, value in collected_updates.items():
                 fields[field] = value
             fields.write()
-            result = folder.run_git_command('diff')
+
+            field_data_files = fields.get_field_data_files()
+            result = folder.run_git_command('diff', *field_data_files)
             if result.strip():
                 with io.open(macro_patch_filename, 'w', encoding='utf-8') as o:
                     o.write(result)
