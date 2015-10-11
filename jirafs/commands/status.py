@@ -1,8 +1,6 @@
 import json
 
-from blessings import Terminal
-
-from jirafs.plugin import CommandPlugin
+from jirafs.plugin import CommandPlugin, CommandResult
 
 
 class Command(CommandPlugin):
@@ -22,14 +20,18 @@ class Command(CommandPlugin):
         )
 
     def main(self, folder, output_format='text'):
-        status = folder.status()
+        return folder.status()
+
+    def cmd(self, folder, output_format='text'):
+        status = self.main(folder)
         if output_format == 'json':
-            self.status_json(folder, status)
-        self.status_text(folder, status)
-        return status
+            return self.status_json(folder, status)
+        return self.status_text(folder, status)
 
     def status_json(self, folder, status):
-        print(json.dumps(status))
+        result = CommandResult()
+        result = result.add_line(json.dumps(status))
+        return result
 
     def has_changes(self, section, *keys):
         if not keys:
@@ -39,90 +41,87 @@ class Command(CommandPlugin):
                 return True
 
     def status_text(self, folder, folder_status):
-        t = Terminal()
-        print(
-            u"On ticket {ticket} ({url})".format(
-                ticket=folder.ticket_number,
-                url=folder.cached_issue.permalink(),
-            )
+        result = CommandResult()
+
+        result = result.add_line(
+            u"On ticket {ticket} ({url})",
+            ticket=folder.ticket_number,
+            url=folder.cached_issue.permalink(),
         )
         if not folder_status['up_to_date']:
-            print(
-                t.magenta + "Warning: unmerged upstream changes exist; "
-                "run `jirafs merge` to merge them into your local copy." +
-                t.normal
+            result = result.add_line(
+                "{t.magenta}Warning: unmerged upstream changes exist; "
+                "run `jirafs merge` to merge them into your local copy."
+                "{t.normal}"
             )
 
         printed_changes = False
         ready = folder_status['ready']
         if self.has_changes(ready):
             printed_changes = True
-            print('')
-            print(
+            result = result.add_line('')
+            result = result.add_line(
                 "Ready for upload; use `jirafs push` to update JIRA."
             )
-            print(
-                self.format_field_changes(ready, 'green', terminal=t)
-            )
+            result = self.format_field_changes(ready, 'green', result=result)
 
         staged = folder_status['uncommitted']
         if self.has_changes(staged):
             printed_changes = True
-            print('')
-            print(
+            result = result.add_line('')
+            result = result.add_line(
                 "Uncommitted changes; use `jirafs commit` to mark these "
                 "for sending to JIRA during your next push, or "
                 "`jirafs submit` to send these changes directly to JIRA."
             )
-            print(
-                self.format_field_changes(staged, 'red', terminal=t)
-            )
+            result = self.format_field_changes(staged, 'red', result=result)
 
         local_uncommitted = folder_status['local_uncommitted']
         if self.has_changes(local_uncommitted, 'files'):
             printed_changes = True
-            print('')
-            print(
+            result = result.add_line('')
+            result = result.add_line(
                 "Uncommitted changes prevented from being sent to JIRA "
                 "because they match at least one of the patterns in your "
                 "`.jirafs_local` file; use `jirafs commit` to track these "
                 "changes."
             )
-            print(
+            result = result.add_line(
                 "Note: these files will " + t.bold + "not" + t.normal + " "
                 "be uploaded to JIRA even after being committed."
             )
-            print(
-                self.format_field_changes(
-                    local_uncommitted,
-                    'cyan',
-                    no_upload=True,
-                    terminal=t,
-                )
+            result = self.format_field_changes(
+                local_uncommitted,
+                'cyan',
+                no_upload=True,
+                result=result,
             )
 
         if not printed_changes:
-            print('No changes found')
+            result = result.add_line('No changes found')
         else:
-            print("")
-            print('For more detail about these changes, run `jirafs diff`')
+            result = result.add_line("")
+            result = result.add_line(
+                'For more detail about these changes, run `jirafs diff`'
+            )
+
+        return result
 
     def format_field_changes(
-        self, changes, color, no_upload=False, terminal=None
+        self, changes, color, no_upload=False, result=None
     ):
-        if terminal is None:
-            t = Terminal()
-        else:
-            t = terminal
+        if result is None:
+            result = CommandResult()
+
         lines = []
-        color = getattr(t, color)
-        normal = t.normal
 
         for filename in changes.get('files', []):
-            lines.append(
-                '\t' + color + filename + normal + (
-                    ' (track in repository)'
-                    if no_upload else ' (upload attachment)'
+            result = result.add_line(
+                u'\t{t.%s}{filename}{t.normal} {post_message}' % color,
+                filename=filename,
+                post_message=(
+                    '(track in repository)'
+                    if no_upload else '(upload attachment)'
                 )
             )
         for link, data in changes.get('links', {}).get('remote', {}).items():
@@ -133,9 +132,15 @@ class Command(CommandPlugin):
                     description = new['description']
                 else:
                     description = '(Untitled)'
-                lines.append(
-                    '\t' + color + description +
-                    ': ' + link + normal + (
+
+                result = result.add_line(
+                    u'\t{t.%s}{description}: '
+                    u'{link}{t.normal} {post_message}' % (
+                        color,
+                    ),
+                    description=description,
+                    link=link,
+                    post_message = (
                         ' (changed remote link)'
                         if orig else ' (new remote link)'
                     )
@@ -145,9 +150,15 @@ class Command(CommandPlugin):
                     description = orig['description']
                 else:
                     description = '(Untitled)'
-                lines.append(
-                    '\t' + color + description +
-                    ': ' + link + normal + ' (removed remote link)'
+
+                result = result.add_line(
+                    u'\t{t.%s}{description}: '
+                    u'{link}{t.normal} {post_message}' % (
+                        color,
+                    ),
+                    description=description,
+                    link=link,
+                    post_message = '(removed remote link)'
                 )
         for link, data in changes.get('links', {}).get('issue', {}).items():
             orig = data[0]
@@ -157,11 +168,15 @@ class Command(CommandPlugin):
                     status = new['status']
                 else:
                     status = '(Untitled)'
-                lines.append(
-                    '\t' + color + status.title() +
-                    ': ' + link + normal + (
-                        ' (changed issue link)'
-                        if orig else ' (new issue link)'
+                result = result.add_line(
+                    u'\t{t.%s}{status}: {link}{t.normal} {post_message}' % (
+                        color
+                    ),
+                    status=status.title(),
+                    link=link,
+                    post_message=(
+                        '(changed issue link)'
+                        if orig else '(new issue link)'
                     )
                 )
             else:
@@ -169,17 +184,23 @@ class Command(CommandPlugin):
                     status = orig['status']
                 else:
                     status = '(Untitled)'
-                lines.append(
-                    '\t' + color + status.title() +
-                    ': ' + link + normal + ' (removed issue link)'
+
+                result = result.add_line(
+                    '\t{t.%s}{status}: {link}{t.normal} {post_message}' % (
+                        color,
+                    ),
+                    status=status.title(),
+                    link=link,
+                    post_message='(removed issue link)'
                 )
         for field, value_set in changes.get('fields', {}).items():
-            lines.append(
-                '\t' + color + field + normal
+            result = result.add_line(
+                '\t{t.%s}{field}{t.normal}' % color,
+                field = field,
             )
         if changes.get('new_comment', ''):
-            lines.append(
-                '\t' + color + '[New Comment]' + normal
+            result = result.add_line(
+                '\t{t.%s}[New Comment]{t.normal}' % color
             )
 
-        return '\n'.join(lines)
+        return result

@@ -107,9 +107,7 @@ class TestCloneIssue(IntegrationTestBase):
             jira=self.get_jira
         )
 
-        proc = self.run_from_shell('jirafs', 'status', path=issue_path)
-
-        stdout = proc.communicate()[0].decode('utf-8')
+        stdout = self.run_command('status', method='cmd')
 
         assert_strings = [
             'On ticket %s' % issue.key,

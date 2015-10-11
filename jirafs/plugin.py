@@ -5,6 +5,7 @@ import os
 import re
 import sys
 
+from blessings import Terminal
 import six
 from verlib import NormalizedVersion
 
@@ -27,13 +28,33 @@ class PluginOperationError(PluginError):
 
 
 class CommandResult(six.text_type):
-    def __new__(cls, string, return_code=None):
+    def __new__(cls, string=None, return_code=None):
         if string is None:
             string = ''
 
         self = super(CommandResult, cls).__new__(cls, string)
         self.return_code = return_code
+        self.terminal = Terminal()
         return self
+
+    def add_line(self, line, **kwargs):
+        kwargs['t'] = self.terminal
+        if not line.endswith('\n'):
+            line = line + '\n'
+
+        new_result = CommandResult(line.format(**kwargs))
+        return self + new_result
+
+    def __add__(self, other):
+        joined_strings = super(CommandResult, self).__add__(other)
+
+        return_code = None
+        if self.return_code is not None:
+            return_code = self.return_code
+        if isinstance(other, CommandResult) and other.return_code is not None:
+            return_code = other.return_code
+
+        return CommandResult(joined_strings, return_code=return_code)
 
     @property
     def return_code(self):

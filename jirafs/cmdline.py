@@ -105,7 +105,7 @@ def main():
             (time.time() - started)
         )
         if value:
-            print(value)
+            print(value.strip())
         sys.exit(value.return_code)
     except GitCommandError as e:
         print(
