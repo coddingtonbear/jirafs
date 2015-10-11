@@ -28,6 +28,34 @@ made.
 Write the content of the field named ``field name`` to the console.  Useful
 in scripts for gathering, for example, the ticket's ``summary`` field.
 
+Note that you can also access subkeys in fields containing JSON by using
+a dotpath.
+
+``setfield <field name> <value>``
+---------------------------------
+
+Set the value of the field named ``field name`` to the value ``value``.
+This is useful for programmatically changing the status of various fields.
+
+Note that you can also access subkeys in fields containing JSON by using
+a dotpath.
+
+``match <field name> <value>``
+------------------------------
+
+Return a status code of ``0`` if the field ``field name`` matches the value
+``value``.  This is useful for allowing you to programmatically perform
+certain actions on fields matching certain values -- for example: moving 
+resolved issues into an archive folder.
+
+As with all commands, check ``--help`` for this command; you'll find
+utilities allowing you to invert the check (for returning ``0`` when
+the check does **not** match) and utilities for executing a command
+when the field does not match.
+
+Note that you can also access subkeys in fields containing JSON by using
+a dotpath.
+
 ``log``
 -------
 
