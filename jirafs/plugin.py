@@ -370,7 +370,7 @@ class MacroPlugin(Plugin):
 
 class BlockElementMacroPlugin(MacroPlugin):
     BASE_REGEX = (
-        r'^(?P<start>{{{tag_name}}})(?P<content>.*?)'
+        r'^(?P<start>{{{tag_name}[^}}]*}})(?P<content>.*?)'
         r'(?P<end>{{{tag_name}}})$'
     )
 
