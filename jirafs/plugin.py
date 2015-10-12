@@ -67,14 +67,14 @@ class CommandResult(six.text_type):
 
         return self
 
-    def add_line(self, line, no_format=False, **kwargs):
-        if not line.endswith('\n'):
-            line = line + '\n'
+    def add_line(self, the_line, no_format=False, **kwargs):
+        if not the_line.endswith('\n'):
+            the_line = the_line + '\n'
 
         if not no_format:
             kwargs['t'] = self.terminal
             try:
-                line = line.format(**kwargs)
+                the_line = the_line.format(**kwargs)
             except KeyError:
                 logger.warning(
                     "An error was encountered while attempting to format "
@@ -83,7 +83,7 @@ class CommandResult(six.text_type):
                     "the outgoing string includes curly braces.",
                 )
 
-        new_result = CommandResult(line)
+        new_result = CommandResult(the_line)
         return self + new_result
 
     def __add__(self, other):

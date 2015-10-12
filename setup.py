@@ -88,6 +88,7 @@ setup(
             'submit = jirafs.commands.submit:Command',
             'macropatch = jirafs.commands.macropatch:Command',
             'match = jirafs.commands.match:Command',
+            'build = jirafs.commands.build:Command',
         ]
     },
 )

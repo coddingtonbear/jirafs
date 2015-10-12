@@ -557,6 +557,10 @@ class TicketFolder(object):
                 constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field)
             )
 
+        for plugin in self.plugins:
+            if hasattr(plugin, 'get_ignore_globs'):
+                all_globs.extend(plugin.get_ignore_globs())
+
         def get_globs_from_file(input_file):
             globs = []
             for line in input_file.readlines():
@@ -616,7 +620,6 @@ class TicketFolder(object):
             ).split('\n'),
             constants.LOCAL_ONLY_FILE
         )
-
         ready['files'] = changed_files
 
         return ready
@@ -634,7 +637,6 @@ class TicketFolder(object):
         modified_files = self.run_git_command(
             'ls-files', '-m', failure_ok=True
         ).split('\n')
-
         uncommitted['files'] = self.filter_ignored_files(
             [
                 filename for filename in new_files + modified_files
@@ -770,6 +772,15 @@ class TicketFolder(object):
             self._macro_plugins = plugins
 
         return self._macro_plugins
+
+    def process_plugin_builds(self):
+        results = {}
+
+        for plugin in self.plugins:
+            if hasattr(plugin, 'run_build_process'):
+                results[plugin.plugin_name] = plugin.run_build_process()
+
+        return results
 
     def process_macros(self, data):
         macro_plugins = self.get_macro_plugins()

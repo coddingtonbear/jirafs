@@ -54,6 +54,8 @@ Alteration Methods
 
 * ``alter_file_upload((filename, file_like_object, ))``:
 
+  * **DEPRECATED**: Use **run_build_process** and **get_ignore_globs**
+    instead.
   * Alter a file pre-upload.
   * Return a new tuple of ``(filename, file_like_object)``.
 
@@ -85,6 +87,18 @@ Alteration Methods
 
   * Return an altered ``status_dict``.
 
+* ``get_ignore_globs``:
+
+  * Executed when building the ignore glob list.  Use this if your plugin
+    compiles files of one type to another so you can prevent the source
+    file from being uploaded.
+
+* ``run_build_process``:
+
+  * Will be executed for every plugin before running ``commmit`` or
+    when running ``build``.  Although this is intended for use when
+    autocompiling files from one format to another for JIRA upload,
+    feel free to experiment.
 
 .. note::
 

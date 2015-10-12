@@ -96,6 +96,13 @@ Plugins provides several sub-options:
   or disable a plugin globally.  Note: per-folder settings always take
   priority.
 
+``build``
+---------
+
+Run build scripts for any installed plugins.  This will occur automatically
+during ``commit``, but if you need to examine the output of a build before
+uploading, you can use this command to preview the results.
+
 ``git``
 -------
 
