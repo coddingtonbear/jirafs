@@ -871,9 +871,9 @@ class TicketFolder(object):
 
     def status(self):
         status = {
-            'uncommitted': self.get_uncommitted_changes(),
             'ready': self.get_ready_changes(),
             'local_uncommitted': self.get_local_uncommitted_changes(),
+            'uncommitted': self.get_uncommitted_changes(),
             'up_to_date': self.is_up_to_date(),
         }
 
