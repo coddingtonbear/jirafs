@@ -598,6 +598,16 @@ class TicketFolder(object):
         return False
 
     def get_ready_changes(self):
+        ready = {
+            'fields': (
+                self.get_fields('HEAD') - self.get_fields(self.git_merge_base)
+            ),
+            'links': (
+                self.get_links('HEAD') - self.get_links(self.git_merge_base)
+            ),
+            'new_comment': self.get_new_comment(ready=True),
+        }
+
         changed_files = self.filter_ignored_files(
             self.run_git_command(
                 'diff',
@@ -607,18 +617,17 @@ class TicketFolder(object):
             constants.LOCAL_ONLY_FILE
         )
 
-        return {
-            'fields': (
-                self.get_fields('HEAD') - self.get_fields(self.git_merge_base)
-            ),
-            'links': (
-                self.get_links('HEAD') - self.get_links(self.git_merge_base)
-            ),
-            'files': changed_files,
-            'new_comment': self.get_new_comment(ready=True)
-        }
+        ready['files'] = changed_files
+
+        return ready
 
     def get_uncommitted_changes(self):
+        uncommitted = {
+            'fields': self.get_fields() - self.get_fields('HEAD'),
+            'new_comment': self.get_new_comment(ready=False),
+            'links': self.get_links() - self.get_links('HEAD'),
+        }
+
         new_files = self.run_git_command(
             'ls-files', '-o', failure_ok=True
         ).split('\n')
@@ -626,20 +635,17 @@ class TicketFolder(object):
             'ls-files', '-m', failure_ok=True
         ).split('\n')
 
-        return {
-            'files': self.filter_ignored_files(
-                [
-                    filename for filename in new_files + modified_files
-                    if filename
-                ],
-                constants.LOCAL_ONLY_FILE,
-                constants.GIT_IGNORE_FILE,
-                constants.GIT_EXCLUDE_FILE,
-            ),
-            'fields': self.get_fields() - self.get_fields('HEAD'),
-            'links': self.get_links() - self.get_links('HEAD'),
-            'new_comment': self.get_new_comment(ready=False)
-        }
+        uncommitted['files'] = self.filter_ignored_files(
+            [
+                filename for filename in new_files + modified_files
+                if filename
+            ],
+            constants.LOCAL_ONLY_FILE,
+            constants.GIT_IGNORE_FILE,
+            constants.GIT_EXCLUDE_FILE,
+        )
+
+        return uncommitted
 
     def get_local_uncommitted_changes(self):
         new_files = self.run_git_command(

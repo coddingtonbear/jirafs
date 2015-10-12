@@ -357,7 +357,7 @@ class MacroPlugin(Plugin):
                 continue
 
             attribute, value = segment.split('=', 1)
-            attributes[attribute] = value
+            attributes[attribute.strip(':')] = value
 
         return attributes
 
