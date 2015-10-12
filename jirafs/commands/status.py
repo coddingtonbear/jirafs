@@ -87,7 +87,7 @@ class Command(CommandPlugin):
                 "changes."
             )
             result = result.add_line(
-                "Note: these files will " + t.bold + "not" + t.normal + " "
+                "Note: these files will {t.bold}not{t.normal} "
                 "be uploaded to JIRA even after being committed."
             )
             result = self.format_field_changes(
