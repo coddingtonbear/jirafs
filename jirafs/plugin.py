@@ -350,14 +350,14 @@ class MacroPlugin(Plugin):
 
         attributes = {}
 
-        attribute_content = tag[tag.find(':'):-1]
+        attribute_content = tag[tag.find(':')+1:-1]
         for segment in attribute_content.split('|'):
             if '=' not in segment:
                 attributes[segment] = True
                 continue
 
             attribute, value = segment.split('=', 1)
-            attributes[attribute.strip(':')] = value
+            attributes[attribute] = value
 
         return attributes
 
