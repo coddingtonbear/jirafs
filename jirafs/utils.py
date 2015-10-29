@@ -131,7 +131,7 @@ def get_config(additional_configs=None, include_global=True):
     if additional_configs:
         filenames.extend(additional_configs)
 
-    parser = configparser.ConfigParser()
+    parser = configparser.RawConfigParser()
     parser.read(filenames)
     return parser
 
