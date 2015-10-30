@@ -10,3 +10,4 @@ include/*
 *egg*
 share/*
 .tox/*
+.noseids

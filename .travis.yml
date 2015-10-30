@@ -4,6 +4,7 @@ python:
 - 2.7
 - 3.3
 before_install:
+- curl -fI $INTEGRATION_TESTING_URL
 - pip install -r requirements.txt
 - pip install pytest mock pretend freezegun
 - pip install -e .
