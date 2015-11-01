@@ -59,6 +59,9 @@ def stash_local_changes(repo):
 
 
 def get_user_input(message, options=None, boolean=False, password=False):
+    if not constants.ALLOW_USER_INPUT:
+        raise RuntimeError("User input is disabled")
+
     value = None
     while value is None:
         if not password:
@@ -122,12 +125,16 @@ def get_installed_plugins(subclass=Plugin):
     return possible_plugins
 
 
+def get_config_path(filename):
+    if filename.startswith('/'):
+        return filename
+    return os.path.expanduser('~/%s' % filename)
+
+
 def get_config(additional_configs=None, include_global=True):
     filenames = []
     if include_global:
-        filenames.append(
-            os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG)
-        )
+        filenames.append(get_config_path(constants.GLOBAL_CONFIG))
     if additional_configs:
         filenames.extend(additional_configs)
 
@@ -141,14 +148,13 @@ def set_global_config_value(section, key, value):
     if not config.has_section(section):
         config.add_section(section)
     config.set(section, key, value)
-    with open(
-        os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG), 'w'
-    ) as out:
+    with open(get_config_path(constants.GLOBAL_CONFIG), 'w') as out:
         config.write(out)
 
 
-def get_default_jira_server():
-    config = get_config()
+def get_default_jira_server(config=None):
+    if config is None:
+        config = get_config()
 
     if not config.has_section(constants.CONFIG_JIRA):
         config.add_section(constants.CONFIG_JIRA)
@@ -168,6 +174,22 @@ def get_default_jira_server():
 
 
 def get_jira(domain=None, config=None):
+    def get_section(config, domain):
+        if domain is None:
+            return constants.CONFIG_JIRA
+
+        valid_options = [
+            domain.strip('/'),
+            domain.strip('/') + '/',
+        ]
+
+        for option in valid_options:
+            if config.has_section(option):
+                return option
+
+        config.add_section(valid_options[0])
+        return valid_options[0]
+
     if config is None:
         config = get_config()
 
@@ -175,18 +197,12 @@ def get_jira(domain=None, config=None):
         'verify': True
     }
 
-    if domain is None:
-        section = constants.CONFIG_JIRA
-    else:
-        section = domain
-
-    if not config.has_section(section):
-        config.add_section(section)
+    section = get_section(config, domain)
 
     if domain is not None:
         login_data['server'] = domain
     else:
-        login_data['server'] = get_default_jira_server()
+        login_data['server'] = get_default_jira_server(config)
         # Config may have been changed as a result of the above; reload.
         config = get_config()
 
@@ -232,9 +248,7 @@ def get_jira(domain=None, config=None):
     )
     jira = JIRA(login_data, basic_auth=basic_auth)
 
-    with open(
-            os.path.expanduser('~/%s' % constants.GLOBAL_CONFIG), 'w'
-    ) as global_config:
+    with open(get_config_path(constants.GLOBAL_CONFIG), 'w') as global_config:
         config.write(global_config)
 
     return jira

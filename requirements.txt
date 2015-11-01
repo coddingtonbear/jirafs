@@ -4,3 +4,4 @@ blessings>=1.5.1,<1.6.0
 ipdb>=0.8,<1.0
 verlib>=0.1,<1.0
 prettytable>=0.7.2,<1.0
+environmental-override>=0.1.1

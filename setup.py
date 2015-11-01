@@ -56,7 +56,7 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     install_requires=requirements,
-    tests_require=['tox'],
+    tests_require=['tox', 'behave>=1.2.5'],
     cmdclass = {'test': Tox},
     packages=find_packages(),
     entry_points={

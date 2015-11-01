@@ -38,4 +38,11 @@ FILE_FIELD_BLACKLIST = [
     'links',
 ]
 
+ALLOW_USER_INPUT = True
+
 CURRENT_REPO_VERSION = 16
+
+
+from environmental_override import override
+override(locals(), 'JIRAFS_')
+

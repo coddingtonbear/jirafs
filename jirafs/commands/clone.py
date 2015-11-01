@@ -45,6 +45,14 @@ class Command(CommandPlugin):
 
         utils.run_command_method_with_kwargs('pull', folder=folder)
 
+        folder.log(
+            "Issue %s cloned successfully to %s",
+            (
+                folder.issue_url,
+                folder.path,
+            )
+        )
+
         return folder
 
     def clone_from_git_repository(self, url, path, jira):
