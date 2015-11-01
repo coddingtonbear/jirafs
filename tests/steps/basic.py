@@ -3,45 +3,55 @@ from __future__ import print_function
 import collections
 import json
 import os
+import shutil
 import subprocess
-import textwrap
 
 from behave import *
+from jira.client import JIRA
 
 
 @given('jirafs is installed and configured')
 def installed_and_configured(context):
-    keys = {
-        'known_ticket_url': 'INTEGRATION_TESTING_KNOWN_TICKET',
-        'username': 'INTEGRATION_TESTING_USERNAME',
-        'url': 'INTEGRATION_TESTING_URL',
-        'project': 'INTEGRATION_TESTING_PROJECT',
-        'password': 'INTEGRATION_TESTING_PASSWORD',
-    }
-    context.integration_testing = {}
-    for k, v in keys.items():
-        context.integration_testing[k] = os.environ[v]
+    pass
 
-    context.integration_testing['config_path'] = (
-        os.path.join(os.getcwd(), 'jirafs_config')
-    )
-
-    with open(context.integration_testing['config_path'], 'w') as out:
-        out.write(
-            textwrap.dedent(
-                """\
-                    [{url}]
-                    username={username}
-                    password={password}
-
-                    [jira]
-                    server={url}
-
-                """.format(
-                    **context.integration_testing
-                )
-            )
+@given('a cloned ticket with the following fields')
+def cloned_ticket_with_following_fields(context):
+    jira_client = JIRA(
+        {
+            'server': context.integration_testing['url'],
+            'verify': False,
+            'check_update': False,
+        },
+        basic_auth=(
+            context.integration_testing['username'],
+            context.integration_testing['password'],
         )
+    )
+    
+    issue_data = {
+        'project': {
+            'key': context.integration_testing['project']
+        },
+        'issuetype': {
+            'name': 'Task',
+        }
+    }
+    for row in context.table:
+        issue_data[row[0]] = json.loads(row[1])
+
+    issue = jira_client.create_issue(issue_data)
+
+    if not 'cleanup_steps' in context:
+        context.cleanup_steps = []
+    context.cleanup_steps.append(
+        lambda context: issue.delete()
+    )
+    context.execute_steps(
+        u'''
+        when the command "jirafs clone {url}" is executed
+        and we enter the ticket folder for "{url}"
+        '''.format(url=issue.permalink())
+    )
 
 
 @when('the command "{command}" is executed')
@@ -100,3 +110,9 @@ def output_will_contain(context, expected):
 @step('print execution results')
 def print_stdout(context):
     print(json.dumps(context.executions[0], indent=4, sort_keys=True))
+
+
+@step('debugger')
+def debugger(context):
+    import ipdb
+    ipdb.set_trace()
