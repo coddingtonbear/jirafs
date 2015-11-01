@@ -53,7 +53,7 @@ def execute_command(context, command):
     env['JIRAFS_ALLOW_USER_INPUT__BOOL'] = '0'
 
     proc = subprocess.Popen(
-        command,
+        command.encode('utf-8'),
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -68,8 +68,8 @@ def execute_command(context, command):
     context.executions.appendleft(
         {
             'command': command,
-            'stdout': stdout,
-            'stderr': stderr,
+            'stdout': stdout.decode('utf-8'),
+            'stderr': stderr.decode('utf-8'),
             'return_code': proc.returncode,
         }
     )
