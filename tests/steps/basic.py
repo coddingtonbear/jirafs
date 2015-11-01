@@ -75,6 +75,18 @@ def execute_command(context, command):
     )
 
 
+@when('we enter the ticket folder for "{url}"')
+def execute_command(context, url):
+    url = url.format(**context.integration_testing)
+
+    os.chdir(os.path.join(os.getcwd(), url.split('/')[-1]))
+
+
+@then('the directory will contain a file named "{filename}"')
+def directory_contains_file(context, filename):
+    assert filename in os.listdir('.'), "%s not in folder" % filename
+
+
 @then('the output will contain the text "{expected}"')
 def output_will_contain(context, expected):
     expected = expected.format(**context.integration_testing)
