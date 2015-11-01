@@ -10,7 +10,9 @@ before_install:
 - pip install -e .
 - git config --global user.email "gitbot@adamcoddington.net"
 - git config --global user.name "I'm a Robot"
-script: py.test
+script:
+- py.test
+- behave tests/
 notifications:
   webhooks:
     urls:
