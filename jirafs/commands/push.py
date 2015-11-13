@@ -48,7 +48,11 @@ class Command(CommandPlugin):
             status = folder.status()
 
             if not folder.is_up_to_date():
-                raise exceptions.LocalCopyOutOfDate()
+                raise exceptions.LocalCopyOutOfDate(
+                    "Your local copy is out-of-date.  You must use "
+                    "the 'merge' command to update your local copy "
+                    "before pushing changes."
+                )
 
             file_meta = folder.get_remote_file_metadata(shadow=False)
 

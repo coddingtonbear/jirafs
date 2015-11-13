@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import time
+import traceback
 
 from blessings import Terminal
 try:
@@ -78,6 +79,11 @@ def main():
         action='store_true',
         default=False,
     )
+    parser.add_argument(
+        '--traceback',
+        action='store_true',
+        default=False,
+    )
     args, extra = parser.parse_known_args()
 
     if args.log_level is not None:
@@ -126,6 +132,8 @@ def main():
         for line in e.output.decode('utf8').split('\n'):
             print(u"    %s" % line)
         print(u"{t.normal}".format(t=term))
+        if args.traceback:
+            traceback.print_exc()
         sys.exit(10)
     except NotTicketFolderException:
         if not getattr(cmd_class, 'TRY_SUBFOLDERS', False):
@@ -163,6 +171,8 @@ def main():
             except NotTicketFolderException:
                 pass
         if count_runs == 0:
+            if args.traceback:
+                traceback.print_exc()
             sys.exit(21)
     except JIRAError as e:
         print(
@@ -173,6 +183,8 @@ def main():
                 error=str(e)
             )
         )
+        if args.traceback:
+            traceback.print_exc()
         sys.exit(70)
     except JiraInteractionFailed as e:
         print(
@@ -182,6 +194,8 @@ def main():
                 error=str(e)
             )
         )
+        if args.traceback:
+            traceback.print_exc()
         sys.exit(80)
     except JirafsError as e:
         print(
@@ -191,4 +205,6 @@ def main():
                 error=str(e)
             )
         )
+        if args.traceback:
+            traceback.print_exc()
         sys.exit(90)
