@@ -59,7 +59,7 @@ certificate.
 
 For example:
 
-.. code-block:: python
+.. code-block:: ini
    :linenos:
    :emphasize-lines: 4
 
@@ -68,3 +68,17 @@ For example:
    password = mypassword
    verify = /path/to/certificate/or/false
 
+Disabling "Save JIRA Password" prompt
+-------------------------------------
+
+If you would never like to save your JIRA password in Jirafs, you can disable
+the "Save JIRA Password" prompt by setting the ``ask_to_save`` setting to ``false`` in the ``main`` section of your ``~/.jirafs_config`` file.
+
+For example:
+
+.. code-block:: ini
+   :linenos:
+   :emphasize-lines: 4
+
+   [main]
+   ask_to_save = false
