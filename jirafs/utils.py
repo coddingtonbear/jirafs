@@ -193,6 +193,15 @@ def get_jira(domain=None, config=None):
     if config is None:
         config = get_config()
 
+    if not config.has_section(constants.CONFIG_MAIN):
+        config.add_section(constants.CONFIG_MAIN)
+
+    ask_to_save = True
+    if config.has_option(constants.CONFIG_MAIN, 'ask_to_save'):
+        ask_to_save = convert_to_boolean(
+            config.get(constants.CONFIG_MAIN, 'ask_to_save')
+        )
+
     login_data = {
         'verify': True
     }
@@ -222,9 +231,10 @@ def get_jira(domain=None, config=None):
         )
         login_data['password'] = value
 
-        save = get_user_input("Save JIRA Password (Y/N)?", boolean=True)
-        if save:
-            config.set(section, 'password', value)
+        if ask_to_save:
+            save = get_user_input("Save JIRA Password (Y/N)?", boolean=True)
+            if save:
+                config.set(section, 'password', value)
     else:
         login_data['password'] = config.get(section, 'password')
 

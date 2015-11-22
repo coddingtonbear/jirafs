@@ -22,6 +22,7 @@ GIT_AUTHOR = 'Jirafs %s <jirafs@localhost>' % (
 
 # Config sections
 CONFIG_JIRA = 'jira'
+CONFIG_MAIN = 'main'
 CONFIG_PLUGINS = 'plugins'
 
 NO_DETAIL_FIELDS = [
