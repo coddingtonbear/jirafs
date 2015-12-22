@@ -236,6 +236,11 @@ class Command(CommandPlugin):
                 folder.run_git_command(
                     'checkout', '--', '.'
                 )
+                print(
+                    folder.run_git_command(
+                        'rev-list', '-1', 'HEAD', macro_patch_filename,
+                    )
+                )
             else:
                 with io.open(macro_patch_filename, 'w', encoding='utf-8') as o:
                     o.write(u'\n\n')

@@ -40,6 +40,12 @@ class Command(CommandPlugin):
                 macro_patch_filename,
                 shadow=True,
             )
+            print(
+                folder.run_git_command(
+                    'rev-list', '-1', 'HEAD', macro_patch_filename,
+                    shadow=True,
+                )
+            )
         except GitCommandError as e:
             folder.log(
                 "Error encountered while reversing applied macros: %s",

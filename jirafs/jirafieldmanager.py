@@ -25,16 +25,26 @@ class JiraFieldManager(dict):
         else:
             self._data = data
             self._names = names
+
         super(JiraFieldManager, self).__init__(self._data)
 
     def __sub__(self, other):
         differing = {}
         for k, v in other.items():
-            if (self.get(k) or v) and self.get(k) != v:
-                tx = self.get(k)
-                differing[k] = (v, tx, self.get(k), )
+            if self.autotransform:
+                pass
+            else:
+                if (self.get(k) or v) and self.get(k) != v:
+                    tx = self.get(k)
+                    differing[k] = (v, tx, self.get(k), )
 
         return differing
+
+    def autotransform(self):
+        value = copy.deepcopy(self)
+        value.autotransform = True
+
+        return value
 
     def get_human_name_for_field(self, field):
         try:
