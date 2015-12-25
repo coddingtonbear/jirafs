@@ -2,6 +2,7 @@ import codecs
 import datetime
 import fnmatch
 import io
+import inspect
 import json
 import logging
 import os
@@ -509,7 +510,8 @@ class TicketFolder(object):
             (
                 " ".join(cmd),
             ),
-            logging.DEBUG
+            logging.DEBUG,
+            sublogger='git',
         )
 
         handle = subprocess.Popen(
@@ -981,16 +983,28 @@ class TicketFolder(object):
             except:
                 pass
 
-    def log(self, message, args=None, level=logging.INFO):
+    def log(self, message, args=None, level=logging.INFO, sublogger=None):
         if args is None:
             args = []
+
+        module_name = inspect.getmodule(inspect.stack()[1][0]).__name__
+        logger_name = module_name
+        if sublogger:
+            logger_name = '{module_name}:{sublogger}'.format(
+                module_name=module_name,
+                sublogger=sublogger
+            )
+
         logger.log(level, message, *args)
         with io.open(self.log_path, 'a', encoding='utf-8') as log_file:
             log_file.write(
-                six.text_type(u"%s\t%s\t%s\n") % (
-                    datetime.datetime.utcnow().isoformat(),
-                    logging.getLevelName(level),
-                    (message % args).replace('\n', '\\n')
+                six.text_type(
+                    u"{date}\t{level}\t{module}\t{message}\n".format(
+                        date=datetime.datetime.utcnow().isoformat(),
+                        level=logging.getLevelName(level),
+                        module=logger_name,
+                        message=(message % args).replace('\n', '\\n')
+                    )
                 )
             )
         if level >= logging.INFO and not self.quiet:
