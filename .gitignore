@@ -4,6 +4,7 @@ lib/*
 src/*
 man/*
 dist/*
+build/*
 docs/build/*
 include/*
 .Python
