@@ -1,5 +1,10 @@
 from jirafs.plugin import CommandPlugin
 
+try:
+    import ipdb as pdb
+except ImportError:
+    import pdb
+
 
 class Command(CommandPlugin):
     """ Open a debug console """
@@ -7,5 +12,5 @@ class Command(CommandPlugin):
     MAX_VERSION = '1.99.99'
 
     def main(self, folder, **kwargs):
-        import ipdb
-        return ipdb.set_trace()
+        import pdb
+        return pdb.set_trace()
