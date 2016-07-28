@@ -63,7 +63,7 @@ class JiraLinkManager(dict):
                 continue
             line = line[1:].strip()
             try:
-                left, right = line.split(': ')
+                left, right = line.split(': ', 1)
             except ValueError:
                 raise exceptions.IssueValidationError(
                     u"Remote links must have a description; format your "
