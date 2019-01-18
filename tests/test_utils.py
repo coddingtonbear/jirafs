@@ -1,6 +1,6 @@
 import mock
 
-from verlib import NormalizedVersion
+from distutils.version import LooseVersion
 
 from jirafs import utils
 
@@ -43,7 +43,7 @@ class TestParseGitVersion(BaseTestCase):
 
         actual_version = utils.get_git_version()
 
-        self.assertEqual(actual_version, NormalizedVersion("1.8.5.2"))
+        self.assertEqual(actual_version, LooseVersion("1.8.5.2"))
 
     @mock.patch("jirafs.utils.subprocess.check_output")
     def test_parse_linux_git_version(self, git_version_output):
@@ -51,4 +51,4 @@ class TestParseGitVersion(BaseTestCase):
 
         actual_version = utils.get_git_version()
 
-        self.assertEqual(actual_version, NormalizedVersion("1.9.1"))
+        self.assertEqual(actual_version, LooseVersion("1.9.1"))

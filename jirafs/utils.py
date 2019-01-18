@@ -8,7 +8,7 @@ import subprocess
 
 from jira.client import JIRA
 from six.moves import configparser, input
-from verlib import NormalizedVersion
+from distutils.version import LooseVersion
 
 from . import constants
 from .plugin import CommandPlugin, Plugin
@@ -270,7 +270,7 @@ def get_git_version():
         stderr=subprocess.PIPE,
     ).decode('utf8')
     version_string = re.match('git version ([0-9.]+).*', result).group(1)
-    return NormalizedVersion(version_string)
+    return LooseVersion(version_string)
 
 
 def lazy_get_jira():
