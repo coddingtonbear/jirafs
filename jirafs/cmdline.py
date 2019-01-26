@@ -16,7 +16,7 @@ except ImportError:
     from jira.exceptions import JIRAError
 import six
 from six.moves import shlex_quote
-from verlib import NormalizedVersion
+from distutils.version import LooseVersion
 
 from . import utils
 from .exceptions import (
@@ -43,7 +43,7 @@ def main():
             "any version of Python 3.  Please upgrade your version of "
             "python before using Jirafs."
         )
-    if utils.get_git_version() < NormalizedVersion('1.8'):
+    if utils.get_git_version() < LooseVersion('1.8'):
         raise RuntimeError(
             "Jirafs requires minimally version 1.8 of Git.  Please "
             "upgrade your version of git before using Jirafs."

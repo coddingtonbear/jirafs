@@ -9,7 +9,7 @@ import sys
 
 from blessings import Terminal
 import six
-from verlib import NormalizedVersion
+from distutils.version import LooseVersion
 
 from . import __version__
 
@@ -120,9 +120,9 @@ class JirafsPluginBase(object):
                 "Minimum and maximum version numbers not specified."
             )
 
-        min_version = NormalizedVersion(self.MIN_VERSION)
-        max_version = NormalizedVersion(self.MAX_VERSION)
-        curr_version = NormalizedVersion(__version__)
+        min_version = LooseVersion(self.MIN_VERSION)
+        max_version = LooseVersion(self.MAX_VERSION)
+        curr_version = LooseVersion(__version__)
         if not min_version <= curr_version <= max_version:
             raise PluginValidationError(
                 "Plugin '%s' is not compatible with version %s of Jirafs; "
