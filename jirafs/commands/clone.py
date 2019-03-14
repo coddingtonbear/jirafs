@@ -41,9 +41,14 @@ class Command(CommandPlugin):
             path = match.group(1)
         path = os.path.realpath(path)
         os.mkdir(path)
-        folder = TicketFolder.initialize_ticket_folder(ticket_url, path, jira)
 
-        utils.run_command_method_with_kwargs('pull', folder=folder)
+        try:
+            folder = TicketFolder.initialize_ticket_folder(ticket_url, path, jira)
+
+            utils.run_command_method_with_kwargs('pull', folder=folder)
+        except Exception:
+            shutil.rmtree(path)
+            raise
 
         folder.log(
             "Issue %s cloned successfully to %s",
