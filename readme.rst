@@ -36,7 +36,7 @@ Requirements
 ------------
 
 * ``git >= 1.8``
-* ``python >= 2.7`` or ``python3 >= 3.3``
+* ``python >= 2.7`` or ``python3 >= 3.4``
 
 ----------
 
