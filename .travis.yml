@@ -5,6 +5,7 @@ python:
 - 3.3
 before_install:
 - curl -fI $INTEGRATION_TESTING_URL
+- pip install --upgrade setuptools
 - pip install -r requirements.txt
 - pip install pytest mock behave
 - pip install -e .
