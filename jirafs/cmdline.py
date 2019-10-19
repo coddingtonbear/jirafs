@@ -67,7 +67,7 @@ def main():
     )
     parser.add_argument(
         '--log-level',
-        default=None,
+        default='INFO',
         dest='log_level',
     )
     parser.add_argument(
@@ -86,8 +86,7 @@ def main():
     )
     args, extra = parser.parse_known_args()
 
-    if args.log_level is not None:
-        logging.basicConfig(level=logging.getLevelName(args.log_level))
+    logging.basicConfig(level=logging.getLevelName(args.log_level))
 
     command_name = args.command
     cmd_class = commands[command_name]

@@ -1,6 +1,7 @@
 import collections
 import contextlib
 import getpass
+import logging
 import os
 import pkg_resources
 import re
@@ -12,6 +13,9 @@ from distutils.version import LooseVersion
 
 from . import constants
 from .plugin import CommandPlugin, Plugin
+
+
+logger = logging.getLogger(__name__)
 
 
 def convert_to_boolean(string):
@@ -101,8 +105,18 @@ def get_installed_commands():
         try:
             loaded_class = entry_point.load()
         except ImportError:
+            logger.warning(
+                "Attempted to load entrypoint %s, but "
+                "an ImportError occurred.",
+                entry_point
+            )
             continue
         if not issubclass(loaded_class, CommandPlugin):
+            logger.warning(
+                "Loaded entrypoint %s, but loaded class is "
+                "not a subclass of `jirafs.plugin.CommandPlugin`.",
+                entry_point
+            )
             continue
         possible_commands[entry_point.name] = loaded_class
 
@@ -117,8 +131,25 @@ def get_installed_plugins(subclass=Plugin):
         try:
             loaded_class = entry_point.load()
         except ImportError:
+            logger.warning(
+                "Attempted to load entrypoint %s, but "
+                "an ImportError occurred.",
+                entry_point
+            )
+            continue
+        if not issubclass(loaded_class, Plugin):
+            logger.warning(
+                "Loaded entrypoint %s, but loaded class is "
+                "not a subclass of `jirafs.plugin.Plugin`.",
+                entry_point
+            )
             continue
         if not issubclass(loaded_class, subclass):
+            # Do not emit a warning here -- this filter occurs
+            # when we've limited the acceptable plugins to
+            # a subset of jirafs.plugin.Plugin classes
+            # intentionally, so this test failing is not
+            # an error.
             continue
         possible_plugins[entry_point.name] = loaded_class
 
