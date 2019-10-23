@@ -1,8 +1,8 @@
 import argparse
-
 import codecs
 import copy
 import logging
+import logging.config
 import os
 import subprocess
 import sys
@@ -33,6 +33,32 @@ if sys.version_info < (3, ) and sys.stdout.encoding is None:
 
 
 logger = logging.getLogger(__name__)
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'pretty': {
+            'format': '[%(levelname)s] %(message)s'
+        },
+        'file': {
+            'format': '%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'pretty',
+            'stream': 'ext://sys.stdout',
+        }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO'
+    }
+}
 
 
 def main():
@@ -86,7 +112,9 @@ def main():
     )
     args, extra = parser.parse_known_args()
 
-    logging.basicConfig(level=logging.getLevelName(args.log_level))
+    logging.config.dictConfig(LOGGING)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.getLevelName(args.log_level))
 
     command_name = args.command
     cmd_class = commands[command_name]

@@ -1,10 +1,8 @@
 import codecs
-import datetime
 import fnmatch
-import io
-import inspect
-import json
 import logging
+import io
+import json
 import os
 import re
 import subprocess
@@ -22,7 +20,12 @@ from .jirafieldmanager import JiraFieldManager
 from .plugin import MacroPlugin, PluginValidationError
 
 
-logger = logging.getLogger(__name__)
+class TicketFolderLoggerAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        return '{{{issue_id}}} {msg}'.format(
+            issue_id=self.extra['issue_id'],
+            msg=msg,
+        ), kwargs
 
 
 class TicketFolder(object):
@@ -33,6 +36,24 @@ class TicketFolder(object):
         self.quiet = quiet
         self.issue_url = self.get_ticket_url()
         self.get_jira = jira
+
+        self._formatter = logging.Formatter(
+            fmt='%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s'
+        )
+        self._handler = logging.handlers.RotatingFileHandler(
+            self.get_metadata_path(constants.TICKET_OPERATION_LOG),
+            maxBytes=2**20,
+            backupCount=2
+        )
+        self._handler.setFormatter(self._formatter)
+        self._logger = logging.getLogger(
+            '.'.join([__name__, self.ticket_number.replace('-', '_')])
+        )
+        self._logger.addHandler(self._handler)
+        self._logger_adapter = TicketFolderLoggerAdapter(
+            self._logger,
+            {'issue_id': self.ticket_number},
+        )
 
         if not os.path.isdir(self.metadata_dir):
             raise exceptions.NotTicketFolderException(
@@ -54,6 +75,10 @@ class TicketFolder(object):
 
         # Let's update the ignore file while we're here.
         self.build_ignore_files()
+
+    @property
+    def logger(self):
+        return self._logger_adapter
 
     def __repr__(self):
         if six.PY3:
@@ -510,8 +535,7 @@ class TicketFolder(object):
             (
                 " ".join(cmd),
             ),
-            logging.DEBUG,
-            sublogger='git',
+            logging.DEBUG
         )
 
         handle = subprocess.Popen(
@@ -983,38 +1007,11 @@ class TicketFolder(object):
             except:
                 pass
 
-    def log(self, message, args=None, level=logging.INFO, sublogger=None):
+    def log(self, message, args=None, level=logging.INFO):
         if args is None:
             args = []
 
-        module_name = inspect.getmodule(inspect.stack()[1][0]).__name__
-        logger_name = module_name
-        if sublogger:
-            logger_name = '{module_name}:{sublogger}'.format(
-                module_name=module_name,
-                sublogger=sublogger
-            )
-
-        logger.log(level, message, *args)
-        with io.open(self.log_path, 'a', encoding='utf-8') as log_file:
-            log_file.write(
-                six.text_type(
-                    u"{date}\t{level}\t{module}\t{message}\n".format(
-                        date=datetime.datetime.utcnow().isoformat(),
-                        level=logging.getLevelName(level),
-                        module=logger_name,
-                        message=(message % args).replace('\n', '\\n')
-                    )
-                )
-            )
-        if level >= logging.INFO and not self.quiet:
-            print(
-                u"[%s %s] %s" % (
-                    logging.getLevelName(level),
-                    self.issue,
-                    message % args
-                )
-            )
+        self.logger.log(level, message, *args)
 
     def get_log(self):
         with io.open(self.log_path, 'r', encoding='utf-8') as log_file:
