@@ -42,7 +42,7 @@ class Command(CommandPlugin):
                     u"Field {field} changed: \"{fr}\" -> \"{to}\"".format(
                         field=field,
                         fr=self.truncate_field_value(values[0]),
-                        to=self.truncate_field_value(values[1])
+                        to=self.truncate_field_value(values[1]).encode()
                     )
                 )
 
