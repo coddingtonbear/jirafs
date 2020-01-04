@@ -61,7 +61,7 @@ class CommandResult(str):
         print(message, end="")
 
     def echo(self):
-        self._echo(self[self.cursor :])
+        self._echo(self[self.cursor:])
         self.cursor = len(self)
 
         return self
@@ -172,12 +172,12 @@ class CommandPlugin(JirafsPluginBase):
         value = original_value.strip()
         for newline in ("\n", "\r"):
             if newline in value:
-                value = value[0 : value.find(newline)]
+                value = value[0:value.find(newline)]
 
         value = value[0:length]
 
         if value != original_value:
-            value = value[0 : length - 1] + u"\u2026"
+            value = value[0:length - 1] + u"\u2026"
 
         return value
 
@@ -316,7 +316,7 @@ class MacroPlugin(Plugin):
 
         attributes = {}
 
-        attribute_content = tag[tag.find(":") + 1 : -1]
+        attribute_content = tag[tag.find(":") + 1:-1]
         for segment in attribute_content.split("|"):
             if "=" not in segment:
                 attributes[segment] = True
