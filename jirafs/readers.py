@@ -13,12 +13,10 @@ class GitRevisionReader(object):
     def get_file_contents(self, path):
         try:
             return self.folder.get_local_file_at_revision(
-                path,
-                self.revision,
-                failure_ok=False
+                path, self.revision, failure_ok=False
             )
         except GitCommandError:
-            return ''
+            return ""
 
 
 class WorkingCopyReader(object):
@@ -31,8 +29,6 @@ class WorkingCopyReader(object):
         full_path = os.path.join(self.path, path)
 
         with io.open(
-            self.folder.get_local_path(full_path),
-            'r',
-            encoding='utf-8'
+            self.folder.get_local_path(full_path), "r", encoding="utf-8"
         ) as _in:
             return _in.read().strip()

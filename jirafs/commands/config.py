@@ -8,8 +8,9 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(DirectOutputCommandPlugin):
     """ Get, set, or list global or per-folder configuration values """
-    MIN_VERSION = '1.0a1'
-    MAX_VERSION = '1.99.99'
+
+    MIN_VERSION = "1.0a1"
+    MAX_VERSION = "1.99.99"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
     def main(self, args, jira, path, parser, **kwargs):
@@ -25,9 +26,7 @@ class Command(DirectOutputCommandPlugin):
         return_value = None
         if args.list:
             if len(args.params) != 0:
-                parser.error(
-                    "--list requires no parameters."
-                )
+                parser.error("--list requires no parameters.")
             return_value = self.list(config)
         elif args.get:
             if len(args.params) != 1:
@@ -61,7 +60,7 @@ class Command(DirectOutputCommandPlugin):
         return return_value
 
     def get_section_and_key(self, string):
-        return string.rsplit('.', 1)
+        return string.rsplit(".", 1)
 
     def set_global(self, section, key, value):
         return utils.set_global_config_value(section, key, value)
@@ -83,25 +82,19 @@ class Command(DirectOutputCommandPlugin):
             parameters = config.items(section)
             for key, value in parameters:
                 lines = lines.add_line(
-                    u"{section}.{key}={value}",
-                    section=section,
-                    key=key,
-                    value=value
+                    u"{section}.{key}={value}", section=section, key=key, value=value
                 )
 
         return lines
 
     def add_arguments(self, parser):
-        parser.add_argument('--list', action='store_true')
-        parser.add_argument('--get', action='store_true')
-        parser.add_argument('--set', action='store_true')
+        parser.add_argument("--list", action="store_true")
+        parser.add_argument("--get", action="store_true")
+        parser.add_argument("--set", action="store_true")
         parser.add_argument(
-            '--global',
-            dest='global_config',
-            default=False,
-            action='store_true'
+            "--global", dest="global_config", default=False, action="store_true"
         )
-        parser.add_argument('params', nargs='*')
+        parser.add_argument("params", nargs="*")
 
     def parse_arguments(self, parser, args):
         args = super(Command, self).parse_arguments(parser, args)

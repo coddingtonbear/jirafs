@@ -9,8 +9,9 @@ from jirafs.exceptions import JiraInteractionFailed
 
 class Command(CommandPlugin):
     """ Transition the current issue into a new state """
-    MIN_VERSION = '1.15'
-    MAX_VERSION = '1.99.99'
+
+    MIN_VERSION = "1.15"
+    MAX_VERSION = "1.99.99"
 
     def handle(self, args, folder, **kwargs):
         state = self.get_state_from_string(folder, args.state)
@@ -20,10 +21,10 @@ class Command(CommandPlugin):
 
     def main(self, folder, state_id):
         folder.jira.transition_issue(folder.issue, state_id)
-        starting_status = folder.get_fields()['status']
-        pull_result = run_command_method_with_kwargs('pull', folder=folder)
+        starting_status = folder.get_fields()["status"]
+        pull_result = run_command_method_with_kwargs("pull", folder=folder)
 
-        if starting_status == folder.get_fields()['status']:
+        if starting_status == folder.get_fields()["status"]:
             # I'd love it if we could instead just check the response code
             # from the transitions API, but that API returns a 204 whether
             # or not the issue itself can be successfully transitioned.
@@ -39,11 +40,9 @@ class Command(CommandPlugin):
         return pull_result[1]
 
     def get_transition_dict(self, folder):
-        if not hasattr(self, '_transition_dict'):
+        if not hasattr(self, "_transition_dict"):
             value = folder.jira.transitions(folder.issue)
-            self._transition_dict = OrderedDict(
-                (v['id'], v) for v in value
-            )
+            self._transition_dict = OrderedDict((v["id"], v) for v in value)
         return self._transition_dict
 
     def get_state_from_string(self, folder, value):
@@ -58,7 +57,7 @@ class Command(CommandPlugin):
 
         # But, if it isn't, this'll be a bit less efficient
         for k, v in options.items():
-            if value.upper() == v['name'].upper():
+            if value.upper() == v["name"].upper():
                 return k
 
         return None
@@ -66,27 +65,23 @@ class Command(CommandPlugin):
     def get_state_from_user(self, folder):
         options = self.get_transition_dict(folder)
         response = None
-        while(response is None):
+        while response is None:
             for option_id, option_data in options.items():
                 print(
-                    "%s: %s (%s)" % (
+                    "%s: %s (%s)"
+                    % (
                         option_id,
-                        option_data['name'],
-                        option_data.get('to', {}).get('description', ''),
+                        option_data["name"],
+                        option_data.get("to", {}).get("description", ""),
                     )
                 )
 
-            print('')
+            print("")
             response = self.get_state_from_string(
-                folder,
-                input("Please select a state from the above options: ")
+                folder, input("Please select a state from the above options: ")
             )
 
         return response
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            'state',
-            default=None,
-            nargs='?'
-        )
+        parser.add_argument("state", default=None, nargs="?")

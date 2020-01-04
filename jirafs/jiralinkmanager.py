@@ -6,7 +6,7 @@ from jirafs.readers import GitRevisionReader, WorkingCopyReader
 
 
 class JiraLinkManager(dict):
-    TICKET_MATCHER = re.compile('[A-Za-z]+-\d+')
+    TICKET_MATCHER = re.compile("[A-Za-z]+-\d+")
 
     def __init__(self, data, prepared=False):
         if not prepared:
@@ -18,9 +18,7 @@ class JiraLinkManager(dict):
     @classmethod
     def create(cls, folder, revision=None, path=None):
         if revision and path:
-            raise TypeError(
-                'You may specify a git revision or a local path; not both.'
-            )
+            raise TypeError("You may specify a git revision or a local path; not both.")
 
         if revision:
             return GitRevisionJiraLinkManager(folder, revision)
@@ -31,19 +29,25 @@ class JiraLinkManager(dict):
         differing = {}
 
         slf = {}
-        for category in ['remote', 'issue']:
+        for category in ["remote", "issue"]:
             slf[category] = self[category].copy()
             for k, v in other[category].items():
                 if k not in slf[category]:
                     if category not in differing:
                         differing[category] = {}
-                    differing[category][k] = (v, None, )
+                    differing[category][k] = (
+                        v,
+                        None,
+                    )
                     continue
                 l_v = slf[category].pop(k)
                 if l_v != v:
                     if category not in differing:
                         differing[category] = {}
-                    differing[category][k] = (v, l_v, )
+                    differing[category][k] = (
+                        v,
+                        l_v,
+                    )
 
             for k, v in slf[category].items():
                 if category not in differing:
@@ -54,35 +58,31 @@ class JiraLinkManager(dict):
 
     def get_links_from_string(self, contents):
         links = {
-            'remote': {},
-            'issue': {},
+            "remote": {},
+            "issue": {},
         }
 
-        for line in contents.split('\n'):
-            if not line.startswith('*'):
+        for line in contents.split("\n"):
+            if not line.startswith("*"):
                 continue
             line = line[1:].strip()
             try:
-                left, right = line.split(': ', 1)
+                left, right = line.split(": ", 1)
             except ValueError:
                 raise exceptions.IssueValidationError(
                     u"Remote links must have a description; format your "
                     u"link to {url} like '* Your Title: {url}' "
-                    u"to continue.".format(
-                        url=line.strip()
-                    )
+                    u"to continue.".format(url=line.strip())
                 )
             left = left.strip()
             right = right.strip()
             if self.TICKET_MATCHER.match(right):
                 right = right.upper()
-                links['issue'][right] = {
-                    'status': left.lower()
-                }
+                links["issue"][right] = {"status": left.lower()}
             else:
-                links['remote'][right] = {}
+                links["remote"][right] = {}
                 if left:
-                    links['remote'][right]['description'] = left
+                    links["remote"][right]["description"] = left
 
         return links
 

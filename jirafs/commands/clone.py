@@ -14,11 +14,12 @@ from jirafs.ticketfolder import TicketFolder
 
 class Command(CommandPlugin):
     """ Clone a new ticketfolder for the specified ticket URL"""
-    MIN_VERSION = '1.15'
-    MAX_VERSION = '1.99.99'
+
+    MIN_VERSION = "1.15"
+    MAX_VERSION = "1.99.99"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
-    TICKET_RE = re.compile('.*\/browse\/(\w+-\d+)\/?')
+    TICKET_RE = re.compile(".*\/browse\/(\w+-\d+)\/?")
 
     def handle(self, args, jira, path, **kwargs):
         ticket_url = args.ticket_url[0]
@@ -27,10 +28,7 @@ class Command(CommandPlugin):
             ticket_url_parts = parse.urlparse(ticket_url)
             if not ticket_url_parts.netloc:
                 default_server = utils.get_default_jira_server()
-                ticket_url = parse.urljoin(
-                    default_server,
-                    'browse/' + ticket_url + '/'
-                )
+                ticket_url = parse.urljoin(default_server, "browse/" + ticket_url + "/")
 
         path = args.path[0] if args.path else None
 
@@ -45,17 +43,13 @@ class Command(CommandPlugin):
         try:
             folder = TicketFolder.initialize_ticket_folder(ticket_url, path, jira)
 
-            utils.run_command_method_with_kwargs('pull', folder=folder)
+            utils.run_command_method_with_kwargs("pull", folder=folder)
         except Exception:
             shutil.rmtree(path)
             raise
 
         folder.log(
-            "Issue %s cloned successfully to %s",
-            (
-                folder.issue_url,
-                folder.path,
-            )
+            "Issue %s cloned successfully to %s", (folder.issue_url, folder.path,)
         )
 
         return folder
@@ -64,40 +58,27 @@ class Command(CommandPlugin):
         temp_dir = tempfile.mkdtemp()
 
         subprocess.check_call(
-            [
-                'git',
-                'clone',
-                url,
-                temp_dir
-            ],
+            ["git", "clone", url, temp_dir],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        for branch in ['jira', 'master']:
+        for branch in ["jira", "master"]:
             subprocess.check_call(
-                [
-                    'git',
-                    'checkout',
-                    branch,
-                ],
+                ["git", "checkout", branch,],
                 cwd=temp_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
 
-        issue_url_path = os.path.join(
-            temp_dir, constants.METADATA_DIR, 'issue_url'
-        )
-        with open(issue_url_path, 'r') as issue_url_file:
+        issue_url_path = os.path.join(temp_dir, constants.METADATA_DIR, "issue_url")
+        with open(issue_url_path, "r") as issue_url_file:
             issue_url = issue_url_file.read()
 
         match = self.TICKET_RE.match(issue_url)
         if not match:
             shutil.rmtree(temp_dir)
             raise exceptions.NotTicketFolderException(
-                "The git repository at %s is not a Jirafs backup." % (
-                    url,
-                )
+                "The git repository at %s is not a Jirafs backup." % (url,)
             )
 
         if path:
@@ -111,117 +92,73 @@ class Command(CommandPlugin):
         os.rename(temp_dir, path)
 
         # Re-clone the shadow repository
-        shadow_path = os.path.join(path, constants.METADATA_DIR, 'shadow')
+        shadow_path = os.path.join(path, constants.METADATA_DIR, "shadow")
         subprocess.check_call(
-            [
-                'git',
-                'clone',
-                path,
-                shadow_path,
-            ],
+            ["git", "clone", path, shadow_path,],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
 
         # Move the .git directory to where we hide it
         os.rename(
-            os.path.join(path, '.git'),
-            os.path.join(path, constants.METADATA_DIR, 'git')
+            os.path.join(path, ".git"),
+            os.path.join(path, constants.METADATA_DIR, "git"),
         )
 
         # Reset the shadow's URL to use a relative path
         subprocess.check_call(
-            [
-                'git',
-                'remote',
-                'set-url',
-                'origin',
-                '../git',
-            ],
+            ["git", "remote", "set-url", "origin", "../git",],
             cwd=shadow_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         subprocess.check_call(
-            [
-                'git',
-                'checkout',
-                'jira'
-            ],
+            ["git", "checkout", "jira"],
             cwd=shadow_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
 
-        folder = TicketFolder(
-            path,
-            jira,
-        )
+        folder = TicketFolder(path, jira,)
         folder.run_git_command(
-            'config',
-            '--file=%s' % folder.get_metadata_path(
-                'git', 'config',
-            ),
-            'core.excludesfile',
-            '.jirafs/gitignore',
+            "config",
+            "--file=%s" % folder.get_metadata_path("git", "config",),
+            "core.excludesfile",
+            ".jirafs/gitignore",
         )
         folder.log(
             "Cloned Jirafs ticket folder for %s at %s; on hash %s",
             (
                 folder.issue_url,
                 folder.path,
-                folder.run_git_command(
-                    'rev-parse',
-                    'master',
-                )
-            )
+                folder.run_git_command("rev-parse", "master",),
+            ),
         )
         return folder
 
     def main(self, path, url, jira):
         match = self.TICKET_RE.match(url)
         if match:
-            return self.clone_from_issue(
-                match,
-                url,
-                path,
-                jira,
-            )
+            return self.clone_from_issue(match, url, path, jira,)
 
         # Try checking if it's a git repository, too
         try:
             subprocess.check_call(
-                [
-                    'git',
-                    'ls-remote',
-                    url
-                ],
+                ["git", "ls-remote", url],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            return self.clone_from_git_repository(
-                url,
-                path,
-                jira,
-            )
+            return self.clone_from_git_repository(url, path, jira,)
         except subprocess.CalledProcessError:
             pass
 
         raise exceptions.JirafsError(
-            "\'%s\' is neither a valid JIRA ticket URL, "
-            "nor Jirafs remote backup" % (
-                url
-            )
+            "'%s' is neither a valid JIRA ticket URL, "
+            "nor Jirafs remote backup" % (url)
         )
 
     def add_arguments(self, parser):
+        parser.add_argument("ticket_url", nargs=1, type=six.text_type)
         parser.add_argument(
-            'ticket_url',
-            nargs=1,
-            type=six.text_type
-        )
-        parser.add_argument(
-            'path',
-            nargs='*',
-            type=six.text_type,
+            "path", nargs="*", type=six.text_type,
         )

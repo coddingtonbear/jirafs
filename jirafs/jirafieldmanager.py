@@ -12,11 +12,8 @@ from jirafs.readers import GitRevisionReader, WorkingCopyReader
 
 class JiraFieldManager(dict):
     FIELD_MATCHER = re.compile(
-        '^%s$' % (
-            constants.TICKET_FILE_FIELD_TEMPLATE.replace(
-                '{field_name}', '([\w_]+)'
-            )
-        )
+        "^%s$"
+        % (constants.TICKET_FILE_FIELD_TEMPLATE.replace("{field_name}", "([\w_]+)"))
     )
 
     def __init__(self, data=None, names=None):
@@ -32,7 +29,11 @@ class JiraFieldManager(dict):
         for k, v in other.items():
             if (self.get(k) or v) and self.get(k) != v:
                 tx = self.get(k)
-                differing[k] = (v, tx, self.get(k), )
+                differing[k] = (
+                    v,
+                    tx,
+                    self.get(k),
+                )
 
         return differing
 
@@ -62,9 +63,7 @@ class JiraFieldManager(dict):
     @classmethod
     def create(cls, folder, revision=None, path=None):
         if revision and path:
-            raise TypeError(
-                'You may specify a git revision or a local path; not both.'
-            )
+            raise TypeError("You may specify a git revision or a local path; not both.")
 
         if revision:
             return GitRevisionJiraFieldManager(folder, revision)
@@ -86,18 +85,14 @@ class JiraFieldManager(dict):
         try:
             for field in self.get_used_per_ticket_fields():
                 all_files.append(
-                    constants.TICKET_FILE_FIELD_TEMPLATE.format(
-                        field_name=field,
-                    )
+                    constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field,)
                 )
         except NotImplementedError:
             pass
 
         for field in self.get_requested_per_ticket_fields():
             all_files.append(
-                constants.TICKET_FILE_FIELD_TEMPLATE.format(
-                    field_name=field,
-                )
+                constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field,)
             )
 
         return all_files
@@ -122,30 +117,27 @@ class JiraFieldManager(dict):
 
         """
         data = {}
-        field_name = ''
+        field_name = ""
         human_names = {}
-        value = ''
+        value = ""
         if not string:
             return data, human_names
-        lines = string.split('\n')
+        lines = string.split("\n")
         for idx, line in enumerate(lines):
-            if line.startswith('*'):
+            if line.startswith("*"):
                 if value:  # If so, we just need to store previous loop data
                     self.set_data_value(data, field_name, value)
-                    value = ''
-                raw_field_name = re.match('^\* (.*\(.*?\)):$', line).group(1)
-                if '(' in raw_field_name:
+                    value = ""
+                raw_field_name = re.match("^\* (.*\(.*?\)):$", line).group(1)
+                if "(" in raw_field_name:
                     # This field name's real name doesn't match the field ID
-                    match = re.match(
-                        '(.*) \(([^)]+)\)',
-                        raw_field_name
-                    )
+                    match = re.match("(.*) \(([^)]+)\)", raw_field_name)
                     field_name = match.group(2)
                     human_names[field_name] = match.group(1)
                 else:
-                    field_name = raw_field_name.replace(' ', '_')
+                    field_name = raw_field_name.replace(" ", "_")
             elif field_name:
-                value = value + '\n' + line.strip()
+                value = value + "\n" + line.strip()
         if value:
             self.set_data_value(data, field_name, value)
 
@@ -155,9 +147,7 @@ class JiraFieldManager(dict):
 class AutomaticJiraFieldManager(JiraFieldManager):
     def __init__(self):
         data, names = self.load()
-        super(AutomaticJiraFieldManager, self).__init__(
-            data, names=names
-        )
+        super(AutomaticJiraFieldManager, self).__init__(data, names=names)
 
     def load(self):
         fields, names = self.get_fields_from_string(
@@ -184,9 +174,7 @@ class AutomaticJiraFieldManager(JiraFieldManager):
         raise NotImplemented()
 
 
-class WorkingCopyJiraFieldManager(
-    WorkingCopyReader, AutomaticJiraFieldManager
-):
+class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
     def get_used_per_ticket_fields(self):
         fields = []
         for filename in os.listdir(self.path):
@@ -205,50 +193,40 @@ class WorkingCopyJiraFieldManager(
         used_fields = set(self.get_used_per_ticket_fields())
         requested_fields = set(self.get_requested_per_ticket_fields())
 
-        with io.open(folder_path, 'w', encoding='utf-8') as out:
+        with io.open(folder_path, "w", encoding="utf-8") as out:
             for field in sorted(self.keys()):
                 if field not in used_fields | requested_fields:
                     out.write(
-                        u'* {human} ({field}):\n'.format(
-                            human=self.get_human_name_for_field(field),
-                            field=field,
+                        u"* {human} ({field}):\n".format(
+                            human=self.get_human_name_for_field(field), field=field,
                         )
                     )
 
                     field_string = self[field]
                     if field_string is None:
-                        field_string = ''
+                        field_string = ""
                     elif not isinstance(field_string, six.string_types):
                         field_string = json.dumps(
-                            field_string,
-                            sort_keys=True,
-                            indent=4,
-                            ensure_ascii=False,
+                            field_string, sort_keys=True, indent=4, ensure_ascii=False,
                         )
 
                     # Each line is preceded by 4 spaces of whitespace
-                    padded_lines = [
-                        u'    %s\n' % f for f in field_string.split('\n')
-                    ]
+                    padded_lines = [u"    %s\n" % f for f in field_string.split("\n")]
                     for line in padded_lines:
                         out.write(line)
                 else:
                     field_path = constants.TICKET_FILE_FIELD_TEMPLATE.format(
                         field_name=field
                     )
-                    with io.open(field_path, 'w', encoding='utf-8') as fout:
+                    with io.open(field_path, "w", encoding="utf-8") as fout:
                         fout.write(self[field])
-                        fout.write(u'\n')
+                        fout.write(u"\n")
 
 
-class GitRevisionJiraFieldManager(
-    GitRevisionReader, AutomaticJiraFieldManager
-):
+class GitRevisionJiraFieldManager(GitRevisionReader, AutomaticJiraFieldManager):
     def get_used_per_ticket_fields(self):
         files = self.folder.run_git_command(
-            'ls-tree',
-            '--name-only',
-            self.revision
+            "ls-tree", "--name-only", self.revision
         ).split()
         fields = []
 

@@ -34,13 +34,13 @@ class CommandResult(six.text_type):
         cls, string=None, return_code=None, cursor=0, no_format=False, **kwargs
     ):
         if string is None:
-            string = ''
-        if string and not string.endswith('\n'):
-            string = string + '\n'
+            string = ""
+        if string and not string.endswith("\n"):
+            string = string + "\n"
 
         terminal = Terminal()
         if not no_format:
-            kwargs['t'] = terminal
+            kwargs["t"] = terminal
             try:
                 string = string.format(**kwargs)
             except KeyError:
@@ -59,20 +59,20 @@ class CommandResult(six.text_type):
         return self
 
     def _echo(self, message):
-        print(message, end='')
+        print(message, end="")
 
     def echo(self):
-        self._echo(self[self.cursor:])
+        self._echo(self[self.cursor :])
         self.cursor = len(self)
 
         return self
 
     def add_line(self, the_line, no_format=False, **kwargs):
-        if not the_line.endswith('\n'):
-            the_line = the_line + '\n'
+        if not the_line.endswith("\n"):
+            the_line = the_line + "\n"
 
         if not no_format:
-            kwargs['t'] = self.terminal
+            kwargs["t"] = self.terminal
             try:
                 the_line = the_line.format(**kwargs)
             except KeyError:
@@ -96,9 +96,7 @@ class CommandResult(six.text_type):
             return_code = other.return_code
 
         return CommandResult(
-            joined_strings,
-            return_code=return_code,
-            cursor=self.cursor
+            joined_strings, return_code=return_code, cursor=self.cursor
         )
 
     @property
@@ -126,12 +124,8 @@ class JirafsPluginBase(object):
         if not min_version <= curr_version <= max_version:
             raise PluginValidationError(
                 "Plugin '%s' is not compatible with version %s of Jirafs; "
-                "minimum version: %s; maximum version %s." % (
-                    self.plugin_name,
-                    __version__,
-                    self.MIN_VERSION,
-                    self.MAX_VERSION,
-                ),
+                "minimum version: %s; maximum version %s."
+                % (self.plugin_name, __version__, self.MIN_VERSION, self.MAX_VERSION,),
             )
 
         return True
@@ -145,8 +139,7 @@ class Plugin(JirafsPluginBase):
     @property
     def metadata_filename(self):
         return self.ticketfolder.get_metadata_path(
-            'plugin_meta',
-            '%s.json' % self.plugin_name,
+            "plugin_meta", "%s.json" % self.plugin_name,
         )
 
     def get_configuration(self):
@@ -157,20 +150,14 @@ class Plugin(JirafsPluginBase):
 
     def get_metadata(self):
         try:
-            with open(self.metadata_filename, 'r') as _in:
+            with open(self.metadata_filename, "r") as _in:
                 return json.loads(_in.read())
         except (IOError, OSError):
             return {}
 
     def set_metadata(self, data):
-        with open(self.metadata_filename, 'w') as out:
-            out.write(
-                json.dumps(
-                    data,
-                    indent=4,
-                    sort_keys=True,
-                )
-            )
+        with open(self.metadata_filename, "w") as out:
+            out.write(json.dumps(data, indent=4, sort_keys=True,))
 
 
 class CommandPlugin(JirafsPluginBase):
@@ -184,14 +171,14 @@ class CommandPlugin(JirafsPluginBase):
         elif not isinstance(original_value, six.string_types):
             original_value = six.text_type(original_value)
         value = original_value.strip()
-        for newline in ('\n', '\r'):
+        for newline in ("\n", "\r"):
             if newline in value:
-                value = value[0:value.find(newline)]
+                value = value[0 : value.find(newline)]
 
         value = value[0:length]
 
         if value != original_value:
-            value = value[0:length-1] + u'\u2026'
+            value = value[0 : length - 1] + u"\u2026"
 
         return value
 
@@ -220,20 +207,16 @@ class CommandPlugin(JirafsPluginBase):
     @classmethod
     def execute_command(cls, extra_args, jira, path, command_name, **ckwargs):
         from .ticketfolder import TicketFolder
-        cmd = cls(
-            plugin_name=command_name
-        )
+
+        cmd = cls(plugin_name=command_name)
 
         parser = argparse.ArgumentParser(
-            prog=os.path.basename(sys.argv[0]) + ' ' + command_name,
+            prog=os.path.basename(sys.argv[0]) + " " + command_name,
             description=cmd.get_description(),
         )
         if cmd.auto_instantiate_folder():
             parser.add_argument(
-                '--no-migrate',
-                dest='migrate',
-                default=True,
-                action='store_false'
+                "--no-migrate", dest="migrate", default=True, action="store_false"
             )
         cmd.add_arguments(parser)
         args = cmd.parse_arguments(parser, extra_args)
@@ -245,14 +228,14 @@ class CommandPlugin(JirafsPluginBase):
             folder_plugins = folder.plugins
 
         kwargs = {
-            'args': args,
-            'folder': folder,
-            'jira': jira,
-            'path': path,
-            'parser': parser,
+            "args": args,
+            "folder": folder,
+            "jira": jira,
+            "path": path,
+            "parser": parser,
         }
-        pre_method = 'pre_%s' % command_name
-        post_method = 'post_%s' % command_name
+        pre_method = "pre_%s" % command_name
+        post_method = "post_%s" % command_name
         for plugin in folder_plugins:
             if not hasattr(plugin, pre_method):
                 continue
@@ -262,9 +245,7 @@ class CommandPlugin(JirafsPluginBase):
                 kwargs = result
 
         cmd.validate(**kwargs)
-        result = cls.get_command_result(
-            cmd.handle(**kwargs)
-        )
+        result = cls.get_command_result(cmd.handle(**kwargs))
 
         for plugin in folder_plugins:
             if not hasattr(plugin, post_method):
@@ -272,29 +253,19 @@ class CommandPlugin(JirafsPluginBase):
             method = getattr(plugin, post_method)
             post_result = method(result)
             if post_result is not None:
-                result = cls.get_command_result(
-                    post_result,
-                    original=result
-                )
+                result = cls.get_command_result(post_result, original=result)
 
-        if getattr(cls, 'RUN_FOR_SUBTASKS', False):
+        if getattr(cls, "RUN_FOR_SUBTASKS", False):
             for subfolder in folder.subtasks:
                 try:
                     cls.execute_command(
-                        extra_args,
-                        jira,
-                        subfolder.path,
-                        command_name,
-                        **ckwargs
+                        extra_args, jira, subfolder.path, command_name, **ckwargs
                     )
                 except Exception as e:
                     logger.exception(
                         "Exception encountered while running "
-                        "'%s' for ticket subfolder '%s': %s" % (
-                            command_name,
-                            subfolder.ticket_number,
-                            e
-                        )
+                        "'%s' for ticket subfolder '%s': %s"
+                        % (command_name, subfolder.ticket_number, e)
                     )
 
         return result
@@ -310,14 +281,10 @@ class CommandPlugin(JirafsPluginBase):
         raise NotImplementedError()
 
     def try_subfolders(self):
-        return getattr(self, 'TRY_SUBFOLDERS', False)
+        return getattr(self, "TRY_SUBFOLDERS", False)
 
     def auto_instantiate_folder(self):
-        return getattr(
-            self,
-            'AUTOMATICALLY_INSTANTIATE_FOLDER',
-            True,
-        )
+        return getattr(self, "AUTOMATICALLY_INSTANTIATE_FOLDER", True,)
 
 
 class DirectOutputCommandPlugin(CommandPlugin):
@@ -338,25 +305,25 @@ class MacroPlugin(Plugin):
     def get_matcher(self):
         return re.compile(
             self.BASE_REGEX.format(tag_name=self.COMPONENT_NAME),
-            re.MULTILINE | re.DOTALL
+            re.MULTILINE | re.DOTALL,
         )
 
     def get_matches(self, content):
         return self.get_matcher().finditer(content)
 
     def get_attributes(self, tag):
-        if ':' not in tag:
+        if ":" not in tag:
             return {}
 
         attributes = {}
 
-        attribute_content = tag[tag.find(':')+1:-1]
-        for segment in attribute_content.split('|'):
-            if '=' not in segment:
+        attribute_content = tag[tag.find(":") + 1 : -1]
+        for segment in attribute_content.split("|"):
+            if "=" not in segment:
                 attributes[segment] = True
                 continue
 
-            attribute, value = segment.split('=', 1)
+            attribute, value = segment.split("=", 1)
             attributes[attribute] = value
 
         return attributes
@@ -366,8 +333,7 @@ class MacroPlugin(Plugin):
             data = match_data.groupdict()
 
             return self.execute_macro(
-                data.get('content'),
-                **self.get_attributes(data.get('start', ''))
+                data.get("content"), **self.get_attributes(data.get("start", ""))
             )
 
         try:
@@ -375,10 +341,7 @@ class MacroPlugin(Plugin):
         except Exception as e:
             self.ticketfolder.log(
                 "Error encountered while running macro %s: %s",
-                args=(
-                    self.plugin_name,
-                    e
-                ),
+                args=(self.plugin_name, e),
                 level=logging.ERROR,
             )
 
@@ -388,12 +351,9 @@ class MacroPlugin(Plugin):
 
 class BlockElementMacroPlugin(MacroPlugin):
     BASE_REGEX = (
-        r'^(?P<start>{{{tag_name}[^}}]*}})(?P<content>.*?)'
-        r'(?P<end>{{{tag_name}}})$'
+        r"^(?P<start>{{{tag_name}[^}}]*}})(?P<content>.*?)" r"(?P<end>{{{tag_name}}})$"
     )
 
 
 class VoidElementMacroPlugin(MacroPlugin):
-    BASE_REGEX = (
-        r'^(?P<start>{{{tag_name}}})'
-    )
+    BASE_REGEX = r"^(?P<start>{{{tag_name}}})"
