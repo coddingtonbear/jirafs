@@ -6,10 +6,9 @@ import json
 import os
 import re
 import subprocess
+from urllib import parse
 
 from jira.resources import Issue
-import six
-from six.moves.urllib import parse
 
 from . import constants
 from . import exceptions
@@ -66,7 +65,7 @@ class TicketFolder(object):
         comment_path = self.get_local_path(constants.TICKET_NEW_COMMENT)
         if not os.path.exists(comment_path):
             with io.open(comment_path, "w", encoding="utf-8") as out:
-                out.write(six.text_type(""))
+                out.write("")
 
         # Let's update the ignore file while we're here.
         self.build_ignore_files()
@@ -76,19 +75,11 @@ class TicketFolder(object):
         return self._logger_adapter
 
     def __repr__(self):
-        if six.PY3:
-            value = self.__unicode__()
-        else:
-            value = self.__str__()
+        value = self.__unicode__()
         return "<%s>" % value
 
-    def __unicode__(self):
-        return "[%s] at %s" % (self.ticket_number, self.path)
-
     def __str__(self):
-        if six.PY3:
-            return self.__unicode__()
-        return self.__unicode__().encode("utf8", "replace")
+        return "[%s] at %s" % (self.ticket_number, self.path)
 
     @property
     def subtasks(self):
@@ -209,7 +200,7 @@ class TicketFolder(object):
 
     @property
     def jira_base(self):
-        match = re.match("(.*)\/browse\/.*", self.issue_url)
+        match = re.match(r"(.*)\/browse\/.*", self.issue_url)
         if not match:
             raise ValueError(
                 "Could not infer JIRA server URL from issue URL %s" % (self.issue_url,)
@@ -219,7 +210,7 @@ class TicketFolder(object):
     @property
     def ticket_number(self):
         parts = parse.urlparse(self.issue_url)
-        match = re.match(".*\/browse\/(\w+-\d+)\/?.*", parts.path)
+        match = re.match(r".*\/browse\/(\w+-\d+)\/?.*", parts.path)
         if not match:
             raise ValueError(
                 "Could not infer ticket number from URL %s" % self.issue_url
@@ -250,9 +241,7 @@ class TicketFolder(object):
             self.get_path(".jirafs/issue.json", shadow=shadow), "w", encoding="utf-8",
         ) as out:
             out.write(
-                six.text_type(
-                    json.dumps(storable, indent=4, sort_keys=True, ensure_ascii=False,)
-                )
+                json.dumps(storable, indent=4, sort_keys=True, ensure_ascii=False,)
             )
 
     @property
@@ -312,9 +301,7 @@ class TicketFolder(object):
         remote_files = self.get_path(".jirafs/remote_files.json", shadow=shadow)
         with io.open(remote_files, "w", encoding="utf-8") as out:
             out.write(
-                six.text_type(
-                    json.dumps(data, indent=4, sort_keys=True, ensure_ascii=False,)
-                )
+                json.dumps(data, indent=4, sort_keys=True, ensure_ascii=False,)
             )
 
     def get_local_path(self, *args):
@@ -354,7 +341,7 @@ class TicketFolder(object):
         with io.open(
             os.path.join(metadata_path, "issue_url"), "w", encoding="utf-8"
         ) as out:
-            out.write(six.text_type(ticket_url))
+            out.write(ticket_url)
 
         # Create bare git repository so we can easily detect changes.
         subprocess.check_call(
@@ -374,7 +361,7 @@ class TicketFolder(object):
         excludes_path = os.path.join(metadata_path, "git", "info", "exclude")
         with io.open(excludes_path, "w", encoding="utf-8") as gitignore:
             gitignore.write(
-                six.text_type("\n").join(
+                "\n".join(
                     [
                         "%s/git" % constants.METADATA_DIR,
                         "%s/shadow" % constants.METADATA_DIR,
@@ -394,7 +381,7 @@ class TicketFolder(object):
 
         comment_path = instance.get_local_path(constants.TICKET_NEW_COMMENT)
         with io.open(comment_path, "w", encoding="utf-8") as out:
-            out.write(six.text_type(""))
+            out.write("")
 
         return instance
 
@@ -590,7 +577,7 @@ class TicketFolder(object):
                 # Get the actual filename; this is a little gross -- apologies.
                 filename = fileish
                 attachment = False
-                if not isinstance(fileish, six.string_types):
+                if not isinstance(fileish, str):
                     filename = fileish.filename
                     attachment = True
 
@@ -663,7 +650,7 @@ class TicketFolder(object):
         macro_plugins = self.get_macro_plugins()
 
         for cls in macro_plugins:
-            if isinstance(data, six.string_types):
+            if isinstance(data, str):
                 data = cls.process_text_data(data)
             else:
                 continue

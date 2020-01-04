@@ -4,6 +4,7 @@ import copy
 import logging
 import logging.config
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -15,8 +16,6 @@ try:
     from jira.utils import JIRAError
 except ImportError:
     from jira.exceptions import JIRAError
-import six
-from six.moves import shlex_quote
 from distutils.version import LooseVersion
 
 from . import utils
@@ -74,7 +73,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Edit Jira issues locally from your filesystem", add_help=False,
     )
-    parser.add_argument("command", type=six.text_type, choices=commands.keys())
+    parser.add_argument("command", type=str, choices=commands.keys())
     parser.add_argument("--subtasks", action="store_true", default=False)
     parser.add_argument(
         "--log-level", default="INFO", dest="log_level",
@@ -152,7 +151,7 @@ def main():
                 if "--no-subfolders" not in full_args:
                     full_args.append("--no-subfolders")
                 result = subprocess.call(
-                    " ".join([shlex_quote(a) for a in full_args]),
+                    " ".join([shlex.quote(a) for a in full_args]),
                     cwd=full_path,
                     shell=True,
                 )

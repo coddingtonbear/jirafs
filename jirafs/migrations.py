@@ -2,8 +2,7 @@ import json
 import os
 import shutil
 import subprocess
-
-from six.moves.urllib import parse
+from urllib import parse
 
 from . import utils
 from .exceptions import GitCommandError

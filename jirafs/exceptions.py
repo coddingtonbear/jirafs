@@ -1,12 +1,8 @@
-import six
-
-
-@six.python_2_unicode_compatible
 class JirafsError(Exception):
     def __str__(self):
         super_str = super(JirafsError, self).__str__()
         if not super_str:
-            return six.text_type(self.__class__.__name__)
+            return str(self.__class__.__name__)
 
         return super_str
 

@@ -1,19 +1,16 @@
 import io
 import json
-import logging
 import os
 import re
 
-import six
-
-from jirafs import constants, utils
+from jirafs import constants
 from jirafs.readers import GitRevisionReader, WorkingCopyReader
 
 
 class JiraFieldManager(dict):
     FIELD_MATCHER = re.compile(
         "^%s$"
-        % (constants.TICKET_FILE_FIELD_TEMPLATE.replace("{field_name}", "([\w_]+)"))
+        % (constants.TICKET_FILE_FIELD_TEMPLATE.replace("{field_name}", r"([\w_]+)"))
     )
 
     def __init__(self, data=None, names=None):
@@ -81,7 +78,6 @@ class JiraFieldManager(dict):
             constants.TICKET_DETAILS,
         ]
 
-        used_per_ticket_fields = []
         try:
             for field in self.get_used_per_ticket_fields():
                 all_files.append(
@@ -128,10 +124,10 @@ class JiraFieldManager(dict):
                 if value:  # If so, we just need to store previous loop data
                     self.set_data_value(data, field_name, value)
                     value = ""
-                raw_field_name = re.match("^\* (.*\(.*?\)):$", line).group(1)
+                raw_field_name = re.match(r"^\* (.*\(.*?\)):$", line).group(1)
                 if "(" in raw_field_name:
                     # This field name's real name doesn't match the field ID
-                    match = re.match("(.*) \(([^)]+)\)", raw_field_name)
+                    match = re.match(r"(.*) \(([^)]+)\)", raw_field_name)
                     field_name = match.group(2)
                     human_names[field_name] = match.group(1)
                 else:
@@ -171,7 +167,7 @@ class AutomaticJiraFieldManager(JiraFieldManager):
         return fields, names
 
     def get_file_contents(self, path):
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
@@ -205,7 +201,7 @@ class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
                     field_string = self[field]
                     if field_string is None:
                         field_string = ""
-                    elif not isinstance(field_string, six.string_types):
+                    elif not isinstance(field_string, str):
                         field_string = json.dumps(
                             field_string, sort_keys=True, indent=4, ensure_ascii=False,
                         )

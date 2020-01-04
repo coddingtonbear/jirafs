@@ -1,5 +1,4 @@
 from blessings import Terminal
-import six
 
 from jirafs import utils
 from jirafs.plugin import CommandPlugin
@@ -29,10 +28,10 @@ class Command(CommandPlugin):
             "--disabled-only", dest="disabled_only", action="store_true", default=False
         )
         parser.add_argument(
-            "--enable", type=six.u,
+            "--enable", type=str,
         )
         parser.add_argument(
-            "--disable", type=six.u,
+            "--disable", type=str,
         )
         parser.add_argument(
             "--global", dest="set_global", default=False, action="store_true",

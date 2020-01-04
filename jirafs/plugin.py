@@ -8,7 +8,6 @@ import re
 import sys
 
 from blessings import Terminal
-import six
 from distutils.version import LooseVersion
 
 from . import __version__
@@ -29,7 +28,7 @@ class PluginOperationError(PluginError):
     pass
 
 
-class CommandResult(six.text_type):
+class CommandResult(str):
     def __new__(
         cls, string=None, return_code=None, cursor=0, no_format=False, **kwargs
     ):
@@ -168,8 +167,8 @@ class CommandPlugin(JirafsPluginBase):
     def truncate_field_value(self, original_value, length=30):
         if original_value is None:
             original_value = ""
-        elif not isinstance(original_value, six.string_types):
-            original_value = six.text_type(original_value)
+        elif not isinstance(original_value, str):
+            original_value = str(original_value)
         value = original_value.strip()
         for newline in ("\n", "\r"):
             if newline in value:

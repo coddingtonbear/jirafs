@@ -1,4 +1,5 @@
 import collections
+import configparser
 import contextlib
 import getpass
 import logging
@@ -8,7 +9,6 @@ import re
 import subprocess
 
 from jira.client import JIRA
-from six.moves import configparser, input
 from distutils.version import LooseVersion
 
 from . import constants
