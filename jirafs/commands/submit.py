@@ -6,7 +6,7 @@ class Command(CommandPlugin):
     """Commit current changes, push changes to JIRA, and pull changes"""
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def add_arguments(self, parser):
         parser.add_argument("-m", "--message", dest="message", default="Untitled")

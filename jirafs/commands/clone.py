@@ -3,9 +3,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-
-import six
-from six.moves.urllib import parse
+from urllib import parse
 
 from jirafs import constants, exceptions, utils
 from jirafs.plugin import CommandPlugin
@@ -16,10 +14,10 @@ class Command(CommandPlugin):
     """ Clone a new ticketfolder for the specified ticket URL"""
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
-    TICKET_RE = re.compile(".*\/browse\/(\w+-\d+)\/?")
+    TICKET_RE = re.compile(r".*\/browse\/(\w+-\d+)\/?")
 
     def handle(self, args, jira, path, **kwargs):
         ticket_url = args.ticket_url[0]
@@ -64,7 +62,7 @@ class Command(CommandPlugin):
         )
         for branch in ["jira", "master"]:
             subprocess.check_call(
-                ["git", "checkout", branch,],
+                ["git", "checkout", branch],
                 cwd=temp_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -94,7 +92,7 @@ class Command(CommandPlugin):
         # Re-clone the shadow repository
         shadow_path = os.path.join(path, constants.METADATA_DIR, "shadow")
         subprocess.check_call(
-            ["git", "clone", path, shadow_path,],
+            ["git", "clone", path, shadow_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -107,7 +105,7 @@ class Command(CommandPlugin):
 
         # Reset the shadow's URL to use a relative path
         subprocess.check_call(
-            ["git", "remote", "set-url", "origin", "../git",],
+            ["git", "remote", "set-url", "origin", "../git"],
             cwd=shadow_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -158,7 +156,7 @@ class Command(CommandPlugin):
         )
 
     def add_arguments(self, parser):
-        parser.add_argument("ticket_url", nargs=1, type=six.text_type)
+        parser.add_argument("ticket_url", nargs=1, type=str)
         parser.add_argument(
-            "path", nargs="*", type=six.text_type,
+            "path", nargs="*", type=str,
         )

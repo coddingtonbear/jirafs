@@ -1,5 +1,3 @@
-import six
-
 from jirafs import utils
 from jirafs.plugin import CommandPlugin
 from jirafs.utils import run_command_method_with_kwargs
@@ -9,7 +7,7 @@ class Command(CommandPlugin):
     """Create a new JIRA issue"""
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
     FIELDS = (
@@ -25,8 +23,8 @@ class Command(CommandPlugin):
             "default": "Task",
             "path": "issuetype.name",
         },
-        {"name": "summary", "prompt": "Summary", "required": True,},
-        {"name": "description", "prompt": "Description", "required": False,},
+        {"name": "summary", "prompt": "Summary", "required": True},
+        {"name": "description", "prompt": "Description", "required": False},
     )
 
     def set_field_value(self, data, field, value):
@@ -46,11 +44,11 @@ class Command(CommandPlugin):
     def prompt_for_input(self, field):
         while True:
             if field.get("default"):
-                value = raw_input(
+                value = input(
                     "%s (%s): " % (field.get("prompt"), field.get("default"),)
                 )
             else:
-                value = raw_input("%s: " % (field.get("prompt")))
+                value = input("%s: " % (field.get("prompt")))
 
             value = value.strip()
 
@@ -88,5 +86,5 @@ class Command(CommandPlugin):
         parser.add_argument("--quiet", "-q", default=False, action="store_true")
         for argument in self.FIELDS:
             parser.add_argument(
-                "--%s" % argument["name"], default=None, type=six.text_type
+                "--%s" % argument["name"], default=None, type=str
             )

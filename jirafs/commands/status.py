@@ -8,7 +8,7 @@ class Command(CommandPlugin):
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def handle(self, args, folder, **kwargs):
         return self.cmd(folder, args.format)
@@ -104,8 +104,6 @@ class Command(CommandPlugin):
     def format_field_changes(self, changes, color, no_upload=False, result=None):
         if result is None:
             result = CommandResult()
-
-        lines = []
 
         for filename in changes.get("files", []):
             result = result.add_line(

@@ -9,7 +9,7 @@ class Command(CommandPlugin):
     """ Enable/Disable or display information about installed issue plugins """
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def handle(self, args, folder, parser, **kwargs):
         installed_plugins = utils.get_installed_plugins()

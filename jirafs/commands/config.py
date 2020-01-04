@@ -1,4 +1,4 @@
-from six.moves import configparser
+import configparser
 
 from jirafs import utils
 from jirafs.exceptions import NotTicketFolderException
@@ -10,7 +10,7 @@ class Command(DirectOutputCommandPlugin):
     """ Get, set, or list global or per-folder configuration values """
 
     MIN_VERSION = "1.0a1"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
     def main(self, args, jira, path, parser, **kwargs):

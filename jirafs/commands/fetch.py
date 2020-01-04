@@ -3,8 +3,6 @@ import json
 import os
 import textwrap
 
-import six
-
 from jirafs import constants, utils
 from jirafs.plugin import CommandPlugin
 
@@ -15,7 +13,7 @@ class Command(CommandPlugin):
     TRY_SUBFOLDERS = True
     RUN_FOR_SUBTASKS = False
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def get_field_map(self, folder):
         fields = {}
@@ -36,7 +34,7 @@ class Command(CommandPlugin):
                     folder.log(
                         'Download file "%s"', (attachment.filename,),
                     )
-                    content = six.BytesIO(attachment.get())
+                    content = io.BytesIO(attachment.get())
                     filename, content = folder.execute_plugin_method_series(
                         "alter_file_download",
                         args=((filename, content,),),
@@ -55,14 +53,14 @@ class Command(CommandPlugin):
         with io.open(detail_path, "w", encoding="utf-8") as dets:
             for field in sorted(folder.issue.raw["fields"].keys()):
                 value = folder.issue.raw["fields"][field]
-                if isinstance(value, six.string_types):
+                if isinstance(value, str):
                     value = value.replace("\r\n", "\n").strip()
                 elif value is None:
                     value = ""
                 elif field in constants.NO_DETAIL_FIELDS:
                     continue
 
-                if not isinstance(value, six.string_types):
+                if not isinstance(value, str):
                     value = json.dumps(
                         value, sort_keys=True, indent=4, ensure_ascii=False
                     )
@@ -77,8 +75,8 @@ class Command(CommandPlugin):
                     with io.open(
                         file_field_path, "w", encoding="utf-8"
                     ) as file_field_file:
-                        file_field_file.write(six.text_type(value))
-                        file_field_file.write(six.text_type("\n"))  # For unix' sake
+                        file_field_file.write(str(value))
+                        file_field_file.write("\n")  # For unix' sake
                 else:
                     # Normal fields, though, just go into the standard
                     # fields file.
@@ -88,9 +86,9 @@ class Command(CommandPlugin):
                         continue
 
                     human_readable = field_map.get(field)
-                    dets.write(six.text_type("* %s (%s):\n") % (human_readable, field))
+                    dets.write("* %s (%s):\n" % (human_readable, field))
                     for line in value.replace("\r\n", "\n").split("\n"):
-                        dets.write(six.text_type("    %s\n" % line))
+                        dets.write("    %s\n" % line)
 
         links_path = folder.get_shadow_path(constants.TICKET_LINKS)
         with io.open(links_path, "w", encoding="utf-8") as links_handle:
@@ -101,7 +99,7 @@ class Command(CommandPlugin):
                     category = "inward"
 
                 links_handle.write(
-                    six.u("* {status}: {key}\n").format(
+                    "* {status}: {key}\n".format(
                         status=getattr(link.type, category).title(),
                         key=getattr(link, "%sIssue" % category).key,
                     )
@@ -111,13 +109,13 @@ class Command(CommandPlugin):
             for link in folder.jira.remote_links(folder.issue):
                 if link.object.title:
                     links_handle.write(
-                        six.u("* {title}: {url}\n").format(
+                        "* {title}: {url}\n".format(
                             title=link.object.title, url=link.object.url
                         )
                     )
                 else:
                     links_handle.write(
-                        six.u("* {url}\n").format(
+                        "* {url}\n".format(
                             title=link.object.title, url=link.object.url
                         )
                     )
@@ -126,14 +124,14 @@ class Command(CommandPlugin):
         with io.open(comments_filename, "w", encoding="utf-8") as comm:
             for comment in folder.issue.fields.comment.comments:
                 comm.write(
-                    six.text_type("* At %s, %s wrote:\n\n")
+                    "* At %s, %s wrote:\n\n"
                     % (comment.created, comment.author)
                 )
                 final_lines = []
                 lines = comment.body.replace("\r\n", "\n").split("\n")
                 for line in lines:
                     if not line:
-                        final_lines.append(six.text_type(""))
+                        final_lines.append("")
                     else:
                         final_lines.extend(
                             textwrap.wrap(
@@ -145,8 +143,8 @@ class Command(CommandPlugin):
                             )
                         )
                 for line in final_lines:
-                    comm.write(six.text_type("    %s\n") % line)
-                comm.write(six.text_type("\n"))
+                    comm.write("    %s\n" % line)
+                comm.write("\n")
 
         folder.store_cached_issue()
 

@@ -7,7 +7,7 @@ class Command(CommandPlugin):
     """ Run a git command against this ticketfolder's underlying GIT repo """
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def handle(self, args, folder, **kwargs):
         return self.cmd(folder, *self.git_arguments)

@@ -13,7 +13,7 @@ class Command(DirectOutputCommandPlugin):
     """Search for users matching the specified search term"""
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
     def main(self, args, jira, path, parser, **kwargs):
@@ -41,7 +41,7 @@ class Command(DirectOutputCommandPlugin):
                 [user.displayName, user.name, user.emailAddress, user.timeZone]
             )
 
-        return CommandResult(unicode(table))
+        return CommandResult(table)
 
     def add_arguments(self, parser):
         parser.add_argument("terms", nargs="*")

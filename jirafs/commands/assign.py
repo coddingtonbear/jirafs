@@ -1,5 +1,3 @@
-import six
-
 from jirafs.plugin import CommandPlugin
 
 
@@ -7,7 +5,7 @@ class Command(CommandPlugin):
     """Assign the current task to a user"""
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def main(self, args, folder, **kwargs):
         username = args.username
@@ -19,4 +17,4 @@ class Command(CommandPlugin):
         )
 
     def add_arguments(self, parser):
-        parser.add_argument("username", nargs="?", type=six.text_type)
+        parser.add_argument("username", nargs="?", type=str)

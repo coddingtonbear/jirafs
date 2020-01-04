@@ -6,7 +6,7 @@ class Command(CommandPlugin):
     """ Commit local changes for later submission to JIRA """
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def handle(self, args, folder, **kwargs):
         return self.cmd(folder, args.message, *args.git_arguments)

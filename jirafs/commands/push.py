@@ -1,4 +1,4 @@
-import six
+import io
 
 from jirafs import constants, exceptions, utils
 from jirafs.plugin import CommandPlugin
@@ -10,7 +10,7 @@ class Command(CommandPlugin):
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def get_valid_issue_link_types(self, folder):
         if not hasattr(self, "_valid_issue_link_types"):
@@ -56,7 +56,7 @@ class Command(CommandPlugin):
             file_meta = folder.get_remote_file_metadata(shadow=False)
 
             for filename in status["ready"]["files"]:
-                upload = six.BytesIO(
+                upload = io.BytesIO(
                     folder.get_local_file_at_revision(filename, "HEAD", binary=True)
                 )
                 filename, upload = folder.execute_plugin_method_series(

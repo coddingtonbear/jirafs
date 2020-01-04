@@ -1,7 +1,5 @@
 from collections import OrderedDict
 
-from six.moves import input
-
 from jirafs.plugin import CommandPlugin
 from jirafs.utils import run_command_method_with_kwargs
 from jirafs.exceptions import JiraInteractionFailed
@@ -11,7 +9,7 @@ class Command(CommandPlugin):
     """ Transition the current issue into a new state """
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def handle(self, args, folder, **kwargs):
         state = self.get_state_from_string(folder, args.state)

@@ -1,3 +1,5 @@
+import json
+
 from jirafs.plugin import CommandPlugin, CommandResult
 
 
@@ -5,7 +7,7 @@ class Command(CommandPlugin):
     """ Commit local changes for later submission to JIRA """
 
     MIN_VERSION = "1.16"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def main(self, args, folder, **kwargs):
         return folder.process_plugin_builds()
@@ -19,7 +21,7 @@ class Command(CommandPlugin):
             if not value:
                 continue
 
-            if not isinstance(value, basestring):
+            if not isinstance(value, str):
                 value = json.dumps(value, indent=4, sort_keys=True,)
 
             for line in value.split("\n"):

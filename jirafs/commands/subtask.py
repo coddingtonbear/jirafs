@@ -6,17 +6,17 @@ class Command(CommandPlugin):
     """Create a subtask of a given issue."""
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def main(self, folder, args, **kwargs):
         summary = " ".join(args.summary)
 
         folder.jira.create_issue(
             fields={
-                "project": {"key": folder.issue.fields.project.key,},
+                "project": {"key": folder.issue.fields.project.key},
                 "summary": summary,
-                "issuetype": {"name": "Sub-task",},
-                "parent": {"id": folder.issue.key,},
+                "issuetype": {"name": "Sub-task"},
+                "parent": {"id": folder.issue.key},
             }
         )
 

@@ -5,7 +5,7 @@ class Command(CommandPlugin):
     """ Print a diff of locally-changed files """
 
     MIN_VERSION = "1.15"
-    MAX_VERSION = "1.99.99"
+    MAX_VERSION = "2.99.99"
 
     def main(self, folder, **kwargs):
         result = folder.run_git_command("diff")
