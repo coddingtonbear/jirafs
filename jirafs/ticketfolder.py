@@ -195,7 +195,7 @@ class TicketFolder(object):
             local_config_file = self.get_metadata_path("config")
 
             config = utils.get_config(
-                additional_configs=[local_config_file,], include_global=False,
+                additional_configs=[local_config_file, ], include_global=False,
             )
             if not config.has_section(section):
                 config.add_section(section)
@@ -397,20 +397,6 @@ class TicketFolder(object):
             out.write(six.text_type(""))
 
         return instance
-
-    def applied_macros_exist(self, shadow=False):
-        macro_patch_filename = self.get_path(
-            ".jirafs/macros_applied.patch", shadow=shadow,
-        )
-
-        if not os.path.exists(macro_patch_filename):
-            return False
-
-        with open(macro_patch_filename) as incoming:
-            if incoming.read().strip():
-                return True
-
-        return False
 
     def run_git_command(self, command, *args, **kwargs):
         failure_ok = kwargs.get("failure_ok", False)
@@ -822,7 +808,7 @@ class TicketFolder(object):
                 ) as in_:
                     for line in in_:
                         out.write("%s\n" % line.strip())
-            except:
+            except Exception:
                 pass
 
             try:
@@ -832,7 +818,7 @@ class TicketFolder(object):
                 ) as in_:
                     for line in in_:
                         out.write("%s\n" % line.strip())
-            except:
+            except Exception:
                 pass
 
     def log(self, message, args=None, level=logging.INFO):

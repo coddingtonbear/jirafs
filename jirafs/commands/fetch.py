@@ -1,13 +1,11 @@
 import io
 import json
-import logging
 import os
 import textwrap
 
 import six
 
 from jirafs import constants, utils
-from jirafs.exceptions import GitCommandError
 from jirafs.plugin import CommandPlugin
 
 
@@ -25,34 +23,6 @@ class Command(CommandPlugin):
             fields[field["id"]] = field["name"]
 
         return fields
-
-    def apply_macros(self, folder):
-        macro_patch_filename = folder.get_path(
-            ".jirafs/macros_applied.patch", shadow=True,
-        )
-        if not folder.applied_macros_exist(shadow=True):
-            return
-        try:
-            folder.run_git_command(
-                "apply", "--3way", "--reverse", macro_patch_filename, shadow=True,
-            )
-        except GitCommandError as e:
-            folder.log(
-                "Error encountered while reversing applied macros: %s",
-                args=(e.output,),
-                level=logging.WARNING,
-            )
-        except Exception as e:
-            folder.log(
-                "Unhandled error encountered while reversing macros: %s",
-                args=(e.output,),
-                level=logging.ERROR,
-            )
-            return
-
-        folder.run_git_command(
-            "commit", "-am", "Reversing applied macros", shadow=True, failure_ok=True,
-        )
 
     def main(self, folder, **kwargs):
         folder.clear_cache()
@@ -202,8 +172,6 @@ class Command(CommandPlugin):
         folder.run_git_command(
             "commit", "-m", "Fetched remote changes", failure_ok=True, shadow=True
         )
-
-        self.apply_macros(folder)
 
         folder.run_git_command("push", "origin", "jira", shadow=True)
         final_hash = folder.run_git_command("rev-parse", "jira")

@@ -86,7 +86,6 @@ setup(
             'search_users = jirafs.commands.search_users:Command',
             'create = jirafs.commands.create:Command',
             'submit = jirafs.commands.submit:Command',
-            'macropatch = jirafs.commands.macropatch:Command',
             'match = jirafs.commands.match:Command',
             'build = jirafs.commands.build:Command',
         ]

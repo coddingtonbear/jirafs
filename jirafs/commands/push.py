@@ -1,5 +1,3 @@
-import io
-
 import six
 
 from jirafs import constants, exceptions, utils
@@ -114,7 +112,7 @@ class Command(CommandPlugin):
                         args.extend([other, folder.issue])
                     elif status_data[0] == "outward":
                         args.extend(
-                            [folder.issue, other,]
+                            [folder.issue, other, ]
                         )
                     folder.jira.create_issue_link(*args)
                 elif new is None:
@@ -184,31 +182,6 @@ class Command(CommandPlugin):
             folder.run_git_command(
                 "commit", "-m", "Pushed local changes", failure_ok=True
             )
-
-            # Apply macros and record the changes so we can reverse
-            # them a little later.
-            macro_patch_filename = folder.get_path(".jirafs/macros_applied.patch")
-            folder.run_git_command("apply", macro_patch_filename, failure_ok=True)
-            fields = folder.get_fields()
-            for field, value in collected_updates.items():
-                fields[field] = value
-            fields.write()
-
-            field_data_files = fields.get_field_data_files()
-            result = folder.run_git_command("diff", *field_data_files)
-            if result.strip():
-                with io.open(macro_patch_filename, "w", encoding="utf-8") as o:
-                    o.write(result)
-                    o.write(u"\n\n")
-                folder.run_git_command("add", macro_patch_filename, failure_ok=True)
-                folder.run_git_command(
-                    "commit", "-m", "Updating macro patch", failure_ok=True
-                )
-                # Re-set the applied changes we just made above
-                folder.run_git_command("checkout", "--", ".")
-            else:
-                with io.open(macro_patch_filename, "w", encoding="utf-8") as o:
-                    o.write(u"\n\n")
 
             # Commit changes to remote copy, too, so we record remote
             # file metadata.
