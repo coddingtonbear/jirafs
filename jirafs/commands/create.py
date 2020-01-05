@@ -85,6 +85,4 @@ class Command(CommandPlugin):
         parser.add_argument("--server", default=None)
         parser.add_argument("--quiet", "-q", default=False, action="store_true")
         for argument in self.FIELDS:
-            parser.add_argument(
-                "--%s" % argument["name"], default=None, type=str
-            )
+            parser.add_argument("--%s" % argument["name"], default=None, type=str)

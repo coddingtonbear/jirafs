@@ -187,7 +187,7 @@ class TicketFolder(object):
             local_config_file = self.get_metadata_path("config")
 
             config = utils.get_config(
-                additional_configs=[local_config_file, ], include_global=False,
+                additional_configs=[local_config_file,], include_global=False,
             )
             if not config.has_section(section):
                 config.add_section(section)
@@ -301,9 +301,7 @@ class TicketFolder(object):
         )
         remote_files = self.get_path(".jirafs/remote_files.json", shadow=shadow)
         with io.open(remote_files, "w", encoding="utf-8") as out:
-            out.write(
-                json.dumps(data, indent=4, sort_keys=True, ensure_ascii=False,)
-            )
+            out.write(json.dumps(data, indent=4, sort_keys=True, ensure_ascii=False,))
 
     def get_local_path(self, *args):
         return os.path.join(self.path, *args)
@@ -656,9 +654,9 @@ class TicketFolder(object):
             else:
                 continue
 
-        unprocessed = re.compile(
-            r"(<jirafs:.*>)", re.MULTILINE | re.DOTALL
-        ).findall(data)
+        unprocessed = re.compile(r"(<jirafs:.*>)", re.MULTILINE | re.DOTALL).findall(
+            data
+        )
         if unprocessed:
             raise exceptions.UnknownMacroError(unprocessed)
 

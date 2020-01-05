@@ -62,7 +62,7 @@ class CommandResult(str):
         print(message, end="")
 
     def echo(self):
-        self._echo(self[self.cursor:])
+        self._echo(self[self.cursor :])
         self.cursor = len(self)
 
         return self
@@ -173,12 +173,12 @@ class CommandPlugin(JirafsPluginBase):
         value = original_value.strip()
         for newline in ("\n", "\r"):
             if newline in value:
-                value = value[0:value.find(newline)]
+                value = value[0 : value.find(newline)]
 
         value = value[0:length]
 
         if value != original_value:
-            value = value[0:length - 1] + u"\u2026"
+            value = value[0 : length - 1] + u"\u2026"
 
         return value
 
@@ -320,7 +320,10 @@ class MacroPlugin(Plugin):
 
         state = state_outer
 
-        escapable = ("'", "\"", )
+        escapable = (
+            "'",
+            '"',
+        )
         attributes = {}
         key = ""
         value = ""
@@ -332,9 +335,9 @@ class MacroPlugin(Plugin):
 
             if not value_is_raw:
                 attributes[key.strip()] = value.strip()
-            elif value.strip().upper() == 'TRUE':
+            elif value.strip().upper() == "TRUE":
                 attributes[key.strip()] = True
-            elif value.strip().upper() == 'FALSE':
+            elif value.strip().upper() == "FALSE":
                 attributes[key.strip()] = False
             else:
                 attributes[key.strip()] = float(value)
@@ -346,7 +349,7 @@ class MacroPlugin(Plugin):
             if char.isspace():
                 break
 
-        for char in tag[tag_length + 1:]:
+        for char in tag[tag_length + 1 :]:
             if state == state_outer:
                 if not char.isspace():
                     state = state_name
@@ -360,7 +363,7 @@ class MacroPlugin(Plugin):
                 continue
             elif state == state_name_ended:
                 if not char.isspace():
-                    if char == "\"":
+                    if char == '"':
                         state = state_dquoted_value
                         value_is_raw = False
                         continue
@@ -389,7 +392,7 @@ class MacroPlugin(Plugin):
                     else:
                         raise MacroAttributeError("Invalid escape sequence: \\%s", char)
 
-                if char == "\"":
+                if char == '"':
                     store_value()
                     state = state_outer
                 elif char == "\\":
@@ -437,9 +440,7 @@ class MacroPlugin(Plugin):
             raise
         except Exception as e:
             raise MacroContentError(
-                "Error encountered while running macro %s: %s",
-                self.plugin_name,
-                e,
+                "Error encountered while running macro %s: %s", self.plugin_name, e,
             ) from e
 
     def execute_macro(self, data, **attributes):

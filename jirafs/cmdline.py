@@ -25,7 +25,7 @@ from .exceptions import (
     JirafsError,
     NotTicketFolderException,
     UnknownMacroError,
-    MacroError
+    MacroError,
 )
 
 
@@ -174,7 +174,7 @@ def main():
         if args.traceback:
             traceback.print_exc()
         sys.exit(30)
-    except UnknownMacroError as e:
+    except MacroError as e:
         print(
             u"{t.red}Jirafs encountered an error while processing a "
             u"macro: {t.normal}{t.red}{t.bold}{error}"

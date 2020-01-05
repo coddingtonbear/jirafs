@@ -115,18 +115,13 @@ class Command(CommandPlugin):
                     )
                 else:
                     links_handle.write(
-                        "* {url}\n".format(
-                            title=link.object.title, url=link.object.url
-                        )
+                        "* {url}\n".format(title=link.object.title, url=link.object.url)
                     )
 
         comments_filename = folder.get_shadow_path(constants.TICKET_COMMENTS)
         with io.open(comments_filename, "w", encoding="utf-8") as comm:
             for comment in folder.issue.fields.comment.comments:
-                comm.write(
-                    "* At %s, %s wrote:\n\n"
-                    % (comment.created, comment.author)
-                )
+                comm.write("* At %s, %s wrote:\n\n" % (comment.created, comment.author))
                 final_lines = []
                 lines = comment.body.replace("\r\n", "\n").split("\n")
                 for line in lines:
