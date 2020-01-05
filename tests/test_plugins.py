@@ -174,5 +174,60 @@ class TestPlugins(BaseTestCase):
             expected_result, json.loads(macro.process_text_data(content))
         )
 
+    def test_multiline_attribute_extraction(self):
+        class TestMacroPlugin(VoidElementMacroPlugin):
+            COMPONENT_NAME = 'test'
+
+            def execute_macro(self, data, **kwargs):
+                return json.dumps(kwargs)
+
+        macro = TestMacroPlugin(mock.Mock(), 'test')
+
+        content = """
+            <jirafs:test
+                alpha="AL''\\"PHA"
+                beta=2
+                gamma=True
+                epsilon='bloop"\\''
+            />
+        """
+
+        expected_result = {
+            "alpha": "AL''\"PHA",
+            "beta": 2.0,
+            "gamma": True,
+            "epsilon": "bloop\"'"
+        }
+        self.assertEqual(
+            expected_result, json.loads(macro.process_text_data(content))
+        )
+
+    def test_macroplugin_block_text_data_double(self):
+        class CounterMacroPlugin(BlockElementMacroPlugin):
+            COMPONENT_NAME = "counter"
+
+            def execute_macro(self, data, **kwargs):
+                return str(int(kwargs['counter'])) + ":" + data
+
+        macro = CounterMacroPlugin(mock.Mock(), 'counter')
+
+        content = """
+        Start
+        <jirafs:counter counter=0>Zero</jirafs:counter>
+        Middle
+        <jirafs:counter counter=1>One</jirafs:counter>
+        End
+        """
+        expected_result = """
+        Start
+        0:Zero
+        Middle
+        1:One
+        End
+        """
+        actual_result = macro.process_text_data(content)
+
+        self.assertEqual(expected_result, actual_result)
+
     def tearDown(self):
         shutil.rmtree(self.root_folder)

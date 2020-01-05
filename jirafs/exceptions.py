@@ -51,5 +51,6 @@ class MacroError(JirafsError):
 class MacroContentError(MacroError):
     pass
 
+
 class MacroAttributeError(MacroError):
     pass

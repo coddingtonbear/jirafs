@@ -311,9 +311,6 @@ class MacroPlugin(Plugin):
         return self.get_matcher().finditer(content)
 
     def get_attributes(self, tag):
-        if ' ' not in tag:
-            return {}
-
         state_outer = 1
         state_raw_value = 2
         state_squoted_value = 3
@@ -345,9 +342,13 @@ class MacroPlugin(Plugin):
             value = ""
             key = ""
 
-        for char in tag[tag.find(" ") + 1:-1]:
+        for tag_length, char in enumerate(tag):
+            if char.isspace():
+                break
+
+        for char in tag[tag_length + 1:]:
             if state == state_outer:
-                if char != " ":
+                if not char.isspace():
                     state = state_name
                     key += char
                     continue
@@ -358,7 +359,7 @@ class MacroPlugin(Plugin):
                     key += char
                 continue
             elif state == state_name_ended:
-                if char != " ":
+                if not char.isspace():
                     if char == "\"":
                         state = state_dquoted_value
                         value_is_raw = False
@@ -373,7 +374,7 @@ class MacroPlugin(Plugin):
                         value += char
                         continue
             elif state == state_raw_value:
-                if char == " ":
+                if char.isspace():
                     store_value()
                     state = state_outer
                 else:
