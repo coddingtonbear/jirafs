@@ -656,6 +656,12 @@ class TicketFolder(object):
             else:
                 continue
 
+        unprocessed = re.compile(
+            r"(<jirafs:.*>)", re.MULTILINE | re.DOTALL
+        ).findall(data)
+        if unprocessed:
+            raise exceptions.UnknownMacroError(unprocessed)
+
         return data
 
     def get_links(self, revision=None, path=None):

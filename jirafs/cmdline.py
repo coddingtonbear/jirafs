@@ -24,6 +24,8 @@ from .exceptions import (
     JiraInteractionFailed,
     JirafsError,
     NotTicketFolderException,
+    UnknownMacroError,
+    MacroError
 )
 
 
@@ -163,6 +165,24 @@ def main():
             if args.traceback:
                 traceback.print_exc()
             sys.exit(21)
+    except UnknownMacroError as e:
+        print(
+            u"{t.red}Jirafs encountered an unknown macro while processing "
+            u"your content: {t.normal}{t.red}{t.bold}{error}"
+            u"{t.normal}".format(t=term, error=str(e))
+        )
+        if args.traceback:
+            traceback.print_exc()
+        sys.exit(30)
+    except UnknownMacroError as e:
+        print(
+            u"{t.red}Jirafs encountered an error while processing a "
+            u"macro: {t.normal}{t.red}{t.bold}{error}"
+            u"{t.normal}".format(t=term, error=str(e))
+        )
+        if args.traceback:
+            traceback.print_exc()
+        sys.exit(40)
     except JIRAError as e:
         print(
             u"{t.red}Jirafs encountered an error while interacting with "

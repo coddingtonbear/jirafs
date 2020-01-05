@@ -48,6 +48,10 @@ class MacroError(JirafsError):
     pass
 
 
+class UnknownMacroError(MacroError):
+    pass
+
+
 class MacroContentError(MacroError):
     pass
 

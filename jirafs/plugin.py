@@ -440,7 +440,7 @@ class MacroPlugin(Plugin):
                 "Error encountered while running macro %s: %s",
                 self.plugin_name,
                 e,
-            )
+            ) from e
 
     def execute_macro(self, data, **attributes):
         raise NotImplementedError()
