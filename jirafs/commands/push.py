@@ -10,7 +10,7 @@ class Command(CommandPlugin):
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MAX_VERSION = "3.0.0"
 
     def get_valid_issue_link_types(self, folder):
         if not hasattr(self, "_valid_issue_link_types"):

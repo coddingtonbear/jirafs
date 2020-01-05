@@ -10,8 +10,8 @@ class Command(CommandPlugin):
     """ Check whether a given dotpath matches an expected value """
 
     TRY_SUBFOLDERS = True
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
 
     def handle(self, args, folder, **kwargs):
         return self.cmd(

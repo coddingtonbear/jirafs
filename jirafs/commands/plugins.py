@@ -7,8 +7,8 @@ from jirafs.plugin import CommandPlugin
 class Command(CommandPlugin):
     """ Enable/Disable or display information about installed issue plugins """
 
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
 
     def handle(self, args, folder, parser, **kwargs):
         installed_plugins = utils.get_installed_plugins()

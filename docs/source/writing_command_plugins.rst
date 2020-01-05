@@ -25,9 +25,12 @@ The following properties **must** be defined:
 
 * ``MIN_VERSION``: The string version number representing the minimum version
   of Jirafs that this plugin will work with.
-* ``MAX_VERSION``: The string version number representing the maximum version
-  of Jirafs that this plugin is compatible with.  Note: Jirafs uses semantic
-  versioning, so you may set this value accordingly.
+* ``MAX_VERSION``: The string version number representing the first version
+  at which your plugin would *not* be guaranteed to becompatible.  Note
+  that this means that your Jirafs version must be *below* this number, and
+  that users running a version of Jirafs matching this will see an error
+  message.  Note: Jirafs uses semantic versioning, so you should set this
+  value to the next major version about the highest version you've tested.
 
 The following methods may be defined to control the behavior of your
 command plugin:

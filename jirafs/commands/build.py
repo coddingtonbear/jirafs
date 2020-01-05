@@ -6,8 +6,8 @@ from jirafs.plugin import CommandPlugin, CommandResult
 class Command(CommandPlugin):
     """ Commit local changes for later submission to JIRA """
 
-    MIN_VERSION = "1.16"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
 
     def main(self, args, folder, **kwargs):
         return folder.process_plugin_builds()

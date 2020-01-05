@@ -5,8 +5,8 @@ from jirafs.plugin import CommandPlugin
 class Command(CommandPlugin):
     """Create a subtask of a given issue."""
 
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
 
     def main(self, folder, args, **kwargs):
         summary = " ".join(args.summary)

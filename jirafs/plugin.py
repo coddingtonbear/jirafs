@@ -121,7 +121,7 @@ class JirafsPluginBase(object):
         min_version = LooseVersion(self.MIN_VERSION)
         max_version = LooseVersion(self.MAX_VERSION)
         curr_version = LooseVersion(__version__)
-        if not min_version <= curr_version <= max_version:
+        if not min_version <= curr_version < max_version:
             raise PluginValidationError(
                 "Plugin '%s' is not compatible with version %s of Jirafs; "
                 "minimum version: %s; maximum version %s."

@@ -12,8 +12,8 @@ class Command(CommandPlugin):
 
     TRY_SUBFOLDERS = True
     RUN_FOR_SUBTASKS = False
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
 
     def get_field_map(self, folder):
         fields = {}

@@ -7,8 +7,8 @@ class Command(CommandPlugin):
     """ Get the status of the current ticketfolder """
 
     TRY_SUBFOLDERS = True
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
 
     def handle(self, args, folder, **kwargs):
         return self.cmd(folder, args.format)

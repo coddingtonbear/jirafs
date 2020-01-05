@@ -4,8 +4,8 @@ from jirafs.plugin import CommandPlugin
 class Command(CommandPlugin):
     """Assign the current task to a user"""
 
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
 
     def main(self, args, folder, **kwargs):
         username = args.username

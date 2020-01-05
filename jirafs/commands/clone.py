@@ -13,8 +13,8 @@ from jirafs.ticketfolder import TicketFolder
 class Command(CommandPlugin):
     """ Clone a new ticketfolder for the specified ticket URL"""
 
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
     TICKET_RE = re.compile(r".*\/browse\/(\w+-\d+)\/?")

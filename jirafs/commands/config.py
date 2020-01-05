@@ -9,8 +9,8 @@ from jirafs.ticketfolder import TicketFolder
 class Command(DirectOutputCommandPlugin):
     """ Get, set, or list global or per-folder configuration values """
 
-    MIN_VERSION = "1.0a1"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
     def main(self, args, jira, path, parser, **kwargs):

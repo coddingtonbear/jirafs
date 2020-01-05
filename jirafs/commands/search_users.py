@@ -12,8 +12,8 @@ from jirafs.ticketfolder import TicketFolder
 class Command(DirectOutputCommandPlugin):
     """Search for users matching the specified search term"""
 
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
     AUTOMATICALLY_INSTANTIATE_FOLDER = False
 
     def main(self, args, jira, path, parser, **kwargs):

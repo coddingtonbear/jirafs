@@ -9,8 +9,8 @@ class Command(CommandPlugin):
 
     RUN_FOR_SUBTASKS = True
     TRY_SUBFOLDERS = True
-    MIN_VERSION = "1.15"
-    MAX_VERSION = "2.99.99"
+    MIN_VERSION = "2.0.0"
+    MAX_VERSION = "3.0.0"
 
     def main(self, folder, **kwargs):
         with utils.stash_local_changes(folder):
