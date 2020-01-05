@@ -10,6 +10,7 @@ import sys
 from blessings import Terminal
 from distutils.version import LooseVersion
 
+from .exceptions import MacroAttributeError, MacroContentError, MacroError
 from . import __version__
 
 
@@ -293,7 +294,6 @@ class DirectOutputCommandPlugin(CommandPlugin):
 
 class MacroPlugin(Plugin):
     COMPONENT_NAME = None
-    MATCHER = None
 
     def __init__(self, folder, plugin_name, *args, **kwargs):
         self.ticketfolder = folder
@@ -311,19 +311,111 @@ class MacroPlugin(Plugin):
         return self.get_matcher().finditer(content)
 
     def get_attributes(self, tag):
-        if ":" not in tag:
+        if ' ' not in tag:
             return {}
 
-        attributes = {}
+        state_outer = 1
+        state_raw_value = 2
+        state_squoted_value = 3
+        state_dquoted_value = 4
+        state_name = 5
+        state_name_ended = 6
 
-        attribute_content = tag[tag.find(":") + 1:-1]
-        for segment in attribute_content.split("|"):
-            if "=" not in segment:
-                attributes[segment] = True
+        state = state_outer
+
+        escapable = ("'", "\"", )
+        attributes = {}
+        key = ""
+        value = ""
+        value_is_raw = False
+        is_escaped = False
+
+        def store_value():
+            nonlocal value, key, attributes
+
+            if not value_is_raw:
+                attributes[key.strip()] = value.strip()
+            elif value.strip().upper() == 'TRUE':
+                attributes[key.strip()] = True
+            elif value.strip().upper() == 'FALSE':
+                attributes[key.strip()] = False
+            else:
+                attributes[key.strip()] = float(value)
+
+            value = ""
+            key = ""
+
+        for char in tag[tag.find(" ") + 1:-1]:
+            if state == state_outer:
+                if char != " ":
+                    state = state_name
+                    key += char
+                    continue
+            elif state == state_name:
+                if char == "=":
+                    state = state_name_ended
+                else:
+                    key += char
+                continue
+            elif state == state_name_ended:
+                if char != " ":
+                    if char == "\"":
+                        state = state_dquoted_value
+                        value_is_raw = False
+                        continue
+                    elif char == "'":
+                        state = state_squoted_value
+                        value_is_raw = False
+                        continue
+                    else:
+                        state = state_raw_value
+                        value_is_raw = True
+                        value += char
+                        continue
+            elif state == state_raw_value:
+                if char == " ":
+                    store_value()
+                    state = state_outer
+                else:
+                    value += char
+                continue
+            elif state == state_dquoted_value:
+                if is_escaped:
+                    if char in escapable:
+                        is_escaped = False
+                        value += char
+                        continue
+                    else:
+                        raise MacroAttributeError("Invalid escape sequence: \\%s", char)
+
+                if char == "\"":
+                    store_value()
+                    state = state_outer
+                elif char == "\\":
+                    is_escaped = True
+                else:
+                    value += char
+                continue
+            elif state == state_squoted_value:
+                if is_escaped:
+                    if char in escapable:
+                        is_escaped = False
+                        value += char
+                        continue
+                    else:
+                        raise MacroAttributeError("Invalid escape sequence: \\%s", char)
+
+                if char == "'":
+                    store_value()
+                    state = state_outer
+                elif char == "\\":
+                    is_escaped = True
+                else:
+                    value += char
                 continue
 
-            attribute, value = segment.split("=", 1)
-            attributes[attribute] = value
+        if key or value:
+            store_value()
 
         return attributes
 
@@ -331,17 +423,22 @@ class MacroPlugin(Plugin):
         def run_replacement(match_data):
             data = match_data.groupdict()
 
-            return self.execute_macro(
-                data.get("content"), **self.get_attributes(data.get("start", ""))
-            )
+            try:
+                attributes = self.get_attributes(data.get("start", ""))
+            except Exception as e:
+                raise MacroAttributeError("Unknown Error") from e
+
+            return self.execute_macro(data.get("content"), **attributes)
 
         try:
             return self.get_matcher().sub(run_replacement, content)
+        except MacroError:
+            raise
         except Exception as e:
-            self.ticketfolder.log(
+            raise MacroContentError(
                 "Error encountered while running macro %s: %s",
-                args=(self.plugin_name, e),
-                level=logging.ERROR,
+                self.plugin_name,
+                e,
             )
 
     def execute_macro(self, data, **attributes):
@@ -350,9 +447,10 @@ class MacroPlugin(Plugin):
 
 class BlockElementMacroPlugin(MacroPlugin):
     BASE_REGEX = (
-        r"^(?P<start>{{{tag_name}[^}}]*}})(?P<content>.*?)" r"(?P<end>{{{tag_name}}})$"
+        r"<jirafs:(?P<start>{tag_name}[^>]*)>(?P<content>.*?)"
+        r"</jirafs:(?P<end>{tag_name})>"
     )
 
 
 class VoidElementMacroPlugin(MacroPlugin):
-    BASE_REGEX = r"^(?P<start>{{{tag_name}}})"
+    BASE_REGEX = r"<jirafs:(?P<start>{tag_name}[^/]*)/>"

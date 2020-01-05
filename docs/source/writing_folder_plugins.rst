@@ -170,14 +170,9 @@ Block Element Macros
 
 Block element macros are macros that wrap a body of text -- for example::
 
-    {my-macro}
+    <jirafs:my-macro>
     Some content
-    {my-macro}
-
-Note that -- following JIRA's markup conventions, the macro both begins and ends
-with the name of your macro.  Your macro class needs to have only one method --
-``execute_macro`` which receives both the text content wrapped by the two
-``{my-macro}`` markers, as well as any parameters (as keyword arguments).
+    </jirafs:my-macro>
 
 .. note::
     
@@ -190,9 +185,10 @@ Void Element Macros
 ~~~~~~~~~~~~~~~~~~~
 
 Void element macros and block element macros share a lot of similarities, except
-that void element macros do not need to be closed; for example::
+that void element macros do not have their own content and are self-closed;
+for example::
 
-    {my-void-element-macro}
+    <jirafs:my-macro />
 
 Your ``execute_macro`` method is expected to return text that should be sent
 to JIRA instead of your macro.  Note that the method signature remains
@@ -205,21 +201,15 @@ Parameters
 ~~~~~~~~~~
 
 Both block and void elements can receive any number of parameters; they're
-specified following JIRA's conventions in which each parameter is separated
-by a pipe, and the key and value (if specified) are separated by an equal sign;
-for example the following void element has three parameters::
+specified following the same conventions you might use for providing an HTML
+tag with attributes; for example:
 
+    <jirafs:flag-image country_code="US" size=300 alternate=True />
     {flag-image:country_code=US|size=300|alternate}
 
-* ``country_code``: ``US``
-* ``size``: ``300``
-* ``alternate``: ``True``
-
-.. note::
-
-   All parameters -- except ``True`` in the third example above --
-   are passed as strings, and ``True`` is only a default value for
-   parameters that do not have a value specified.
+* ``country_code``: ``US`` (string)
+* ``size``: ``300.0`` (float)
+* ``alternate``: ``True`` (boolean)
 
 Example Macro Plugin
 ~~~~~~~~~~~~~~~~~~~~
@@ -237,9 +227,7 @@ the basic functionality of a plugin:
 
 When you enter the following text into a JIRA ticket field::
 
-    {upper-cased:prefix=Hello, }
-    my name is Adam.
-    {upper-cased}
+    <jirafs:upper-cased prefix="Hello, ">my name is Adam.</jirafs:upper-cased>
 
 the following content will be sent to JIRA instead::
 
