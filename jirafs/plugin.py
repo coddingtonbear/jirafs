@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import argparse
+import codecs
 import json
 import logging
 import os
@@ -330,6 +331,8 @@ class MacroPlugin(Plugin):
         value_is_raw = False
         is_escaped = False
 
+        decoder = codecs.getdecoder("unicode_escape")
+
         def store_value():
             nonlocal value, key, attributes
 
@@ -385,12 +388,12 @@ class MacroPlugin(Plugin):
                 continue
             elif state == state_dquoted_value:
                 if is_escaped:
+                    is_escaped = False
                     if char in escapable:
-                        is_escaped = False
                         value += char
-                        continue
                     else:
-                        raise MacroAttributeError("Invalid escape sequence: \\%s", char)
+                        value += decoder("\\%s" % char)[0]
+                    continue
 
                 if char == '"':
                     store_value()
@@ -402,12 +405,12 @@ class MacroPlugin(Plugin):
                 continue
             elif state == state_squoted_value:
                 if is_escaped:
+                    is_escaped = False
                     if char in escapable:
-                        is_escaped = False
                         value += char
-                        continue
                     else:
-                        raise MacroAttributeError("Invalid escape sequence: \\%s", char)
+                        value += decoder("\\%s" % char)[0]
+                    continue
 
                 if char == "'":
                     store_value()

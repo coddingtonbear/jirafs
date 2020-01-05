@@ -136,13 +136,13 @@ class TestPlugins(BaseTestCase):
 
         macro = TestMacroPlugin(mock.Mock(), 'test')
 
-        content = """<jirafs:test alpha="AL''\\"PHA" beta=2 gamma=True epsilon='bloop"\\''>
+        content = """<jirafs:test alpha="AL''\\"\\tPHA" beta=2 gamma=True epsilon='bloop"\\''>
             beep
             </jirafs:test>
         """
 
         expected_result = {
-            "alpha": "AL''\"PHA",
+            "alpha": "AL''\"\tPHA",
             "beta": 2.0,
             "gamma": True,
             "epsilon": "bloop\"'"
@@ -160,12 +160,12 @@ class TestPlugins(BaseTestCase):
 
         macro = TestMacroPlugin(mock.Mock(), 'test')
 
-        content = (
-            """<jirafs:test alpha="AL''\\"PHA" beta=2 gamma=True epsilon='bloop"\\''/>"""
-        )
+        content = """
+            <jirafs:test alpha="AL''\\"\\tPHA" beta=2 gamma=True epsilon='bloop"\\''/>
+        """
 
         expected_result = {
-            "alpha": "AL''\"PHA",
+            "alpha": "AL''\"\tPHA",
             "beta": 2.0,
             "gamma": True,
             "epsilon": "bloop\"'"
