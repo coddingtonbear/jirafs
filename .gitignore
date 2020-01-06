@@ -12,3 +12,7 @@ include/*
 share/*
 .tox/*
 .noseids
+.vscode/
+env/
+local/
+temp/
