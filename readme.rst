@@ -29,6 +29,8 @@ your workflow.  Currently, existing plugins include:
   Automatically transform Latex markup into PDFs during upload.
 * `jirafs-pandoc <http://github.com/coddingtonbear/jirafs-pandoc>`_:
   Automatically transform RST/Markdown markup into fancy PDFs during upload.
+* `jirafs-csv-table <http://github.com/coddingtonbear/jirafs-csv-table>`_:
+  Make JIRA tables a little more easily by including local CSV files.
 * `jirafs-list-table <http://github.com/coddingtonbear/jirafs-list-table>`_:
   Make JIRA tables a little more easily using a simple list-based markup.
 
