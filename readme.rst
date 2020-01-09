@@ -22,13 +22,6 @@ Plugins and Macros Too
 Additionally provides a Plugin API allowing one to write scripts to simplify
 your workflow.  Currently, existing plugins include:
 
-* `jirafs-graphviz <http://github.com/coddingtonbear/jirafs-graphviz>`_:
-  Automatically transform graphviz (dot) files into PNG digraphs during
-  upload.
-* `jirafs-latex <http://github.com/coddingtonbear/jirafs-latex>`_:
-  Automatically transform Latex markup into PDFs during upload.
-* `jirafs-pandoc <http://github.com/coddingtonbear/jirafs-pandoc>`_:
-  Automatically transform RST/Markdown markup into fancy PDFs during upload.
 * `jirafs-csv-table <http://github.com/coddingtonbear/jirafs-csv-table>`_:
   Make JIRA tables a little more easily by including local CSV files.
 * `jirafs-list-table <http://github.com/coddingtonbear/jirafs-list-table>`_:
@@ -38,7 +31,7 @@ Requirements
 ------------
 
 * ``git >= 1.8``
-* ``python >= 2.7`` or ``python3 >= 3.4``
+* ``python3 >= 3.4``
 
 ----------
 
