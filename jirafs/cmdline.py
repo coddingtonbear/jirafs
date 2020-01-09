@@ -177,8 +177,12 @@ def main():
     except MacroError as e:
         print(
             u"{t.red}Jirafs encountered an error while processing a "
-            u"macro: {t.normal}{t.red}{t.bold}{error}"
-            u"{t.normal}".format(t=term, error=str(e))
+            u"{t.bold}{macro}{t.normal}{t.red} macro:"
+            u"{t.normal}{t.red}{t.bold}{error}{t.normal}".format(
+                t=term,
+                macro=e.macro_name or '?',
+                error=str(e)
+            )
         )
         if args.traceback:
             traceback.print_exc()

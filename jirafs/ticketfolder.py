@@ -18,6 +18,7 @@ from . import utils
 from .jiralinkmanager import JiraLinkManager
 from .jirafieldmanager import JiraFieldManager
 from .plugin import MacroPlugin, PluginValidationError
+from .exceptions import MacroError
 
 
 class TicketFolderLoggerAdapter(logging.LoggerAdapter):
@@ -648,11 +649,17 @@ class TicketFolder(object):
     def process_macros(self, data):
         macro_plugins = self.get_macro_plugins()
 
-        for cls in macro_plugins:
-            if isinstance(data, str):
-                data = cls.process_text_data(data)
-            else:
-                continue
+        for plugin in macro_plugins:
+            try:
+                if isinstance(data, str):
+                    data = plugin.process_text_data(data)
+                else:
+                    continue
+            except MacroError as e:
+                # Annotate the MacroError with information about what
+                # macro caused the error
+                e.macro_name = plugin.COMPONENT_NAME
+                raise e from e
 
         unprocessed = re.compile(r"(<jirafs:.*>)", re.MULTILINE | re.DOTALL).findall(
             data

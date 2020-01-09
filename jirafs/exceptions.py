@@ -45,7 +45,13 @@ class IssueValidationError(JirafsError):
 
 
 class MacroError(JirafsError):
-    pass
+    @property
+    def macro_name(self):
+        return self._macro_name
+
+    @macro_name.setter
+    def macro_name(self, value):
+        self._macro_name = value
 
 
 class UnknownMacroError(MacroError):
