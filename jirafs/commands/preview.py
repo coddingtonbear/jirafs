@@ -26,11 +26,24 @@ class Command(CommandPlugin):
     def handle(self, args, folder, **kwargs):
         return self.cmd(folder, args.field_name, output=args.output)
 
+    def get_comments(self, folder):
+        lines = []
+
+        for comment in folder.issue.fields.comment.comments:
+            lines.append(
+                "h3. At %s, %s wrote:\n" % (
+                    comment.created,
+                    comment.author,
+                )
+            )
+            lines.append(comment.body.replace("\r\n", "\n"))
+
+        return '\n'.join(lines)
+
     def main(self, folder, field_name, output=None, **kwargs):
         special_fields = {
             "new_comment": folder.get_new_comment,
-            "links": folder.get_links,
-            "fields": folder.get_fields,
+            "comments": lambda: self.get_comments(folder)
         }
         if field_name in special_fields:
             data = special_fields[field_name]()

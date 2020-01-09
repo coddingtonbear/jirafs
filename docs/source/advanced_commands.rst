@@ -33,7 +33,6 @@ a dotpath, and can access the following special fields:
 
 * ``new_comment``: The formatted contents of your unsubmitted
   comment.
-* ``comments``: The comments for this issue.
 * ``links``: Returns a JSON structure representing this issue's
   links.
 * ``fields``: Returns a JSON structure representing all field
