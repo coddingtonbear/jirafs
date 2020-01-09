@@ -68,7 +68,15 @@ class Command(CommandPlugin):
         return data
 
     def main(self, folder, field_name, raw=False, formatted=False):
-        data = self.get_field_value_by_dotpath(folder, field_name, raw, formatted)
+        special_fields = {
+            'new_comment': folder.get_new_comment,
+            'links': folder.get_links,
+            'fields': folder.get_fields,
+        }
+        if field_name in special_fields:
+            data = special_fields[field_name]()
+        else:
+            data = self.get_field_value_by_dotpath(folder, field_name, raw, formatted)
 
         if isinstance(data, (list, dict)):
             kwargs = {}
