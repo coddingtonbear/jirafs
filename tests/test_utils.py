@@ -8,7 +8,6 @@ from .base import BaseTestCase
 
 
 class TestStashLocalChanges(BaseTestCase):
-
     def test_stash_local_changes(self):
         repo = mock.Mock()
         repo.version = 10
@@ -17,8 +16,7 @@ class TestStashLocalChanges(BaseTestCase):
             pass
 
         self.assertEqual(
-            repo.run_git_command.call_count,
-            4,
+            repo.run_git_command.call_count, 4,
         )
 
     def test_stash_local_changes_exception(self):
@@ -30,13 +28,11 @@ class TestStashLocalChanges(BaseTestCase):
                 raise Exception()
 
         self.assertEqual(
-            repo.run_git_command.call_count,
-            4,
+            repo.run_git_command.call_count, 4,
         )
 
 
 class TestParseGitVersion(BaseTestCase):
-
     @mock.patch("jirafs.utils.subprocess.check_output")
     def test_parse_osx_git_version(self, git_version_output):
         git_version_output.return_value = b"git version 1.8.5.2 (Apple Git-48)"

@@ -13,36 +13,34 @@ class TestPushCommand(BaseCommandTestCase):
         super(TestPushCommand, self).setUp()
 
     def test_push_no_changes(self):
-        with patch.object(self.ticketfolder.issue, 'update') as update:
-            with patch('jirafs.commands.pull.Command.main') as pull:
+        with patch.object(self.ticketfolder.issue, "update") as update:
+            with patch("jirafs.commands.pull.Command.main") as pull:
                 pull.return_value = True, True
                 run_command_method_with_kwargs(
-                    'push',
-                    folder=self.ticketfolder,
+                    "push", folder=self.ticketfolder,
                 )
 
             self.assertEqual(0, len(update.call_args_list))
 
     def test_push_basic(self):
         status_result = {
-            'ready': {
-                'files': [],
-                'fields': {
-                    'somefield': ('one', 'two', 'two', ),
-                    'otherfield': ('one', 'three', 'three', )
+            "ready": {
+                "files": [],
+                "fields": {
+                    "somefield": ("one", "two", "two",),
+                    "otherfield": ("one", "three", "three",),
                 },
-                'links': {},
+                "links": {},
             }
         }
 
-        with patch.object(self.ticketfolder, 'status') as status:
+        with patch.object(self.ticketfolder, "status") as status:
             status.return_value = status_result
-            with patch.object(self.ticketfolder.issue, 'update') as update:
-                with patch('jirafs.commands.pull.Command.main') as pull:
+            with patch.object(self.ticketfolder.issue, "update") as update:
+                with patch("jirafs.commands.pull.Command.main") as pull:
                     pull.return_value = True, True
                     run_command_method_with_kwargs(
-                        'push',
-                        folder=self.ticketfolder,
+                        "push", folder=self.ticketfolder,
                     )
 
                 self.assertEqual(1, len(update.call_args_list))
@@ -51,10 +49,11 @@ class TestPushCommand(BaseCommandTestCase):
                     call(
                         **{
                             field_name: value[1]
-                            for field_name, value
-                            in status_result['ready']['fields'].items()
+                            for field_name, value in status_result["ready"][
+                                "fields"
+                            ].items()
                         }
-                    )
+                    ),
                 )
 
 
@@ -69,11 +68,7 @@ class TestPushCommandWithMacropatch(BaseCommandTestCase):
             )
         super(TestPushCommandWithMacropatch, self).setUp()
         run_command_method_with_kwargs(
-            'plugins',
-            folder=self.ticketfolder,
-            args=Mock(
-                enable='list_table',
-            )
+            "plugins", folder=self.ticketfolder, args=Mock(enable="list_table",)
         )
 
     def test_push_change_patched_content(self):
@@ -88,22 +83,19 @@ class TestPushCommandWithMacropatch(BaseCommandTestCase):
             ** Urban Airship
             {list-table}
         """
-        description_path = self.ticketfolder.get_path('description.jira')
+        description_path = self.ticketfolder.get_path("description.jira")
 
-        with io.open(description_path, 'w', encoding='utf-8') as out:
+        with io.open(description_path, "w", encoding="utf-8") as out:
             out.write(description_one)
 
         run_command_method_with_kwargs(
-            'commit',
-            folder=self.ticketfolder,
-            message='No me importa',
+            "commit", folder=self.ticketfolder, message="No me importa",
         )
-        with patch.object(self.ticketfolder.issue, 'update'):
-            with patch('jirafs.commands.pull.Command.pull') as pull:
+        with patch.object(self.ticketfolder.issue, "update"):
+            with patch("jirafs.commands.pull.Command.pull") as pull:
                 pull.return_value = True, True
                 run_command_method_with_kwargs(
-                    'push',
-                    folder=self.ticketfolder,
+                    "push", folder=self.ticketfolder,
                 )
 
         description_two = u"""
@@ -120,19 +112,15 @@ class TestPushCommandWithMacropatch(BaseCommandTestCase):
             {list-table}
         """
 
-        with io.open(description_path, 'w', encoding='utf-8') as out:
+        with io.open(description_path, "w", encoding="utf-8") as out:
             out.write(description_two)
 
         run_command_method_with_kwargs(
-            'commit',
-            folder=self.ticketfolder,
-            message='No me importa',
+            "commit", folder=self.ticketfolder, message="No me importa",
         )
-        with patch.object(self.ticketfolder.issue, 'update'):
-            with patch('jirafs.commands.pull.Command.pull') as pull:
+        with patch.object(self.ticketfolder.issue, "update"):
+            with patch("jirafs.commands.pull.Command.pull") as pull:
                 pull.return_value = True, True
                 run_command_method_with_kwargs(
-                    'push',
-                    folder=self.ticketfolder,
+                    "push", folder=self.ticketfolder,
                 )
-

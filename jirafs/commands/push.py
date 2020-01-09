@@ -106,9 +106,7 @@ class Command(CommandPlugin):
                     if status_data[0] == "inward":
                         args.extend([other, folder.issue])
                     elif status_data[0] == "outward":
-                        args.extend(
-                            [folder.issue, other]
-                        )
+                        args.extend([folder.issue, other])
                     folder.jira.create_issue_link(*args)
                 elif new is None:
                     # Deleted links

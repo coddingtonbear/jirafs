@@ -31,9 +31,9 @@ class Command(CommandPlugin):
 
     def main(self, folder, field_name, raw=False, formatted=False):
         special_fields = {
-            'new_comment': folder.get_new_comment,
-            'links': folder.get_links,
-            'fields': folder.get_fields,
+            "new_comment": folder.get_new_comment,
+            "links": folder.get_links,
+            "fields": folder.get_fields,
         }
         if field_name in special_fields:
             data = special_fields[field_name]()

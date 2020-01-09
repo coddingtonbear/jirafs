@@ -179,9 +179,7 @@ def main():
             u"{t.red}Jirafs encountered an error while processing a "
             u"{t.bold}{macro}{t.normal}{t.red} macro: "
             u"{t.normal}{t.red}{t.bold}{error}{t.normal}".format(
-                t=term,
-                macro=e.macro_name or '?',
-                error=str(e)
+                t=term, macro=e.macro_name or "?", error=str(e)
             )
         )
         if args.traceback:

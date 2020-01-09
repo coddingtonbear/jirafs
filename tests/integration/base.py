@@ -17,10 +17,10 @@ class IntegrationTestBase(TestCase):
         self.jira_configured = True
 
         jira_env_settings = {
-            'username': 'INTEGRATION_TESTING_USERNAME',
-            'url': 'INTEGRATION_TESTING_URL',
-            'project': 'INTEGRATION_TESTING_PROJECT',
-            'password': 'INTEGRATION_TESTING_PASSWORD',
+            "username": "INTEGRATION_TESTING_USERNAME",
+            "url": "INTEGRATION_TESTING_URL",
+            "project": "INTEGRATION_TESTING_PROJECT",
+            "password": "INTEGRATION_TESTING_PASSWORD",
         }
         self.jira_env = {}
         for key, env_var in jira_env_settings.items():
@@ -29,19 +29,13 @@ class IntegrationTestBase(TestCase):
             except KeyError:
                 raise SkipTest(
                     "Integration tests require the following environment "
-                    "variables to be set: %s" % (
-                        ', '.join(
-                            [v for k, v in jira_env_settings.items()]
-                        )
-                    )
+                    "variables to be set: %s"
+                    % (", ".join([v for k, v in jira_env_settings.items()]))
                 )
 
         self.jira = JIRA(
-            {'server': self.jira_env['url']},
-            basic_auth=(
-                self.jira_env['username'],
-                self.jira_env['password'],
-            )
+            {"server": self.jira_env["url"]},
+            basic_auth=(self.jira_env["username"], self.jira_env["password"],),
         )
 
         self.created_issues = []
@@ -51,19 +45,12 @@ class IntegrationTestBase(TestCase):
         return self.jira
 
     def get_ticket_folder_for_path(self, path):
-        return TicketFolder(
-            path,
-            self.get_jira,
-        )
+        return TicketFolder(path, self.get_jira,)
 
     def _get_default_fields(self):
         return {
-            'project': {
-                'key': self.jira_env['project'],
-            },
-            'issuetype': {
-                'name': 'Task'
-            }
+            "project": {"key": self.jira_env["project"],},
+            "issuetype": {"name": "Task"},
         }
 
     def tearDown(self):
@@ -85,15 +72,15 @@ class IntegrationTestBase(TestCase):
         return run_command_method_with_kwargs(name, **kwargs)
 
     def run_from_shell(self, *args, **kwargs):
-        if 'path' not in kwargs:
+        if "path" not in kwargs:
             path = self.path
         else:
-            path = kwargs['path']
+            path = kwargs["path"]
 
         return subprocess.Popen(
             args,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd=path
+            cwd=path,
         )

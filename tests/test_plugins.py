@@ -6,10 +6,7 @@ import tempfile
 import mock
 from mock import patch
 
-from jirafs.plugin import (
-    BlockElementMacroPlugin,
-    VoidElementMacroPlugin
-)
+from jirafs.plugin import BlockElementMacroPlugin, VoidElementMacroPlugin
 from jirafs.utils import run_command_method_with_kwargs
 
 from .base import BaseTestCase
@@ -17,69 +14,58 @@ from .base import BaseTestCase
 
 class TestPlugins(BaseTestCase):
     def setUp(self):
-        self.arbitrary_ticket_number = 'ALPHA-123'
+        self.arbitrary_ticket_number = "ALPHA-123"
         self.root_folder = tempfile.mkdtemp()
         self.mock_jira = mock.MagicMock()
-        self.mock_jira.issue.return_value = self.rehydrate_issue(
-            'basic.issue.json'
-        )
+        self.mock_jira.issue.return_value = self.rehydrate_issue("basic.issue.json")
         self.mock_get_jira = lambda _, config=None: self.mock_jira
 
         with patch(
-            'jirafs.ticketfolder.TicketFolder.get_remotely_changed'
+            "jirafs.ticketfolder.TicketFolder.get_remotely_changed"
         ) as get_remotely_changed:
             get_remotely_changed.return_value = []
             self.ticketfolder = run_command_method_with_kwargs(
-                'clone',
-                url='http://arbitrary.com/browse/ALPHA-123',
+                "clone",
+                url="http://arbitrary.com/browse/ALPHA-123",
                 jira=self.mock_get_jira,
-                path=os.path.join(
-                    self.root_folder,
-                    self.arbitrary_ticket_number,
-                )
+                path=os.path.join(self.root_folder, self.arbitrary_ticket_number,),
             )
 
     def test_load_plugins(self):
         existing_plugins = {
-            'alpha': mock.Mock(
-                MAX_VERSION='10.0', MIN_VERSION='0.1'
-            ),
-            'beta': mock.Mock(
-                MAX_VERSION='10.0', MIN_VERSION='0.1'
-            ),
-            'delta': mock.Mock(
-                MAX_VERSION='10.0', MIN_VERSION='0.1'
-            ),
+            "alpha": mock.Mock(MAX_VERSION="10.0", MIN_VERSION="0.1"),
+            "beta": mock.Mock(MAX_VERSION="10.0", MIN_VERSION="0.1"),
+            "delta": mock.Mock(MAX_VERSION="10.0", MIN_VERSION="0.1"),
         }
 
-        with patch('jirafs.utils.get_installed_plugins') as gip:
+        with patch("jirafs.utils.get_installed_plugins") as gip:
             gip.return_value = existing_plugins
-            with patch.object(self.ticketfolder, 'get_config') as config:
+            with patch.object(self.ticketfolder, "get_config") as config:
                 config.return_value = mock.Mock(
                     has_section=mock.Mock(return_value=True),
                     items=mock.Mock(
                         return_value=[
-                            ('alpha', 'on'),
-                            ('delta', 'enabled'),
-                            ('gamma', 'yes'),
+                            ("alpha", "on"),
+                            ("delta", "enabled"),
+                            ("gamma", "yes"),
                         ]
-                    )
+                    ),
                 )
                 results = self.ticketfolder.load_plugins()
 
         self.assertEqual(2, len(results))
-        self.assertTrue(existing_plugins['alpha'].called)
-        self.assertFalse(existing_plugins['beta'].called)
-        self.assertTrue(existing_plugins['delta'].called)
+        self.assertTrue(existing_plugins["alpha"].called)
+        self.assertFalse(existing_plugins["beta"].called)
+        self.assertTrue(existing_plugins["delta"].called)
 
     def test_macroplugin_block_text_data(self):
         class UppercaseMacroPlugin(BlockElementMacroPlugin):
-            COMPONENT_NAME = 'uppercase'
+            COMPONENT_NAME = "uppercase"
 
             def execute_macro(self, data, **kwargs):
                 return data.upper()
 
-        macro = UppercaseMacroPlugin(mock.Mock(), 'uppercase')
+        macro = UppercaseMacroPlugin(mock.Mock(), "uppercase")
 
         content = """hello <jirafs:uppercase>you</jirafs:uppercase> there!"""
         expected_result = """hello YOU there!"""
@@ -88,15 +74,15 @@ class TestPlugins(BaseTestCase):
         self.assertEqual(expected_result, actual_result)
 
     def test_macroplugin_void_text_data(self):
-        my_name = 'Adam'
+        my_name = "Adam"
 
         class NameMacroPlugin(VoidElementMacroPlugin):
-            COMPONENT_NAME = 'name'
+            COMPONENT_NAME = "name"
 
             def execute_macro(self, data, **kwargs):
                 return my_name
 
-        macro = NameMacroPlugin(mock.Mock(), 'name')
+        macro = NameMacroPlugin(mock.Mock(), "name")
 
         content = """hello <jirafs:name/>!"""
         expected_result = """hello Adam!"""
@@ -106,12 +92,12 @@ class TestPlugins(BaseTestCase):
 
     def test_nongreedy_processing(self):
         class UppercaseMacroPlugin(BlockElementMacroPlugin):
-            COMPONENT_NAME = 'uppercase'
+            COMPONENT_NAME = "uppercase"
 
             def execute_macro(self, data, **kwargs):
                 return data.upper()
 
-        macro = UppercaseMacroPlugin(mock.Mock(), 'uppercase')
+        macro = UppercaseMacroPlugin(mock.Mock(), "uppercase")
 
         content = """
             hello <jirafs:uppercase>you</jirafs:uppercase>; how are
@@ -129,12 +115,12 @@ class TestPlugins(BaseTestCase):
 
     def test_attribute_extraction_block(self):
         class TestMacroPlugin(BlockElementMacroPlugin):
-            COMPONENT_NAME = 'test'
+            COMPONENT_NAME = "test"
 
             def execute_macro(self, data, **kwargs):
                 return json.dumps(kwargs)
 
-        macro = TestMacroPlugin(mock.Mock(), 'test')
+        macro = TestMacroPlugin(mock.Mock(), "test")
 
         content = """<jirafs:test alpha="AL''\\"\\tPHA" beta=2 gamma=True epsilon='bloop"\\''>
             beep
@@ -145,20 +131,18 @@ class TestPlugins(BaseTestCase):
             "alpha": "AL''\"\tPHA",
             "beta": 2.0,
             "gamma": True,
-            "epsilon": "bloop\"'"
+            "epsilon": "bloop\"'",
         }
-        self.assertEqual(
-            expected_result, json.loads(macro.process_text_data(content))
-        )
+        self.assertEqual(expected_result, json.loads(macro.process_text_data(content)))
 
     def test_attribute_extraction_void(self):
         class TestMacroPlugin(VoidElementMacroPlugin):
-            COMPONENT_NAME = 'test'
+            COMPONENT_NAME = "test"
 
             def execute_macro(self, data, **kwargs):
                 return json.dumps(kwargs)
 
-        macro = TestMacroPlugin(mock.Mock(), 'test')
+        macro = TestMacroPlugin(mock.Mock(), "test")
 
         content = """
             <jirafs:test alpha="AL''\\"\\tPHA" beta=2 gamma=True epsilon='bloop"\\''/>
@@ -168,20 +152,18 @@ class TestPlugins(BaseTestCase):
             "alpha": "AL''\"\tPHA",
             "beta": 2.0,
             "gamma": True,
-            "epsilon": "bloop\"'"
+            "epsilon": "bloop\"'",
         }
-        self.assertEqual(
-            expected_result, json.loads(macro.process_text_data(content))
-        )
+        self.assertEqual(expected_result, json.loads(macro.process_text_data(content)))
 
     def test_multiline_attribute_extraction(self):
         class TestMacroPlugin(VoidElementMacroPlugin):
-            COMPONENT_NAME = 'test'
+            COMPONENT_NAME = "test"
 
             def execute_macro(self, data, **kwargs):
                 return json.dumps(kwargs)
 
-        macro = TestMacroPlugin(mock.Mock(), 'test')
+        macro = TestMacroPlugin(mock.Mock(), "test")
 
         content = """
             <jirafs:test
@@ -196,20 +178,18 @@ class TestPlugins(BaseTestCase):
             "alpha": "AL''\"PHA",
             "beta": 2.0,
             "gamma": True,
-            "epsilon": "bloop\"'"
+            "epsilon": "bloop\"'",
         }
-        self.assertEqual(
-            expected_result, json.loads(macro.process_text_data(content))
-        )
+        self.assertEqual(expected_result, json.loads(macro.process_text_data(content)))
 
     def test_macroplugin_block_text_data_double(self):
         class CounterMacroPlugin(BlockElementMacroPlugin):
             COMPONENT_NAME = "counter"
 
             def execute_macro(self, data, **kwargs):
-                return str(int(kwargs['counter'])) + ":" + data
+                return str(int(kwargs["counter"])) + ":" + data
 
-        macro = CounterMacroPlugin(mock.Mock(), 'counter')
+        macro = CounterMacroPlugin(mock.Mock(), "counter")
 
         content = """
         Start
