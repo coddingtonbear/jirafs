@@ -64,7 +64,7 @@ class Command(CommandPlugin):
         )
 
         if output:
-            with open(os.path.expanduser(output), "o") as outf:
+            with open(os.path.expanduser(output), "w") as outf:
                 outf.write(response.text)
         else:
             with tempfile.NamedTemporaryFile("w", suffix=".html") as outf:
