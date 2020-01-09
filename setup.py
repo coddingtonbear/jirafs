@@ -77,7 +77,6 @@ setup(
             'create = jirafs.commands.create:Command',
             'submit = jirafs.commands.submit:Command',
             'match = jirafs.commands.match:Command',
-            'build = jirafs.commands.build:Command',
         ]
     },
 )

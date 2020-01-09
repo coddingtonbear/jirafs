@@ -9,7 +9,7 @@ class Command(CommandPlugin):
     """ Push locally-committed changes to JIRA """
 
     TRY_SUBFOLDERS = True
-    MIN_VERSION = "1.15"
+    MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"
 
     def get_valid_issue_link_types(self, folder):
@@ -58,11 +58,6 @@ class Command(CommandPlugin):
             for filename in status["ready"]["files"]:
                 upload = io.BytesIO(
                     folder.get_local_file_at_revision(filename, "HEAD", binary=True)
-                )
-                filename, upload = folder.execute_plugin_method_series(
-                    "alter_file_upload",
-                    args=((filename, upload,),),
-                    single_response=True,
                 )
                 folder.log(
                     'Uploading file "%s"', (filename,),

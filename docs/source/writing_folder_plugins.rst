@@ -34,81 +34,6 @@ The following properties **must** be defined:
   message.  Note: Jirafs uses semantic versioning, so you should set this
   value to the next major version about the highest version you've tested.
 
-The following methods may be defined for altering Jirafs behavior.
-
-Alteration Methods
-~~~~~~~~~~~~~~~~~~
-
-* ``alter_filter_ignored_files(filename_list)``:
-
-  * Further filter the list of files to be processed by reducing this
-    list further.
-  * Return further filtered ``filename_list``.
-
-* ``alter_new_comment(comment)``:
-
-  * Alter the returned comment.
-  * Return an altered ``comment`` string.
-
-* ``alter_remotely_changed(filename_list)``:
-
-  * Alter the list of remotely changed files if necessary.  
-  * Return an altered ``filename_list``.
-
-* ``alter_file_upload((filename, file_like_object, ))``:
-
-  * **DEPRECATED**: Use **run_build_process** and **get_ignore_globs**
-    instead.
-  * Alter a file pre-upload.
-  * Return a new tuple of ``(filename, file_like_object)``.
-
-* ``alter_file_download((filename, file_content, ))``:
-
-  * Alter a file pre-save from JIRA.
-  * Return a new tuple of ``(filename, file_like_object)``.
-
-* ``alter_get_remote_file_metadata(file_metadata)``:
-
-  * Alter remote file metadata dictionary after retrieval.
-  * Return an altered ``file_metadata`` dictionary.
-
-* ``alter_set_remote_file_metadata(file_metadata)``:
-
-  * Alter remote file metadata dictionary before storage.
-  * Return an altered ``file_metadata`` dictionary.
-
-* ``alter_status_dict(status_dict)``:
-
-  * Executed after running ``status``.
-  * ``status_dict`` dictionary (see tests and source for details):
-
-    * ``uncommitted``: A dictionary containing uncommitted changes.
-    * ``ready``: A dictionary of changes ready for submission to JIRA.
-    * ``up_to_date``: A boolean value indicating whether the current
-      ``master`` branch is up-to-date with changes fetched in the
-      ``jira`` branch.
-
-  * Return an altered ``status_dict``.
-
-* ``get_ignore_globs``:
-
-  * Executed when building the ignore glob list.  Use this if your plugin
-    compiles files of one type to another so you can prevent the source
-    file from being uploaded.
-
-* ``run_build_process``:
-
-  * Will be executed for every plugin before running ``commmit`` or
-    when running ``build``.  Although this is intended for use when
-    autocompiling files from one format to another for JIRA upload,
-    feel free to experiment.
-
-.. note::
-
-   For technical reasons, both ``alter_file_upload`` and
-   ``alter_file_download`` accept a single tuple argument containing
-   the filename and object rather than two arguments.
-
 Pre/Post Command Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -164,7 +89,7 @@ The plugin will have the following properties and methods at its disposal:
 Macro Plugin API
 ----------------
 
-Macro plugins are special kinds of plugins that are instead subclasses of
+Macro plugins are special kinds of folder plugins that are instead subclasses of
 either ``jirafs.plugin.BlockElementMacroPlugin`` or ``jirafs.plugin.VoidElementMacroPlugin``,
 but same setuptools entrypoints apply as are described in :ref:`entry_points`.
 

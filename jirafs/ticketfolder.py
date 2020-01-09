@@ -103,45 +103,6 @@ class TicketFolder(object):
 
         return self._subtasks
 
-    def execute_plugin_method_series(
-        self, name, args=None, kwargs=None, single_response=False
-    ):
-        if args is None:
-            args = []
-            use_kwargs = True
-        if kwargs is None:
-            kwargs = {}
-            use_kwargs = False
-
-        if use_kwargs and single_response:
-            raise RuntimeError(
-                "When executing plugins in series using `single` response "
-                "mode, you must specify only args."
-            )
-        elif args and kwargs:
-            raise RuntimeError(
-                "Plugins can be ran in series using either args or " "kwargs, not both."
-            )
-
-        for plugin in self.plugins:
-            if not hasattr(plugin, name):
-                continue
-            method = getattr(plugin, name)
-            plugin_result = method(*args, **kwargs)
-            if plugin_result is not None:
-                if use_kwargs:
-                    kwargs = plugin_result
-                elif single_response:
-                    args = (plugin_result,)
-                else:
-                    args = plugin_result
-
-        if use_kwargs:
-            return kwargs
-        elif single_response:
-            return args[0]
-        return args
-
     def load_plugins(self):
         config = self.get_config()
         plugins = []
@@ -188,7 +149,7 @@ class TicketFolder(object):
             local_config_file = self.get_metadata_path("config")
 
             config = utils.get_config(
-                additional_configs=[local_config_file,], include_global=False,
+                additional_configs=[local_config_file], include_global=False,
             )
             if not config.has_section(section):
                 config.add_section(section)
@@ -292,14 +253,9 @@ class TicketFolder(object):
         except IOError:
             data = {}
 
-        return self.execute_plugin_method_series(
-            "alter_get_remote_file_metadata", args=(data,), single_response=True,
-        )
+        return data
 
     def set_remote_file_metadata(self, data, shadow=True):
-        data = self.execute_plugin_method_series(
-            "alter_set_remote_file_metadata", args=(data,), single_response=True,
-        )
         remote_files = self.get_path(".jirafs/remote_files.json", shadow=shadow)
         with io.open(remote_files, "w", encoding="utf-8") as out:
             out.write(json.dumps(data, indent=4, sort_keys=True, ensure_ascii=False,))
@@ -452,10 +408,6 @@ class TicketFolder(object):
                 constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field)
             )
 
-        for plugin in self.plugins:
-            if hasattr(plugin, "get_ignore_globs"):
-                all_globs.extend(plugin.get_ignore_globs())
-
         def get_globs_from_file(input_file):
             globs = []
             for line in input_file.readlines():
@@ -559,9 +511,7 @@ class TicketFolder(object):
             if changed:
                 assets.append(attachment.filename)
 
-        return self.execute_plugin_method_series(
-            name="alter_remotely_changed", args=(assets,), single_response=True,
-        )
+        return assets
 
     def filter_ignored_files(self, files, *which):
         if len(which) < 1:
@@ -592,9 +542,7 @@ class TicketFolder(object):
                 assets.append(fileish)
             files = assets
 
-        return self.execute_plugin_method_series(
-            name="alter_filter_ignored_files", args=(assets,), single_response=True,
-        )
+        return assets
 
     def get_macro_plugins(self):
         if not hasattr(self, "_macro_plugins"):
@@ -636,15 +584,6 @@ class TicketFolder(object):
             self._macro_plugins = plugins
 
         return self._macro_plugins
-
-    def process_plugin_builds(self):
-        results = {}
-
-        for plugin in self.plugins:
-            if hasattr(plugin, "run_build_process"):
-                results[plugin.plugin_name] = plugin.run_build_process()
-
-        return results
 
     def process_macros(self, data):
         macro_plugins = self.get_macro_plugins()
@@ -718,11 +657,7 @@ class TicketFolder(object):
             contents = ""
 
         # Apply macro plugins
-        contents = self.process_macros(contents)
-
-        return self.execute_plugin_method_series(
-            name="alter_new_comment", args=(contents,), single_response=True,
-        )
+        return self.process_macros(contents)
 
     def is_up_to_date(self):
         jira_commit = self.run_git_command("rev-parse", "jira")
@@ -737,18 +672,12 @@ class TicketFolder(object):
         return True
 
     def status(self):
-        status = {
+        return {
             "ready": self.get_ready_changes(),
             "local_uncommitted": self.get_local_uncommitted_changes(),
             "uncommitted": self.get_uncommitted_changes(),
             "up_to_date": self.is_up_to_date(),
         }
-
-        return self.execute_plugin_method_series(
-            "alter_status_dict", args=(status,), single_response=True,
-        )
-
-        return status
 
     def run_migrations(self, init=False):
         loglevel = logging.INFO

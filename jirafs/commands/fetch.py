@@ -35,11 +35,6 @@ class Command(CommandPlugin):
                         'Download file "%s"', (attachment.filename,),
                     )
                     content = io.BytesIO(attachment.get())
-                    filename, content = folder.execute_plugin_method_series(
-                        "alter_file_download",
-                        args=((filename, content,),),
-                        single_response=True,
-                    )
                     save_path = folder.get_shadow_path(filename)
                     with open(save_path, "wb") as save_file:
                         content.seek(0)
