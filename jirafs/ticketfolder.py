@@ -685,7 +685,7 @@ class TicketFolder(object):
             kwargs["revision"] = revision
         return JiraFieldManager.create(self, **kwargs)
 
-    def get_new_comment(self, clear=False, staged=False, ready=True):
+    def get_new_comment(self, clear=False, staged=False, ready=False):
         try:
             with io.open(
                 self.get_local_path(constants.TICKET_NEW_COMMENT),
