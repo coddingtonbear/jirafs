@@ -29,7 +29,29 @@ Write the content of the field named ``field name`` to the console.  Useful
 in scripts for gathering, for example, the ticket's ``summary`` field.
 
 Note that you can also access subkeys in fields containing JSON by using
-a dotpath.
+a dotpath, and can access the following special fields:
+
+* ``new_comment``: The formatted contents of your unsubmitted
+  comment.
+* ``comments``: The comments for this issue.
+* ``links``: Returns a JSON structure representing this issue's
+  links.
+* ``fields``: Returns a JSON structure representing all field
+  contents.
+
+``preview <field name>``
+----------------------
+
+Render the content of the field named ``field_name`` via your
+JIRA instance's Wiki Markup renderer.  This is useful for
+helping you ensure that your wiki markup is correct.
+
+Note that you can also access subkeys in fields containing JSON by using
+a dotpath, and can render the following special fields:
+
+* ``new_comment``: The formatted contents of your unsubmitted
+  comment.
+* ``comments``: The comments for this issue.
 
 ``setfield <field name> <value>``
 ---------------------------------
@@ -95,13 +117,6 @@ Plugins provides several sub-options:
 * ``--global``: Used with ``--enable`` or ``--disable`` above, will enable
   or disable a plugin globally.  Note: per-folder settings always take
   priority.
-
-``build``
----------
-
-Run build scripts for any installed plugins.  This will occur automatically
-during ``commit``, but if you need to examine the output of a build before
-uploading, you can use this command to preview the results.
 
 ``git``
 -------
