@@ -337,7 +337,7 @@ class MacroPlugin(Plugin):
             nonlocal value, key, attributes
 
             if not value_is_raw:
-                attributes[key.strip()] = value.strip()
+                attributes[key.strip()] = value
             elif value.strip().upper() == "TRUE":
                 attributes[key.strip()] = True
             elif value.strip().upper() == "FALSE":
