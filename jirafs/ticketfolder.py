@@ -659,6 +659,42 @@ class TicketFolder(object):
         # Apply macro plugins
         return self.process_macros(contents)
 
+    def get_field_value_by_dotpath(self, field_name, raw=False):
+        fields = self.get_fields()
+
+        key_dotpath = None
+        if "." in field_name:
+            field_name, key_dotpath = field_name.split(".", 1)
+
+        if field_name not in fields:
+            raise exceptions.JirafsError("Field '%s' does not exist." % field_name)
+
+        if raw:
+            data = fields[field_name]
+        else:
+            data = fields.get_transformed(field_name)
+
+        if key_dotpath:
+            try:
+                for component in key_dotpath.split("."):
+                    if not isinstance(data, dict):
+                        raise exceptions.JirafsError(
+                            "Key '%s' (of dotpath '%s') is not an object "
+                            "in field '%s'." % (component, key_dotpath, field_name,)
+                        )
+                    elif component not in data:
+                        data = ""
+                        break
+                    else:
+                        data = data[component]
+            except (ValueError, TypeError):
+                raise exceptions.JirafsError(
+                    "Field '%s' could not be parsed as JSON for retrieving "
+                    "dotpath '%s'." % (field_name, key_dotpath,)
+                )
+
+        return data
+
     def is_up_to_date(self):
         jira_commit = self.run_git_command("rev-parse", "jira")
         master_commit = self.run_git_command("rev-parse", "master")

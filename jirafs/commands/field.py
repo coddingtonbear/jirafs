@@ -29,44 +29,6 @@ class Command(CommandPlugin):
         )
         parser.add_argument("field_name",)
 
-    def get_field_value_by_dotpath(
-        self, folder, field_name, raw=False, formatted=False
-    ):
-        fields = folder.get_fields()
-
-        key_dotpath = None
-        if "." in field_name:
-            field_name, key_dotpath = field_name.split(".", 1)
-
-        if field_name not in fields:
-            raise JirafsError("Field '%s' does not exist." % field_name)
-
-        if raw:
-            data = fields[field_name]
-        else:
-            data = fields.get_transformed(field_name)
-
-        if key_dotpath:
-            try:
-                for component in key_dotpath.split("."):
-                    if not isinstance(data, dict):
-                        raise JirafsError(
-                            "Key '%s' (of dotpath '%s') is not an object "
-                            "in field '%s'." % (component, key_dotpath, field_name,)
-                        )
-                    elif component not in data:
-                        data = ""
-                        break
-                    else:
-                        data = data[component]
-            except (ValueError, TypeError):
-                raise JirafsError(
-                    "Field '%s' could not be parsed as JSON for retrieving "
-                    "dotpath '%s'." % (field_name, key_dotpath,)
-                )
-
-        return data
-
     def main(self, folder, field_name, raw=False, formatted=False):
         special_fields = {
             'new_comment': folder.get_new_comment,
@@ -76,7 +38,7 @@ class Command(CommandPlugin):
         if field_name in special_fields:
             data = special_fields[field_name]()
         else:
-            data = self.get_field_value_by_dotpath(folder, field_name, raw, formatted)
+            data = folder.get_field_value_by_dotpath(field_name, raw)
 
         if isinstance(data, (list, dict)):
             kwargs = {}
