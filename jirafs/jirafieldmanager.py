@@ -24,12 +24,12 @@ class JiraFieldManager(dict):
     def __sub__(self, other):
         differing = {}
         for k, v in other.items():
-            if (self.get(k) or v) and self.get(k) != v:
-                tx = self.get(k)
+            if (self.get_transformed(k) or v) and self.get_transformed(k) != v:
+                tx = self.get_transformed(k)
                 differing[k] = (
                     v,
                     tx,
-                    self.get(k),
+                    self.get_transformed(k),
                 )
 
         return differing
