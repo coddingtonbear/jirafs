@@ -1,14 +1,18 @@
 from contextlib import closing
+import html
 import json
+import mimetypes
 import os
+import re
 import socket
+import traceback
+import uuid
 import webbrowser
 from http.server import ThreadingHTTPServer
 from http.server import SimpleHTTPRequestHandler
 
 import jinja2
 
-from jirafs.exceptions import JirafsError
 from jirafs.plugin import CommandPlugin
 
 
@@ -70,38 +74,112 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
         return data
 
-    def serve_preview_content(self, dotpath):
-        self.send_response(200)
-
+    def get_local_file_escaped_field_data(self, dotpath):
         data = self.get_field_data(dotpath)
 
+        local_files = os.listdir(self.folder.path)
+
+        image_finder = re.compile(r"(!(?P<filename>[^!]+)!)")
+        to_replace = []
+        for match in image_finder.finditer(data):
+            filename = match.groupdict()['filename']
+            if '|' in filename:
+                filename = filename.split('|', 1)[0]
+
+            if filename in local_files:
+                to_replace.append(
+                    (
+                        filename,
+                        match.group(0),
+                        match.start(0),
+                        match.end(0),
+                    )
+                )
+
+        placeholders = {}
+        for filename, full, start, end in reversed(to_replace):
+            id = uuid.uuid4()
+            placeholder = f'JIRAFS-PLACEHOLDER:{id}'
+            placeholders[placeholder] = (filename, full)
+            data = ''.join([
+                data[:start],
+                placeholder,
+                data[end:]
+            ])
+
+        return placeholders, data
+
+    def replace_placeholders(self, placeholders, data):
+        for placeholder, (filename, full) in placeholders.items():
+            if full.startswith("!"):
+                data = data.replace(
+                    placeholder,
+                    f'<img src="files/{filename}" />'
+                )
+
+        return data
+
+    def serve_preview_content(self, dotpath):
+        content_type = 'text/html'
+        placeholders, data = self.get_local_file_escaped_field_data(dotpath)
         if isinstance(data, str):
-            self.send_header('Content-type', 'text/html')
             response = self.get_rendered_template(
                 "base.html",
                 {
-                    "content": get_converted_markup(
-                        self.folder,
-                        self.get_field_data(dotpath)
+                    "content": self.replace_placeholders(
+                        placeholders,
+                        get_converted_markup(
+                            self.folder, data
+                        )
                     )
                 }
             )
         else:
-            self.send_header("Content-type", "application/json")
             response = json.dumps(data)
-
+            content_type = 'application/json'
+        self.send_response(200)
+        self.send_header("Content-type", content_type)
         self.send_header('Content-length', len(response))
         self.end_headers()
         self.wfile.write(response.encode('utf-8'))
 
-    def do_GET(self):
-        try:
-            self.serve_preview_content(self.path[1:].replace('/', '.'))
-        except JirafsError:
-            # self.serve_static_content(self.path)
+    def serve_file(self, path):
+        print(path)
+
+        if path not in os.listdir(self.folder.path):
             self.send_response(404)
             self.send_header('Content-length', 0)
             self.end_headers()
+            return
+
+        with open(os.path.join(self.folder.path, path), 'rb') as inf:
+            self.send_response(200)
+            inf.seek(0, 2)
+            content_type = mimetypes.guess_type(path)[0] or 'application/octet-stream'
+            self.send_header("Content-type", content_type)
+            self.send_header("Content-length", inf.tell())
+            self.end_headers()
+            inf.seek(0)
+            self.wfile.write(inf.read())
+
+    def do_GET(self):
+        try:
+            if self.path.startswith('/files/'):
+                self.serve_file(self.path[7:])
+            else:
+                self.serve_preview_content(self.path[1:].replace('/', '.'))
+        except:
+            self.send_response(500)
+            response = self.get_rendered_template(
+                "traceback.html",
+                {
+                    "content": html.escape(traceback.format_exc()),
+                }
+            )
+            self.send_header("Content-type", "text/html")
+            self.send_header("Content-length", len(response))
+            self.end_headers()
+            self.wfile.write(response.encode('utf-8'))
 
 
 class Command(CommandPlugin):

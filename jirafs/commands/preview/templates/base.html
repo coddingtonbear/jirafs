@@ -1,17 +1,25 @@
 <html>
-    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
-    <style type="text/css">
-        body {
-            font-family: sans-serif;
-        }
-        table {
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-    </style>
+    <head>
+        <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+        <style type="text/css">
+            body {
+                font-family: sans-serif;
+                font-size: 14pt;
+            }
+            table {
+                border-collapse: collapse;
+            }
+            table, th, td {
+                border: 1px solid black;
+            }
+        </style>
+        {% block head %}
+        {% endblock %}
+    </head>
     <body>
-        {{content}}
+        {% block content %}
+            {{content}}
+        {% endblock %}
     </body>
 </html>
+</h

@@ -2,11 +2,13 @@ from __future__ import print_function
 
 import argparse
 import codecs
+import hashlib
 import json
 import logging
 import os
 import re
 import sys
+from typing import Tuple
 
 from blessings import Terminal
 from distutils.version import LooseVersion
@@ -426,16 +428,19 @@ class MacroPlugin(Plugin):
 
         return attributes
 
+    def get_processed_macro_data(self, *data, **attrs):
+        return self.execute_macro(*data, **attrs)
+
     def process_text_data(self, content):
         def run_replacement(match_data):
             data = match_data.groupdict()
 
             try:
-                attributes = self.get_attributes(data.get("start", ""))
+                attrs = self.get_attributes(data.get("start", ""))
             except Exception as e:
                 raise MacroAttributeError("Unknown Error") from e
 
-            return self.execute_macro(data.get("content"), **attributes)
+            return self.get_processed_macro_data(data.get("content"), **attrs)
 
         try:
             return self.get_matcher().sub(run_replacement, content)
@@ -443,7 +448,7 @@ class MacroPlugin(Plugin):
             raise
         except Exception as e:
             raise MacroContentError(
-                "Error encountered while running macro %s: %s", self.plugin_name, e,
+                "Error encountered while running macro %s: %s" % (self.plugin_name, e)
             ) from e
 
     def execute_macro(self, data, **attributes):
@@ -455,6 +460,25 @@ class BlockElementMacroPlugin(MacroPlugin):
         r"<jirafs:(?P<start>{tag_name}[^>]*)>(?P<content>.*?)"
         r"</jirafs:(?P<end>{tag_name})>"
     )
+
+
+class ImageBlockElementMacroPlugin(BlockElementMacroPlugin):
+    def get_extension_and_image_data(self, data: str, **attrs) -> Tuple[str, bytes]:
+        raise NotImplementedError()
+
+    def get_processed_macro_data(self, data, **attrs):
+        (extension, image_data) = (
+            self.get_extension_and_image_data(data, **attrs)
+        )
+        hash = hashlib.sha256(image_data).hexdigest()
+
+        filename = f'{self.plugin_name}.{hash}.{extension}'
+
+        if not os.path.exists(os.path.join(self.ticketfolder.path, filename)):
+            with open(filename, 'wb') as outf:
+                outf.write(image_data)
+
+        return f'!{filename}|alt="jirafs:{self.COMPONENT_NAME}"!'
 
 
 class VoidElementMacroPlugin(MacroPlugin):
