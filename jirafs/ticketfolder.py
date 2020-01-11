@@ -659,7 +659,7 @@ class TicketFolder(object):
         # Apply macro plugins
         return self.process_macros(contents)
 
-    def get_field_value_by_dotpath(self, field_name, raw=False):
+    def get_field_value_by_dotpath(self, field_name, raw=False, **kwargs):
         fields = self.get_fields()
 
         key_dotpath = None
@@ -683,7 +683,12 @@ class TicketFolder(object):
                             "in field '%s'." % (component, key_dotpath, field_name,)
                         )
                     elif component not in data:
-                        data = ""
+                        if 'default' in kwargs:
+                            data = kwargs['default']
+                        else:
+                            raise exceptions.JirafsError(
+                                f"Keypath {key_dotpath} does not exist"
+                            )
                         break
                     else:
                         data = data[component]
