@@ -86,7 +86,7 @@ class CommandResult(str):
                     "the outgoing string includes curly braces.",
                 )
 
-        new_result = CommandResult(the_line)
+        new_result = CommandResult(the_line, no_format=no_format)
         return self + new_result
 
     def __add__(self, other):
@@ -99,7 +99,10 @@ class CommandResult(str):
             return_code = other.return_code
 
         return CommandResult(
-            joined_strings, return_code=return_code, cursor=self.cursor
+            joined_strings,
+            return_code=return_code,
+            cursor=self.cursor,
+            no_format=True
         )
 
     @property

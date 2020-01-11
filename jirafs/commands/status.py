@@ -27,7 +27,7 @@ class Command(CommandPlugin):
 
     def status_json(self, folder, status):
         result = CommandResult()
-        result = result.add_line(json.dumps(status))
+        result = result.add_line(json.dumps(status), no_format=True)
         return result
 
     def has_changes(self, section, *keys):
