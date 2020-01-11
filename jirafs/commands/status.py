@@ -32,9 +32,9 @@ class Command(CommandPlugin):
 
     def has_changes(self, section, *keys):
         if not keys:
-            keys = ["files", "fields", "new_comment", "links"]
+            keys = ["files", "deleted", "fields", "new_comment", "links"]
         for key in keys:
-            if section[key]:
+            if key in section and section[key]:
                 return True
 
     def status_text(self, folder, folder_status):
@@ -112,6 +112,12 @@ class Command(CommandPlugin):
                 post_message=(
                     "(track in repository)" if no_upload else "(upload attachment)"
                 ),
+            )
+        for filename in changes.get("deleted", []):
+            result = result.add_line(
+                u"\t{t.%s}{filename}{t.normal} {post_message}" % color,
+                filename=filename,
+                post_message="(deleted)"
             )
         for link, data in changes.get("links", {}).get("remote", {}).items():
             orig = data[0]

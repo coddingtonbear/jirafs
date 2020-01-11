@@ -455,6 +455,19 @@ class TicketFolder(object):
         )
         ready["files"] = changed_files
 
+        current_hash = self.run_git_command("rev-parse", "master")
+        committed_files = set(
+            self.run_git_command(
+                "ls-tree", "--name-only", "-r", current_hash
+            ).split("\n")
+        )
+        merge_base_files = set(
+            self.run_git_command(
+                "ls-tree", "--name-only", "-r", self.git_merge_base
+            ).split("\n")
+        )
+        ready["deleted"] = list(merge_base_files - committed_files)
+
         return ready
 
     def get_uncommitted_changes(self):
@@ -468,13 +481,20 @@ class TicketFolder(object):
         modified_files = self.run_git_command("ls-files", "-m", failure_ok=True).split(
             "\n"
         )
+        deleted_files = self.run_git_command("ls-files", "-d", failure_ok=True).split("\n")
         uncommitted["files"] = self.filter_ignored_files(
             [filename for filename in new_files + modified_files if filename],
             constants.LOCAL_ONLY_FILE,
             constants.GIT_IGNORE_FILE,
             constants.GIT_EXCLUDE_FILE,
         )
-
+        uncommitted["deleted"] = self.filter_ignored_files(
+            [filename for filename in deleted_files if filename],
+            constants.LOCAL_ONLY_FILE,
+            constants.GIT_IGNORE_FILE,
+            constants.GIT_EXCLUDE_FILE,
+            allow_nonfile=True,   # They're deleted, after all
+        )
         return uncommitted
 
     def get_local_uncommitted_changes(self):
@@ -513,7 +533,7 @@ class TicketFolder(object):
 
         return assets
 
-    def filter_ignored_files(self, files, *which):
+    def filter_ignored_files(self, files, *which, allow_nonfile=False):
         if len(which) < 1:
             which = [constants.LOCAL_ONLY_FILE]
         if not isinstance(which, (list, tuple)):
@@ -533,8 +553,12 @@ class TicketFolder(object):
 
                 if self.file_matches_globs(filename, ignore_globs):
                     continue
-                if not attachment and not os.path.isfile(
-                    os.path.join(self.path, filename)
+                if (
+                    not attachment
+                    and not allow_nonfile
+                    and not os.path.isfile(
+                        os.path.join(self.path, filename)
+                    )
                 ):
                     continue
                 if filename.startswith("."):
