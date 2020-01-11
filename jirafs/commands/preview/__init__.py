@@ -168,7 +168,7 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
                 self.serve_file(self.path[7:])
             else:
                 self.serve_preview_content(self.path[1:].replace('/', '.'))
-        except:
+        except Exception:
             self.send_response(500)
             response = self.get_rendered_template(
                 "traceback.html",

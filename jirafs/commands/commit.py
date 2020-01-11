@@ -17,6 +17,7 @@ class Command(CommandPlugin):
 
     def main(self, folder, message, *args):
         original_hash = folder.run_git_command("rev-parse", "master")
+        folder.status()  # To trigger macro execution
         folder.run_git_command("add", "-A")
         try:
             folder.run_git_command("commit", "-m", message, *args)
