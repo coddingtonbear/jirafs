@@ -8,7 +8,7 @@ import logging
 import os
 import re
 import sys
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from blessings import Terminal
 from distutils.version import LooseVersion
@@ -30,6 +30,25 @@ class PluginValidationError(PluginError):
 
 class PluginOperationError(PluginError):
     pass
+
+
+class MacroResult(str):
+    def __new__(
+        cls, string=None, generated_filenames=None
+    ):
+        if string is None:
+            string = ""
+        if generated_filenames is None:
+            generated_filenames = []
+
+        self = super().__new__(cls, string)
+        self._generated_filenames = generated_filenames
+
+        return self
+
+    @property
+    def generated_filenames(self):
+        return self._generated_filenames
 
 
 class CommandResult(str):
@@ -54,8 +73,8 @@ class CommandResult(str):
                     "the outgoing string includes curly braces.",
                 )
 
-        self = super(CommandResult, cls).__new__(cls, string)
-        self.return_code = return_code
+        self = super().__new__(cls, string)
+        self._return_code = return_code
         self.terminal = terminal
         self.cursor = cursor
 
@@ -451,7 +470,7 @@ class MacroPlugin(Plugin):
 
         return attributes
 
-    def get_processed_macro_data(self, data, attrs, config):
+    def get_processed_macro_data(self, data, attrs, config) -> Union[MacroResult, str]:
         return self.execute_macro(
             data, attrs, config
         )
@@ -487,7 +506,7 @@ class MacroPlugin(Plugin):
                         self.ticketfolder.path,
                         attrs['src'],
                     ),
-                    'rb'
+                    'r'
                 ) as inf:
                     body = inf.read()
 
@@ -513,10 +532,10 @@ class MacroPlugin(Plugin):
         except NotImplementedError:
             return data
 
-    def execute_macro_reversal(self, data, **attrs):
+    def execute_macro_reversal(self, data) -> str:
         raise NotImplementedError()
 
-    def execute_macro(self, data, **attributes):
+    def execute_macro(self, data, atrs, config) -> Union[MacroResult, str]:
         raise NotImplementedError()
 
     def cleanup(self):
@@ -558,81 +577,80 @@ class MacroPlugin(Plugin):
             )
 
 
-class AutomaticReversalMacroMixin(object):
+class AutomaticReversalMacroPlugin(MacroPlugin):
     def should_rerender(self, data, attrs, hashed, config):
-        generated_path = config['generated_path']
-
         try:
-            filename, entry = (
-                self.find_metadata_entry(data, attrs, hashed, generated_path)
-            )
+            self.find_cache_entry(data, attrs, hashed, config)
             return False
         except ValueError:
             return True
 
-    def find_metadata_entry(self, data, attrs, hashed, generated_path):
+    def _generate_metadata_key(self, data_hash, attrs, config):
+        hashable_attrs = json.dumps(attrs, sort_keys=True).encode('utf-8')
+
+        return hashlib.sha256(
+            b''.join(
+                [data_hash.encode('utf-8'), hashable_attrs]
+            )
+        ).hexdigest()
+
+    def store_cache_entry(self, replacement, filenames, attrs, data_hash, config):
+        metadata_key = self._generate_metadata_key(data_hash, attrs, config)
+
+        is_temp = config['generated_path'] != self.ticketfolder.path
+
+        self.metadata.setdefault('reversal_cache', {})[metadata_key] = {
+            'filenames': filenames,
+            'attrs': attrs,
+            'replacement': replacement,
+            'is_temp': is_temp,
+        }
+        self.metadata.setdefault('stored_in_session', []).append(metadata_key)
+
+    def find_cache_entry(self, data, attrs, data_hash, config):
+        generated_path = config['generated_path']
         existing_files = os.listdir(
             generated_path if generated_path else self.ticketfolder.path
         )
 
-        for filename, entry in (
-            self.metadata.get('rendered', {}).get('temp', {}).items()
-        ):
-            if (
-                entry['source_hashed'] == hashed
-                and entry['attrs'] == attrs
-                and filename in existing_files
-            ):
-                return filename, entry
-        for filename, entry in (
-            self.metadata.get('rendered', {}).get('uncommitted', {}).items()
-        ):
-            if (
-                entry['source_hashed'] == hashed
-                and entry['attrs'] == attrs
-                and filename in existing_files
-            ):
-                return filename, entry
-        for filename, entry in (
-            self.metadata.get('rendered', {}).get('committed', {}).items()
-        ):
-            if (
-                entry['source_hashed'] == hashed
-                and entry['attrs'] == attrs
-                and filename in existing_files
-            ):
-                return filename, entry
+        metadata_key = self._generate_metadata_key(data_hash, attrs, config)
 
-        raise ValueError("Metadata not found")
+        try:
+            entry = self.metadata.get('reversal_cache', {})[metadata_key]
+
+            for filename in entry.get('filenames', []):
+                if filename not in existing_files:
+                    raise ValueError("Metadata references non-existent file")
+            return entry
+        except KeyError:
+            raise ValueError("Metadata not found")
 
     def cleanup_pre_commit(self, **kwargs):
-        # Replace the 'committed' list of files with the
-        # uncommitted if those files still exist on-disk
-        existing_files = os.listdir(self.ticketfolder.path)
-        uncommitted = self.metadata.setdefault('rendered', {}).get('uncommitted', [])
-        self.metadata['rendered']['committed'] = {
-            filename: entry
-            for filename, entry in uncommitted.items()
-            if filename in existing_files
-        }
-        self.metadata['rendered']['uncommitted'] = {}
-        self.save()
+        pass
 
     def cleanup_pre_process(self):
-        self.metadata.setdefault('rendered', {})['uncommitted'] = {}
+        self.metadata['stored_in_session'] = []
         self.save()
 
     def cleanup_post_process(self):
+        cache = self.metadata.get('reversal_cache', {})
+
+        known_keys = set(cache.keys())
+        accessed_keys = set(self.metadata.get('stored_in_session', []))
+        obsolete_keys = known_keys - accessed_keys
+
+        active_files = set()
+        for key in accessed_keys:
+            for filename in cache[key]['filenames']:
+                active_files.add(filename)
+
+        obsolete_files = set()
+        for key in obsolete_keys:
+            for filename in cache[key]['filenames']:
+                obsolete_files.add(filename)
+
+        to_delete = obsolete_files - active_files
         existing_files = os.listdir(self.ticketfolder.path)
-
-        committed = (
-            self.metadata.setdefault('rendered', {}).get('committed', {}).keys()
-        )
-        uncommitted = (
-            self.metadata.setdefault('rendered', {}).get('uncommitted', {}).keys()
-        )
-
-        to_delete = set(committed) - set(uncommitted)
 
         for filename in to_delete:
             if filename in existing_files:
@@ -642,7 +660,7 @@ class AutomaticReversalMacroMixin(object):
 
         self.save()
 
-    def execute_macro_reversal(self, data):
+    def execute_macro_reversal(self, data) -> str:
         for replacement, original in self.metadata.get('replacements', {}).items():
             data = data.replace(
                 replacement,
@@ -654,52 +672,59 @@ class AutomaticReversalMacroMixin(object):
 
         return data
 
-
-class ImageMacroPlugin(AutomaticReversalMacroMixin, MacroPlugin):
-    def get_extension_and_image_data(self, data: str, **attrs) -> Tuple[str, bytes]:
-        raise NotImplementedError()
-
-    def get_processed_macro_data(self, data, attrs, config):
-        generated_path = config['generated_path']
-
+    def get_processed_macro_data(self, data, attrs, config) -> Union[MacroResult, str]:
         hashed = hashlib.sha256(data.encode('utf-8')).hexdigest()
         if self.should_rerender(data, attrs, hashed, config):
-            (extension, image_data) = (
-                self.get_extension_and_image_data(data, **attrs)
-            )
-
-            filename = attrs.get('filename', f'{self.plugin_name}.{hashed}.{extension}')
-
-            file_path = os.path.join(
-                generated_path,
-                filename,
-            )
-            with open(file_path, 'wb') as outf:
-                outf.write(image_data)
+            replacement = self.execute_macro(data, attrs, config)
+            if isinstance(replacement, MacroResult):
+                filenames = replacement.generated_filenames
+            else:
+                filenames = []
         else:
-            filename, metadata = self.find_metadata_entry(
-                data, attrs, hashed, generated_path
-            )
+            metadata = self.find_cache_entry(data, attrs, hashed, config)
+            replacement = metadata['replacement']
+            filenames = metadata['filenames']
 
-        if filename is None:
-            breakpoint()
-
-        replacement = f'!{filename}|alt="jirafs:{self.COMPONENT_NAME}"!'
-
-        metadata_key = (
-            'uncommitted' if generated_path == self.ticketfolder.path else 'temp'
+        self.store_cache_entry(
+            replacement,
+            filenames,
+            attrs,
+            hashed,
+            config,
         )
-        self.metadata\
-            .setdefault('rendered', {})\
-            .setdefault(metadata_key, {})[
-                filename
-            ] = {
-                'source_hashed': hashed,
-                'attrs': attrs,
-            }
         self.metadata.setdefault('replacements', {})[replacement] = {
             'data': data,
             'attrs': attrs,
         }
 
         return replacement
+
+    def get_replacement(self, data, attrs, config) -> Tuple[str, str]:
+        raise NotImplementedError()
+
+
+class ImageMacroPlugin(AutomaticReversalMacroPlugin):
+    def get_extension_and_image_data(self, data: str, **attrs) -> Tuple[str, bytes]:
+        raise NotImplementedError()
+
+    def execute_macro(self, data, attrs, config) -> MacroResult:
+        generated_path = config['generated_path']
+        hashed = hashlib.sha256(data.encode('utf-8')).hexdigest()
+
+        (extension, image_data) = (
+            self.get_extension_and_image_data(data, **attrs)
+        )
+
+        filename = attrs.get('filename', f'{self.plugin_name}.{hashed}.{extension}')
+
+        file_path = os.path.join(
+            generated_path,
+            filename,
+        )
+        with open(file_path, 'wb') as outf:
+            outf.write(image_data)
+
+        return MacroResult(
+            f'!{filename}|alt="jirafs:{self.COMPONENT_NAME}"!',
+            generated_filenames=[filename]
+        )
