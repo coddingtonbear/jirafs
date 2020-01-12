@@ -87,7 +87,35 @@ def main():
     parser.add_argument(
         "--traceback", action="store_true", default=False,
     )
+    parser.add_argument(
+        '--debugger-port', default=58024, help=(
+            "(Requires --debugger) start debugger on this port."
+        )
+    )
+    parser.add_argument(
+        "--debugger", action="store_true", default=False, help=(
+            "Launch ptvsd debugger on --debugger-port."
+        )
+    )
     args, extra = parser.parse_known_args()
+
+    if args.debugger:
+        try:
+            import ptvsd
+            ptvsd.enable_attach(
+                address=('localhost', args.debugger_port)
+            )
+            print(
+                f"{term.magenta}Waiting for debugger connection on "
+                f"port {args.debugger_port}...{term.normal}"
+            )
+            ptvsd.wait_for_attach()
+        except ImportError:
+            print(
+                f"{term.red}Module 'ptvsd' required for debugging."
+                f"{term.normal}"
+            )
+            sys.exit(1)
 
     logging.config.dictConfig(LOGGING)
     root_logger = logging.getLogger()
