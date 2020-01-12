@@ -8,7 +8,7 @@ import logging
 import os
 import re
 import sys
-from typing import Tuple
+from typing import Optional, Tuple
 
 from blessings import Terminal
 from distutils.version import LooseVersion
@@ -310,6 +310,13 @@ class DirectOutputCommandPlugin(CommandPlugin):
 
 class MacroPlugin(Plugin):
     COMPONENT_NAME = None
+    MATCHERS = [
+        (
+            r"<jirafs:(?P<start>{tag_name}[^>]*)>(?P<content>.*?)"
+            r"</jirafs:(?P<end>{tag_name})>"
+        ),
+        r"<jirafs:(?P<start>{tag_name}[^/]*)/>"
+    ]
 
     def __init__(self, folder, plugin_name, *args, **kwargs):
         self.ticketfolder = folder
@@ -317,14 +324,17 @@ class MacroPlugin(Plugin):
         self._args = args
         self._kwargs = kwargs
 
-    def get_matcher(self):
-        return re.compile(
-            self.BASE_REGEX.format(tag_name=self.COMPONENT_NAME),
-            re.MULTILINE | re.DOTALL,
-        )
+    def get_matchers(self):
+        return [
+            re.compile(
+                rex.format(tag_name=self.COMPONENT_NAME),
+                re.MULTILINE | re.DOTALL,
+            ) for rex in self.MATCHERS
+        ]
 
     def get_matches(self, content):
-        return self.get_matcher().finditer(content)
+        for matcher in self.get_matchers():
+            yield from self.get_matchers().finditer(content)
 
     def get_attributes(self, tag):
         state_outer = 1
@@ -441,14 +451,18 @@ class MacroPlugin(Plugin):
 
         return attributes
 
-    def get_processed_macro_data(self, *data, generated_path=None, **attrs):
+    def get_processed_macro_data(self, data, attrs, config):
         return self.execute_macro(
-            *data, generated_path=generated_path, **attrs
+            data, attrs, config
         )
 
-    def process_text_data(self, content, path=None):
+    def process_text_data(self, content: str, path: Optional[str] = None):
         if path is None:
             path = self.ticketfolder.path
+
+        config = {
+            'generated_path': path,
+        }
 
         def run_replacement(match_data):
             data = match_data.groupdict()
@@ -458,16 +472,34 @@ class MacroPlugin(Plugin):
             except Exception as e:
                 raise MacroAttributeError("Unknown Error") from e
 
-            result = self.get_processed_macro_data(
-                data.get("content"),
-                generated_path=path,
-                **attrs
-            )
+            if data.get('end') and 'src' in attrs:
+                raise MacroContentError(
+                    "Macro cannot use block element form while "
+                    "also specifying the 'src' attribute.  'src' is "
+                    "used for specifying an external file to use as "
+                    "macro content."
+                )
+
+            body = data.get("content")
+            if 'src' in attrs:
+                with open(
+                    os.path.join(
+                        self.ticketfolder.path,
+                        attrs['src'],
+                    ),
+                    'rb'
+                ) as inf:
+                    body = inf.read()
+
+            result = self.get_processed_macro_data(body, attrs, config)
             self.save()  # Save metadata changes
             return result
 
         try:
-            return self.get_matcher().sub(run_replacement, content)
+            content = content
+            for matcher in self.get_matchers():
+                content = matcher.sub(run_replacement, content)
+            return content
         except MacroError:
             raise
         except Exception as e:
@@ -511,39 +543,25 @@ class MacroPlugin(Plugin):
 
         return ''
 
-
-class BlockElementMacroPlugin(MacroPlugin):
-    BASE_REGEX = (
-        r"<jirafs:(?P<start>{tag_name}[^>]*)>(?P<content>.*?)"
-        r"</jirafs:(?P<end>{tag_name})>"
-    )
-
     def generate_tag_from_data_and_attrs(self, data, attrs):
         attrs_string = self._generate_attrs_string(attrs)
 
-        return (
-            f"<jirafs:{self.COMPONENT_NAME}{attrs_string}>"
-            f"{data}"
-            f"</jirafs:{self.COMPONENT_NAME}>"
-        )
+        if 'src' in attrs:
+            return (
+                f"<jirafs:{self.COMPONENT_NAME}{attrs_string} />"
+            )
+        else:
+            return (
+                f"<jirafs:{self.COMPONENT_NAME}{attrs_string}>"
+                f"{data}"
+                f"</jirafs:{self.COMPONENT_NAME}>"
+            )
 
 
-class VoidElementMacroPlugin(MacroPlugin):
-    BASE_REGEX = r"<jirafs:(?P<start>{tag_name}[^/]*)/>"
+class AutomaticReversalMacroMixin(object):
+    def should_rerender(self, data, attrs, hashed, config):
+        generated_path = config['generated_path']
 
-    def generate_tag_from_data_and_attrs(self, data, attrs):
-        attrs_string = self._generate_attrs_string(attrs)
-
-        return (
-            f"<jirafs:{self.COMPONENT_NAME}{attrs_string} />"
-        )
-
-
-class ImageMacroPluginMixin(object):
-    def get_extension_and_image_data(self, data: str, **attrs) -> Tuple[str, bytes]:
-        raise NotImplementedError()
-
-    def should_rerender(self, data, attrs, hashed, generated_path):
         try:
             filename, entry = (
                 self.find_metadata_entry(data, attrs, hashed, generated_path)
@@ -587,9 +605,65 @@ class ImageMacroPluginMixin(object):
 
         raise ValueError("Metadata not found")
 
-    def get_processed_macro_data(self, data, generated_path=None, **attrs):
+    def cleanup_pre_commit(self, **kwargs):
+        # Replace the 'committed' list of files with the
+        # uncommitted if those files still exist on-disk
+        existing_files = os.listdir(self.ticketfolder.path)
+        uncommitted = self.metadata.setdefault('rendered', {}).get('uncommitted', [])
+        self.metadata['rendered']['committed'] = {
+            filename: entry
+            for filename, entry in uncommitted.items()
+            if filename in existing_files
+        }
+        self.metadata['rendered']['uncommitted'] = {}
+        self.save()
+
+    def cleanup_pre_process(self):
+        self.metadata.setdefault('rendered', {})['uncommitted'] = {}
+        self.save()
+
+    def cleanup_post_process(self):
+        existing_files = os.listdir(self.ticketfolder.path)
+
+        committed = (
+            self.metadata.setdefault('rendered', {}).get('committed', {}).keys()
+        )
+        uncommitted = (
+            self.metadata.setdefault('rendered', {}).get('uncommitted', {}).keys()
+        )
+
+        to_delete = set(committed) - set(uncommitted)
+
+        for filename in to_delete:
+            if filename in existing_files:
+                os.unlink(
+                    os.path.join(self.ticketfolder.path, filename)
+                )
+
+        self.save()
+
+    def execute_macro_reversal(self, data):
+        for replacement, original in self.metadata.get('replacements', {}).items():
+            data = data.replace(
+                replacement,
+                self.generate_tag_from_data_and_attrs(
+                    original['data'],
+                    original['attrs'],
+                )
+            )
+
+        return data
+
+
+class ImageMacroPlugin(AutomaticReversalMacroMixin, MacroPlugin):
+    def get_extension_and_image_data(self, data: str, **attrs) -> Tuple[str, bytes]:
+        raise NotImplementedError()
+
+    def get_processed_macro_data(self, data, attrs, config):
+        generated_path = config['generated_path']
+
         hashed = hashlib.sha256(data.encode('utf-8')).hexdigest()
-        if self.should_rerender(data, attrs, hashed, generated_path=generated_path):
+        if self.should_rerender(data, attrs, hashed, config):
             (extension, image_data) = (
                 self.get_extension_and_image_data(data, **attrs)
             )
@@ -629,56 +703,3 @@ class ImageMacroPluginMixin(object):
         }
 
         return replacement
-
-    def execute_macro_reversal(self, data):
-        for replacement, original in self.metadata.get('replacements', {}).items():
-            data = data.replace(
-                replacement,
-                self.generate_tag_from_data_and_attrs(
-                    original['data'],
-                    original['attrs'],
-                )
-            )
-
-        return data
-
-    def cleanup_pre_commit(self, **kwargs):
-        # Replace the 'committed' list of files with the
-        # uncommitted if those files still exist on-disk
-        existing_files = os.listdir(self.ticketfolder.path)
-        uncommitted = self.metadata.setdefault('rendered', {}).get('uncommitted', [])
-        self.metadata['rendered']['committed'] = {
-            filename: entry
-            for filename, entry in uncommitted.items()
-            if filename in existing_files
-        }
-        self.metadata['rendered']['uncommitted'] = {}
-        self.save()
-
-    def cleanup_pre_process(self):
-        self.metadata.setdefault('rendered', {})['uncommitted'] = {}
-        self.save()
-
-    def cleanup_post_process(self):
-        existing_files = os.listdir(self.ticketfolder.path)
-
-        committed = (
-            self.metadata.setdefault('rendered', {}).get('committed', {}).keys()
-        )
-        uncommitted = (
-            self.metadata.setdefault('rendered', {}).get('uncommitted', {}).keys()
-        )
-
-        to_delete = set(committed) - set(uncommitted)
-
-        for filename in to_delete:
-            if filename in existing_files:
-                os.unlink(
-                    os.path.join(self.ticketfolder.path, filename)
-                )
-
-        self.save()
-
-
-class ImageBlockElementMacroPlugin(ImageMacroPluginMixin, BlockElementMacroPlugin):
-    pass
