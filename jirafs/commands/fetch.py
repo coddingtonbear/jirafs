@@ -59,6 +59,8 @@ class Command(CommandPlugin):
                     value = json.dumps(
                         value, sort_keys=True, indent=4, ensure_ascii=False
                     )
+                else:
+                    value = folder.process_macro_reversals(value)
 
                 if field in constants.FILE_FIELDS:
                     # Write specific fields to their own files without
@@ -116,7 +118,9 @@ class Command(CommandPlugin):
         comments_filename = folder.get_shadow_path(constants.TICKET_COMMENTS)
         with io.open(comments_filename, "w", encoding="utf-8") as comm:
             for comment in folder.issue.fields.comment.comments:
-                comm.write("* At %s, %s wrote:\n\n" % (comment.created, comment.author))
+                comm.write(
+                    "h3. At %s, %s wrote:\n\n" % (comment.created, comment.author)
+                )
                 final_lines = []
                 lines = comment.body.replace("\r\n", "\n").split("\n")
                 for line in lines:
@@ -125,7 +129,7 @@ class Command(CommandPlugin):
                     else:
                         final_lines.extend(
                             textwrap.wrap(
-                                line,
+                                folder.process_macro_reversals(line),
                                 width=70,
                                 expand_tabs=False,
                                 replace_whitespace=False,
@@ -133,7 +137,7 @@ class Command(CommandPlugin):
                             )
                         )
                 for line in final_lines:
-                    comm.write("    %s\n" % line)
+                    comm.write("%s\n" % line)
                 comm.write("\n")
 
         folder.store_cached_issue()

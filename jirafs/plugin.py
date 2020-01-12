@@ -136,12 +136,6 @@ class JirafsPluginBase(object):
 
         return True
 
-
-class Plugin(JirafsPluginBase):
-    def __init__(self, ticketfolder, plugin_name, **kwargs):
-        self.ticketfolder = ticketfolder
-        self.plugin_name = plugin_name
-
     @property
     def metadata_filename(self):
         return self.ticketfolder.get_metadata_path(
@@ -154,16 +148,32 @@ class Plugin(JirafsPluginBase):
             return dict(config.items(self.plugin_name))
         return {}
 
-    def get_metadata(self):
+    def _get_metadata(self):
         try:
             with open(self.metadata_filename, "r") as _in:
                 return json.loads(_in.read())
         except (IOError, OSError):
             return {}
 
-    def set_metadata(self, data):
+    def _set_metadata(self, data):
         with open(self.metadata_filename, "w") as out:
             out.write(json.dumps(data, indent=4, sort_keys=True,))
+
+    @property
+    def metadata(self):
+        if not hasattr(self, '_metadata'):
+            self._metadata = self._get_metadata()
+
+        return self._metadata
+
+    def save(self):
+        self._set_metadata(self.metadata)
+
+
+class Plugin(JirafsPluginBase):
+    def __init__(self, ticketfolder, plugin_name, **kwargs):
+        self.ticketfolder = ticketfolder
+        self.plugin_name = plugin_name
 
 
 class CommandPlugin(JirafsPluginBase):
@@ -431,10 +441,15 @@ class MacroPlugin(Plugin):
 
         return attributes
 
-    def get_processed_macro_data(self, *data, **attrs):
-        return self.execute_macro(*data, **attrs)
+    def get_processed_macro_data(self, *data, generated_path=None, **attrs):
+        return self.execute_macro(
+            *data, generated_path=generated_path, **attrs
+        )
 
-    def process_text_data(self, content):
+    def process_text_data(self, content, path=None):
+        if path is None:
+            path = self.ticketfolder.path
+
         def run_replacement(match_data):
             data = match_data.groupdict()
 
@@ -443,19 +458,58 @@ class MacroPlugin(Plugin):
             except Exception as e:
                 raise MacroAttributeError("Unknown Error") from e
 
-            return self.get_processed_macro_data(data.get("content"), **attrs)
+            result = self.get_processed_macro_data(
+                data.get("content"),
+                generated_path=path,
+                **attrs
+            )
+            self.save()  # Save metadata changes
+            return result
 
         try:
             return self.get_matcher().sub(run_replacement, content)
         except MacroError:
             raise
-        except Exception as e:
-            raise MacroContentError(
-                "Error encountered while running macro %s: %s" % (self.plugin_name, e)
-            ) from e
+        #except Exception as e:
+        #    raise MacroContentError(
+        #        "Error encountered while running macro %s: %s" % (self.plugin_name, e)
+        #    ) from e
+
+    def process_text_data_reversal(self, data):
+        try:
+            return self.execute_macro_reversal(data)
+        except NotImplementedError:
+            return data
+
+    def execute_macro_reversal(self, data, **attrs):
+        raise NotImplementedError()
 
     def execute_macro(self, data, **attributes):
         raise NotImplementedError()
+
+    def cleanup(self):
+        raise NotImplementedError()
+
+    def cleanup_pre_process(self):
+        raise NotImplementedError()
+
+    def cleanup_post_process(self):
+        return self.cleanup()
+
+    def cleanup_pre_commit(self):
+        raise NotImplementedError()
+
+    def _generate_attrs_string(self, attrs):
+        params = []
+
+        for k, v in sorted(attrs.items(), key=lambda e: e[0]):
+            quoted_value = json.dumps(v)
+            params.append(f"{k}={quoted_value}")
+
+        if params:
+            return ' ' + ' '.join(params)
+
+        return ''
 
 
 class BlockElementMacroPlugin(MacroPlugin):
@@ -464,25 +518,167 @@ class BlockElementMacroPlugin(MacroPlugin):
         r"</jirafs:(?P<end>{tag_name})>"
     )
 
+    def generate_tag_from_data_and_attrs(self, data, attrs):
+        attrs_string = self._generate_attrs_string(attrs)
 
-class ImageBlockElementMacroPlugin(BlockElementMacroPlugin):
-    def get_extension_and_image_data(self, data: str, **attrs) -> Tuple[str, bytes]:
-        raise NotImplementedError()
-
-    def get_processed_macro_data(self, data, **attrs):
-        (extension, image_data) = (
-            self.get_extension_and_image_data(data, **attrs)
+        return (
+            f"<jirafs:{self.COMPONENT_NAME}{attrs_string}>"
+            f"{data}"
+            f"</jirafs:{self.COMPONENT_NAME}>"
         )
-        hash = hashlib.sha256(image_data).hexdigest()
-
-        filename = f'{self.plugin_name}.{hash}.{extension}'
-
-        if not os.path.exists(os.path.join(self.ticketfolder.path, filename)):
-            with open(filename, 'wb') as outf:
-                outf.write(image_data)
-
-        return f'!{filename}|alt="jirafs:{self.COMPONENT_NAME}"!'
 
 
 class VoidElementMacroPlugin(MacroPlugin):
     BASE_REGEX = r"<jirafs:(?P<start>{tag_name}[^/]*)/>"
+
+    def generate_tag_from_data_and_attrs(self, data, attrs):
+        attrs_string = self._generate_attrs_string(attrs)
+
+        return (
+            f"<jirafs:{self.COMPONENT_NAME}{attrs_string} />"
+        )
+
+
+class ImageMacroPluginMixin(object):
+    def get_extension_and_image_data(self, data: str, **attrs) -> Tuple[str, bytes]:
+        raise NotImplementedError()
+
+    def should_rerender(self, data, attrs, hashed, generated_path):
+        try:
+            filename, entry = (
+                self.find_metadata_entry(data, attrs, hashed, generated_path)
+            )
+            return False
+        except ValueError:
+            return True
+
+    def find_metadata_entry(self, data, attrs, hashed, generated_path):
+        existing_files = os.listdir(
+            generated_path if generated_path else self.ticketfolder.path
+        )
+
+        for filename, entry in (
+            self.metadata.get('rendered', {}).get('temp', {}).items()
+        ):
+            if (
+                entry['source_hashed'] == hashed
+                and entry['attrs'] == attrs
+                and filename in existing_files
+            ):
+                return filename, entry
+        for filename, entry in (
+            self.metadata.get('rendered', {}).get('uncommitted', {}).items()
+        ):
+            if (
+                entry['source_hashed'] == hashed
+                and entry['attrs'] == attrs
+                and filename in existing_files
+            ):
+                return filename, entry
+        for filename, entry in (
+            self.metadata.get('rendered', {}).get('committed', {}).items()
+        ):
+            if (
+                entry['source_hashed'] == hashed
+                and entry['attrs'] == attrs
+                and filename in existing_files
+            ):
+                return filename, entry
+
+        raise ValueError("Metadata not found")
+
+    def get_processed_macro_data(self, data, generated_path=None, **attrs):
+        hashed = hashlib.sha256(data.encode('utf-8')).hexdigest()
+        if self.should_rerender(data, attrs, hashed, generated_path=generated_path):
+            (extension, image_data) = (
+                self.get_extension_and_image_data(data, **attrs)
+            )
+
+            filename = attrs.get('filename', f'{self.plugin_name}.{hashed}.{extension}')
+
+            file_path = os.path.join(
+                generated_path,
+                filename,
+            )
+            with open(file_path, 'wb') as outf:
+                outf.write(image_data)
+        else:
+            filename, metadata = self.find_metadata_entry(
+                data, attrs, hashed, generated_path
+            )
+
+        if filename is None:
+            breakpoint()
+
+        replacement = f'!{filename}|alt="jirafs:{self.COMPONENT_NAME}"!'
+
+        metadata_key = (
+            'uncommitted' if generated_path == self.ticketfolder.path else 'temp'
+        )
+        self.metadata\
+            .setdefault('rendered', {})\
+            .setdefault(metadata_key, {})[
+                filename
+            ] = {
+                'source_hashed': hashed,
+                'attrs': attrs,
+            }
+        self.metadata.setdefault('replacements', {})[replacement] = {
+            'data': data,
+            'attrs': attrs,
+        }
+
+        return replacement
+
+    def execute_macro_reversal(self, data):
+        for replacement, original in self.metadata.get('replacements', {}).items():
+            data = data.replace(
+                replacement,
+                self.generate_tag_from_data_and_attrs(
+                    original['data'],
+                    original['attrs'],
+                )
+            )
+
+        return data
+
+    def cleanup_pre_commit(self, **kwargs):
+        # Replace the 'committed' list of files with the
+        # uncommitted if those files still exist on-disk
+        existing_files = os.listdir(self.ticketfolder.path)
+        uncommitted = self.metadata.setdefault('rendered', {}).get('uncommitted', [])
+        self.metadata['rendered']['committed'] = {
+            filename: entry
+            for filename, entry in uncommitted.items()
+            if filename in existing_files
+        }
+        self.metadata['rendered']['uncommitted'] = {}
+        self.save()
+
+    def cleanup_pre_process(self):
+        self.metadata.setdefault('rendered', {})['uncommitted'] = {}
+        self.save()
+
+    def cleanup_post_process(self):
+        existing_files = os.listdir(self.ticketfolder.path)
+
+        committed = (
+            self.metadata.setdefault('rendered', {}).get('committed', {}).keys()
+        )
+        uncommitted = (
+            self.metadata.setdefault('rendered', {}).get('uncommitted', {}).keys()
+        )
+
+        to_delete = set(committed) - set(uncommitted)
+
+        for filename in to_delete:
+            if filename in existing_files:
+                os.unlink(
+                    os.path.join(self.ticketfolder.path, filename)
+                )
+
+        self.save()
+
+
+class ImageBlockElementMacroPlugin(ImageMacroPluginMixin, BlockElementMacroPlugin):
+    pass

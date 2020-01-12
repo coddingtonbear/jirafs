@@ -16,8 +16,12 @@ class Command(CommandPlugin):
         parser.add_argument("git_arguments", nargs="*")
 
     def main(self, folder, message, *args):
+        # Run all macros to ensure that we've written any file
+        # changes that such macros might perform
+        folder.process_macros_for_all_fields()
+        folder.process_macros_pre_commit_cleanup()
+
         original_hash = folder.run_git_command("rev-parse", "master")
-        folder.status()  # To trigger macro execution
         folder.run_git_command("add", "-A")
         try:
             folder.run_git_command("commit", "-m", message, *args)

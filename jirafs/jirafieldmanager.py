@@ -23,7 +23,8 @@ class JiraFieldManager(dict):
 
     def __sub__(self, other):
         differing = {}
-        for k, v in other.items():
+        for k in other.keys():
+            v = other.get_transformed(k)
             if (self.get_transformed(k) or v) and self.get_transformed(k) != v:
                 tx = self.get_transformed(k)
                 differing[k] = (
@@ -43,7 +44,10 @@ class JiraFieldManager(dict):
     def items_transformed(self):
         for k, v in self.items():
             if k in self.get_requested_per_ticket_fields():
-                result = self.folder.process_macros(v)
+                result = self.folder.process_macros(
+                    v,
+                    path=self.get_generated_file_path()
+                )
                 yield k, result
             else:
                 yield k, v
@@ -53,7 +57,10 @@ class JiraFieldManager(dict):
             return self[field_name]
 
         try:
-            return self.folder.process_macros(self[field_name])
+            return self.folder.process_macros(
+                self[field_name],
+                path=self.get_generated_file_path()
+            )
         except KeyError:
             return default
 
@@ -171,6 +178,9 @@ class AutomaticJiraFieldManager(JiraFieldManager):
 
 
 class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
+    def get_generated_file_path(self):
+        return self.folder.path
+
     def get_used_per_ticket_fields(self):
         fields = []
         for filename in os.listdir(self.path):
@@ -220,6 +230,14 @@ class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
 
 
 class GitRevisionJiraFieldManager(GitRevisionReader, AutomaticJiraFieldManager):
+    def get_generated_file_path(self):
+        path = self.folder.get_path(".jirafs/temp-generated")
+
+        if not os.path.isdir(path):
+            os.mkdir(path)
+
+        return path
+
     def get_used_per_ticket_fields(self):
         files = self.folder.run_git_command(
             "ls-tree", "--name-only", self.revision

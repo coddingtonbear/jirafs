@@ -77,7 +77,7 @@ class TicketFolder(object):
         return self._logger_adapter
 
     def __repr__(self):
-        value = self.__unicode__()
+        value = self.__str__()
         return "<%s>" % value
 
     def __str__(self):
@@ -228,6 +228,10 @@ class TicketFolder(object):
     @property
     def metadata_dir(self):
         return os.path.join(self.path, constants.METADATA_DIR,)
+
+    @property
+    def git_master(self):
+        return self.run_git_command("rev-parse", "master")
 
     @property
     def git_merge_base(self):
@@ -447,14 +451,6 @@ class TicketFolder(object):
             "new_comment": self.get_new_comment(ready=True),
         }
 
-        changed_files = self.filter_ignored_files(
-            self.run_git_command(
-                "diff", "--name-only", "%s..master" % self.git_merge_base,
-            ).split("\n"),
-            constants.LOCAL_ONLY_FILE,
-        )
-        ready["files"] = changed_files
-
         current_hash = self.run_git_command("rev-parse", "master")
         committed_files = set(
             self.run_git_command(
@@ -466,7 +462,24 @@ class TicketFolder(object):
                 "ls-tree", "--name-only", "-r", self.git_merge_base
             ).split("\n")
         )
-        ready["deleted"] = list(merge_base_files - committed_files)
+        ready["deleted"] = self.filter_ignored_files(
+            list(merge_base_files - committed_files),
+            constants.LOCAL_ONLY_FILE,
+            constants.GIT_IGNORE_FILE,
+            constants.GIT_EXCLUDE_FILE,
+            allow_nonfile=True
+        )
+
+        changed_files = self.filter_ignored_files(
+            self.run_git_command(
+                "diff", "--name-only", "%s..master" % self.git_merge_base,
+            ).split("\n"),
+            constants.LOCAL_ONLY_FILE,
+        )
+        ready["files"] = [
+            filename for filename in changed_files
+            if filename not in ready["deleted"]
+        ]
 
         return ready
 
@@ -481,7 +494,9 @@ class TicketFolder(object):
         modified_files = self.run_git_command("ls-files", "-m", failure_ok=True).split(
             "\n"
         )
-        deleted_files = self.run_git_command("ls-files", "-d", failure_ok=True).split("\n")
+        deleted_files = (
+            self.run_git_command("ls-files", "-d", failure_ok=True).split("\n")
+        )
         uncommitted["files"] = self.filter_ignored_files(
             [filename for filename in new_files + modified_files if filename],
             constants.LOCAL_ONLY_FILE,
@@ -609,13 +624,47 @@ class TicketFolder(object):
 
         return self._macro_plugins
 
-    def process_macros(self, data):
+    def process_macros_for_all_fields(self):
+        # Now let each plugin run its cleanup if necessary
+        for plugin in self.get_macro_plugins():
+            try:
+                plugin.cleanup_pre_process()
+            except NotImplementedError:
+                pass
+
+        # This is run just in case these macros are writing
+        # files as part of their operation, and we need to have
+        # those files written in advance of certain operations
+        # like listing changes or committing
+        fields = self.get_fields()
+        for field_name in fields:
+            fields.get_transformed(field_name)
+
+        self.get_new_comment()
+        with open(self.get_path(constants.TICKET_COMMENTS), 'r') as inf:
+            self.process_macros(inf.read())
+
+        # Now let each plugin run its cleanup if necessary
+        for plugin in self.get_macro_plugins():
+            try:
+                plugin.cleanup_post_process()
+            except NotImplementedError:
+                pass
+
+    def process_macros_pre_commit_cleanup(self):
+        for plugin in self.get_macro_plugins():
+            try:
+                plugin.cleanup_pre_commit()
+            except NotImplementedError:
+                pass
+
+    def process_macros(self, data, path=None):
         macro_plugins = self.get_macro_plugins()
 
         for plugin in macro_plugins:
             try:
                 if isinstance(data, str):
-                    data = plugin.process_text_data(data)
+                    data = plugin.process_text_data(data, path)
                 else:
                     continue
             except MacroError as e:
@@ -629,6 +678,23 @@ class TicketFolder(object):
         )
         if unprocessed:
             raise exceptions.UnknownMacroError(unprocessed)
+
+        return data
+
+    def process_macro_reversals(self, data):
+        macro_plugins = self.get_macro_plugins()
+
+        for plugin in macro_plugins:
+            try:
+                if isinstance(data, str):
+                    data = plugin.process_text_data_reversal(data)
+                else:
+                    continue
+            except MacroError as e:
+                # Annotate the MacroError with information about what
+                # macro caused the error
+                e.macro_name = plugin.COMPONENT_NAME
+                raise e from e
 
         return data
 
@@ -737,6 +803,8 @@ class TicketFolder(object):
         return True
 
     def status(self):
+        self.process_macros_for_all_fields()
+
         return {
             "ready": self.get_ready_changes(),
             "local_uncommitted": self.get_local_uncommitted_changes(),

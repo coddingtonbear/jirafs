@@ -55,13 +55,18 @@ class Command(CommandPlugin):
 
             file_meta = folder.get_remote_file_metadata(shadow=False)
 
+            deleted = set()
             for filename in status["ready"]["deleted"]:
                 folder.log(
                     'Deleting file "%s"', (filename,),
                 )
                 for attachment in folder.issue.fields.attachment:
-                    if attachment.filename == filename:
+                    if (
+                        attachment.filename == filename
+                        and attachment.id not in deleted
+                    ):
                         folder.jira.delete_attachment(attachment.id)
+                        deleted.add(id)
 
             for filename in status["ready"]["files"]:
                 upload = io.BytesIO(
