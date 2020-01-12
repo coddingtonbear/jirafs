@@ -470,10 +470,10 @@ class MacroPlugin(Plugin):
             return self.get_matcher().sub(run_replacement, content)
         except MacroError:
             raise
-        #except Exception as e:
-        #    raise MacroContentError(
-        #        "Error encountered while running macro %s: %s" % (self.plugin_name, e)
-        #    ) from e
+        except Exception as e:
+            raise MacroContentError(
+                "Error encountered while running macro %s: %s" % (self.plugin_name, e)
+            ) from e
 
     def process_text_data_reversal(self, data):
         try:
