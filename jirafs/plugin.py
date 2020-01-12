@@ -144,9 +144,9 @@ class JirafsPluginBase(object):
     MIN_VERSION = None
     MAX_VERSION = None
 
-    def __init__(self, ticketfolder, plugin_name, **kwargs):
+    def __init__(self, ticketfolder, entrypoint_name, **kwargs):
         self.ticketfolder: TicketFolder = ticketfolder
-        self.plugin_name: str = plugin_name
+        self.entrypoint_name: str = entrypoint_name
 
     def validate(self, **kwargs) -> bool:
         if not self.MIN_VERSION or not self.MAX_VERSION:
@@ -161,7 +161,12 @@ class JirafsPluginBase(object):
             raise PluginValidationError(
                 "Plugin '%s' is not compatible with version %s of Jirafs; "
                 "minimum version: %s; maximum version %s."
-                % (self.plugin_name, __version__, self.MIN_VERSION, self.MAX_VERSION,),
+                % (
+                    self.entrypoint_name,
+                    __version__,
+                    self.MIN_VERSION,
+                    self.MAX_VERSION,
+                ),
             )
 
         return True
@@ -169,13 +174,13 @@ class JirafsPluginBase(object):
     @property
     def metadata_filename(self) -> str:
         return self.ticketfolder.get_metadata_path(
-            "plugin_meta", "%s.json" % self.plugin_name,
+            "plugin_meta", "%s.json" % self.entrypoint_name,
         )
 
     def get_configuration(self) -> Dict:
         config = self.ticketfolder.get_config()
-        if config.has_section(self.plugin_name):
-            return dict(config.items(self.plugin_name))
+        if config.has_section(self.entrypoint_name):
+            return dict(config.items(self.entrypoint_name))
         return {}
 
     def _get_metadata(self):
@@ -261,7 +266,7 @@ class CommandPlugin(JirafsPluginBase):
     def execute_command(cls, extra_args, jira, path, command_name, **ckwargs):
         from .ticketfolder import TicketFolder
 
-        cmd = cls(plugin_name=command_name)
+        cmd = cls(entrypoint_name=command_name)
 
         parser = argparse.ArgumentParser(
             prog=os.path.basename(sys.argv[0]) + " " + command_name,
@@ -346,7 +351,7 @@ class DirectOutputCommandPlugin(CommandPlugin):
 
 
 class MacroPlugin(Plugin):
-    COMPONENT_NAME = None
+    TAG_NAME = None
     MATCHERS = [
         (
             r"<jirafs:(?P<start>{tag_name}[^>]*)>(?P<content>.*?)"
@@ -355,17 +360,21 @@ class MacroPlugin(Plugin):
         r"<jirafs:(?P<start>{tag_name}[^/]*)/>",
     ]
 
-    def __init__(self, folder, plugin_name, *args, **kwargs):
-        self.ticketfolder = folder
-        self.plugin_name = plugin_name
+    def __init__(self, folder, entrypoint_name, *args, **kwargs):
+        self.ticketfolder: TicketFolder = folder
+        self.entrypoint_name: str = entrypoint_name
         self._args = args
         self._kwargs = kwargs
 
+    @property
+    def tag_name(self) -> str:
+        assert isinstance(self.TAG_NAME, str)
+
+        return self.TAG_NAME
+
     def get_matchers(self) -> List[re.Pattern]:
         return [
-            re.compile(
-                rex.format(tag_name=self.COMPONENT_NAME), re.MULTILINE | re.DOTALL,
-            )
+            re.compile(rex.format(tag_name=self.tag_name), re.MULTILINE | re.DOTALL,)
             for rex in self.MATCHERS
         ]
 
@@ -537,7 +546,7 @@ class MacroPlugin(Plugin):
             raise
         except Exception as e:
             raise MacroContentError(
-                "Error encountered while running macro %s: %s" % (self.plugin_name, e)
+                "Error encountered while running macro %s: %s" % (self.tag_name, e)
             ) from e
 
     def process_text_data_reversal(self, data: str) -> str:
@@ -584,12 +593,12 @@ class MacroPlugin(Plugin):
         attrs_string = self._generate_attrs_string(attrs)
 
         if "src" in attrs:
-            return f"<jirafs:{self.COMPONENT_NAME}{attrs_string} />"
+            return f"<jirafs:{self.tag_name}{attrs_string} />"
         else:
             return (
-                f"<jirafs:{self.COMPONENT_NAME}{attrs_string}>"
+                f"<jirafs:{self.tag_name}{attrs_string}>"
                 f"{data}"
-                f"</jirafs:{self.COMPONENT_NAME}>"
+                f"</jirafs:{self.tag_name}>"
             )
 
 
@@ -744,7 +753,7 @@ class ImageMacroPlugin(AutomaticReversalMacroPlugin):
 
         (extension, image_data) = self.get_extension_and_image_data(data, attrs)
 
-        filename = attrs.get("filename", f"{self.plugin_name}.{hashed}.{extension}")
+        filename = attrs.get("filename", f"{self.tag_name}.{hashed}.{extension}")
 
         assert isinstance(filename, str)
         file_path = os.path.join(generated_path, filename,)
@@ -752,6 +761,6 @@ class ImageMacroPlugin(AutomaticReversalMacroPlugin):
             outf.write(image_data)
 
         return MacroResult(
-            f'!{filename}|alt="jirafs:{self.COMPONENT_NAME}"!',
+            f'!{filename}|alt="jirafs:{self.tag_name}"!',
             generated_filenames=[filename],
         )

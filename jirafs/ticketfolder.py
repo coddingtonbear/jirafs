@@ -598,29 +598,29 @@ class TicketFolder(object):
 
             installed_plugins = utils.get_installed_plugins(MacroPlugin)
 
-            for name, status in config.items(constants.CONFIG_PLUGINS):
+            for entrypoint_name, status in config.items(constants.CONFIG_PLUGINS):
                 if not utils.convert_to_boolean(status):
                     # This plugin is not turned on.
                     continue
-                if name not in installed_plugins:
+                if entrypoint_name not in installed_plugins:
                     # This plugin is not installed.
                     self.log(
                         "Macro plugin '%s' is not available; "
                         "this is probably because this plugin is not a "
                         "macro.",
-                        (name,),
+                        (entrypoint_name,),
                         level=logging.DEBUG,
                     )
                     continue
 
-                plugin = installed_plugins[name](self, name)
+                plugin = installed_plugins[entrypoint_name](self, entrypoint_name)
 
                 try:
                     plugin.validate()
                 except PluginValidationError as e:
                     self.log(
                         "Plugin '%s' did not pass validation; " "not loading: %s.",
-                        (name, e,),
+                        (entrypoint_name, e,),
                     )
 
                 plugins.append(plugin)
