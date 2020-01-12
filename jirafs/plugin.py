@@ -8,13 +8,17 @@ import logging
 import os
 import re
 import sys
-from typing import Optional, Tuple, Union
+from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from blessings import Terminal
 from distutils.version import LooseVersion
 
 from .exceptions import MacroAttributeError, MacroContentError, MacroError
+from .types import JirafsMacroAttributes
 from . import __version__
+
+if TYPE_CHECKING:
+    from .ticketfolder import TicketFolder
 
 
 logger = logging.getLogger(__name__)
@@ -33,25 +37,31 @@ class PluginOperationError(PluginError):
 
 
 class MacroResult(str):
+    _generated_filenames: List[str] = []
+
     def __new__(
-        cls, string=None, generated_filenames=None
+        cls, string: str = None, generated_filenames: Optional[List[str]] = None
     ):
         if string is None:
             string = ""
         if generated_filenames is None:
             generated_filenames = []
 
-        self = super().__new__(cls, string)
+        self: MacroResult = super().__new__(cls, string)  # type: ignore
         self._generated_filenames = generated_filenames
 
         return self
 
     @property
-    def generated_filenames(self):
+    def generated_filenames(self) -> List[str]:
         return self._generated_filenames
 
 
 class CommandResult(str):
+    _return_code: Optional[int] = None
+    terminal: Optional[Terminal] = None
+    cursor: int = 0
+
     def __new__(
         cls, string=None, return_code=None, cursor=0, no_format=False, **kwargs
     ):
@@ -73,14 +83,14 @@ class CommandResult(str):
                     "the outgoing string includes curly braces.",
                 )
 
-        self = super().__new__(cls, string)
+        self = str.__new__(cls, string)
         self._return_code = return_code
         self.terminal = terminal
         self.cursor = cursor
 
         return self
 
-    def _echo(self, message):
+    def _echo(self, message: str) -> None:
         print(message, end="")
 
     def echo(self):
@@ -89,7 +99,7 @@ class CommandResult(str):
 
         return self
 
-    def add_line(self, the_line, no_format=False, **kwargs):
+    def add_line(self, the_line: str, no_format: bool = False, **kwargs):
         if not the_line.endswith("\n"):
             the_line = the_line + "\n"
 
@@ -125,8 +135,8 @@ class CommandResult(str):
         )
 
     @property
-    def return_code(self):
-        return self._return_code
+    def return_code(self) -> int:
+        return self._return_code or 0
 
     @return_code.setter
     def return_code(self, value):
@@ -137,7 +147,11 @@ class JirafsPluginBase(object):
     MIN_VERSION = None
     MAX_VERSION = None
 
-    def validate(self, **kwargs):
+    def __init__(self, ticketfolder, plugin_name, **kwargs):
+        self.ticketfolder: TicketFolder = ticketfolder
+        self.plugin_name: str = plugin_name
+
+    def validate(self, **kwargs) -> bool:
         if not self.MIN_VERSION or not self.MAX_VERSION:
             raise PluginValidationError(
                 "Minimum and maximum version numbers not specified."
@@ -156,12 +170,12 @@ class JirafsPluginBase(object):
         return True
 
     @property
-    def metadata_filename(self):
+    def metadata_filename(self) -> str:
         return self.ticketfolder.get_metadata_path(
             "plugin_meta", "%s.json" % self.plugin_name,
         )
 
-    def get_configuration(self):
+    def get_configuration(self) -> Dict:
         config = self.ticketfolder.get_config()
         if config.has_section(self.plugin_name):
             return dict(config.items(self.plugin_name))
@@ -190,9 +204,7 @@ class JirafsPluginBase(object):
 
 
 class Plugin(JirafsPluginBase):
-    def __init__(self, ticketfolder, plugin_name, **kwargs):
-        self.ticketfolder = ticketfolder
-        self.plugin_name = plugin_name
+    pass
 
 
 class CommandPlugin(JirafsPluginBase):
@@ -305,20 +317,20 @@ class CommandPlugin(JirafsPluginBase):
 
         return result
 
-    def handle(self, *args, **kwargs):
-        return self.cmd(*args, **kwargs)
+    def handle(self, *args, **kwargs) -> None:
+        self.cmd(*args, **kwargs)
 
-    def cmd(self, *args, **kwargs):
+    def cmd(self, *args, **kwargs) -> None:
         # By default, no return value; just execute and move along
         self.main(*args, **kwargs)
 
-    def main(self, *args, **kwargs):
+    def main(self, *args, **kwargs) -> None:
         raise NotImplementedError()
 
-    def try_subfolders(self):
+    def try_subfolders(self) -> bool:
         return getattr(self, "TRY_SUBFOLDERS", False)
 
-    def auto_instantiate_folder(self):
+    def auto_instantiate_folder(self) -> bool:
         return getattr(self, "AUTOMATICALLY_INSTANTIATE_FOLDER", True,)
 
 
@@ -343,7 +355,7 @@ class MacroPlugin(Plugin):
         self._args = args
         self._kwargs = kwargs
 
-    def get_matchers(self):
+    def get_matchers(self) -> List[re.Pattern]:
         return [
             re.compile(
                 rex.format(tag_name=self.COMPONENT_NAME),
@@ -351,11 +363,11 @@ class MacroPlugin(Plugin):
             ) for rex in self.MATCHERS
         ]
 
-    def get_matches(self, content):
+    def get_matches(self, content: str) -> Iterator[re.Match]:
         for matcher in self.get_matchers():
-            yield from self.get_matchers().finditer(content)
+            yield from matcher.finditer(content)
 
-    def get_attributes(self, tag):
+    def get_attributes(self, tag: str) -> JirafsMacroAttributes:
         state_outer = 1
         state_raw_value = 2
         state_squoted_value = 3
@@ -436,7 +448,7 @@ class MacroPlugin(Plugin):
                     if char in escapable:
                         value += char
                     else:
-                        value += decoder("\\%s" % char)[0]
+                        value += decoder(b"\\%s" % char.encode('utf-8'))[0]
                     continue
 
                 if char == '"':
@@ -453,7 +465,7 @@ class MacroPlugin(Plugin):
                     if char in escapable:
                         value += char
                     else:
-                        value += decoder("\\%s" % char)[0]
+                        value += decoder(b"\\%s" % char.encode('utf-8'))[0]
                     continue
 
                 if char == "'":
@@ -470,12 +482,17 @@ class MacroPlugin(Plugin):
 
         return attributes
 
-    def get_processed_macro_data(self, data, attrs, config) -> Union[MacroResult, str]:
+    def get_processed_macro_data(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes,
+        config: Dict
+    ) -> Union[MacroResult, str]:
         return self.execute_macro(
             data, attrs, config
         )
 
-    def process_text_data(self, content: str, path: Optional[str] = None):
+    def process_text_data(self, content: str, path: Optional[str] = None) -> str:
         if path is None:
             path = self.ticketfolder.path
 
@@ -526,31 +543,36 @@ class MacroPlugin(Plugin):
                 "Error encountered while running macro %s: %s" % (self.plugin_name, e)
             ) from e
 
-    def process_text_data_reversal(self, data):
+    def process_text_data_reversal(self, data: str) -> str:
         try:
             return self.execute_macro_reversal(data)
         except NotImplementedError:
             return data
 
-    def execute_macro_reversal(self, data) -> str:
+    def execute_macro_reversal(self, data: str) -> str:
         raise NotImplementedError()
 
-    def execute_macro(self, data, atrs, config) -> Union[MacroResult, str]:
+    def execute_macro(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes,
+        config: Dict
+    ) -> Union[MacroResult, str]:
         raise NotImplementedError()
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         raise NotImplementedError()
 
-    def cleanup_pre_process(self):
+    def cleanup_pre_process(self) -> None:
         raise NotImplementedError()
 
-    def cleanup_post_process(self):
+    def cleanup_post_process(self) -> None:
         return self.cleanup()
 
-    def cleanup_pre_commit(self):
+    def cleanup_pre_commit(self) -> None:
         raise NotImplementedError()
 
-    def _generate_attrs_string(self, attrs):
+    def _generate_attrs_string(self, attrs: JirafsMacroAttributes) -> str:
         params = []
 
         for k, v in sorted(attrs.items(), key=lambda e: e[0]):
@@ -562,7 +584,11 @@ class MacroPlugin(Plugin):
 
         return ''
 
-    def generate_tag_from_data_and_attrs(self, data, attrs):
+    def generate_tag_from_data_and_attrs(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes
+    ) -> str:
         attrs_string = self._generate_attrs_string(attrs)
 
         if 'src' in attrs:
@@ -578,14 +604,25 @@ class MacroPlugin(Plugin):
 
 
 class AutomaticReversalMacroPlugin(MacroPlugin):
-    def should_rerender(self, data, attrs, hashed, config):
+    def should_rerender(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes,
+        hashed: str,
+        config: Dict,
+    ) -> bool:
         try:
             self.find_cache_entry(data, attrs, hashed, config)
             return False
         except ValueError:
             return True
 
-    def _generate_metadata_key(self, data_hash, attrs, config):
+    def _generate_metadata_key(
+        self,
+        data_hash: str,
+        attrs: JirafsMacroAttributes,
+        config: Dict
+    ) -> str:
         hashable_attrs = json.dumps(attrs, sort_keys=True).encode('utf-8')
 
         return hashlib.sha256(
@@ -594,7 +631,14 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
             )
         ).hexdigest()
 
-    def store_cache_entry(self, replacement, filenames, attrs, data_hash, config):
+    def store_cache_entry(
+        self,
+        replacement: str,
+        filenames: List[str],
+        attrs: JirafsMacroAttributes,
+        data_hash: str,
+        config: Dict
+    ) -> None:
         metadata_key = self._generate_metadata_key(data_hash, attrs, config)
 
         is_temp = config['generated_path'] != self.ticketfolder.path
@@ -607,7 +651,13 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
         }
         self.metadata.setdefault('stored_in_session', []).append(metadata_key)
 
-    def find_cache_entry(self, data, attrs, data_hash, config):
+    def find_cache_entry(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes,
+        data_hash: str,
+        config: Dict
+    ) -> Dict:
         generated_path = config['generated_path']
         existing_files = os.listdir(
             generated_path if generated_path else self.ticketfolder.path
@@ -625,14 +675,14 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
         except KeyError:
             raise ValueError("Metadata not found")
 
-    def cleanup_pre_commit(self, **kwargs):
+    def cleanup_pre_commit(self) -> None:
         pass
 
-    def cleanup_pre_process(self):
+    def cleanup_pre_process(self) -> None:
         self.metadata['stored_in_session'] = []
         self.save()
 
-    def cleanup_post_process(self):
+    def cleanup_post_process(self) -> None:
         cache = self.metadata.get('reversal_cache', {})
 
         known_keys = set(cache.keys())
@@ -660,7 +710,7 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
 
         self.save()
 
-    def execute_macro_reversal(self, data) -> str:
+    def execute_macro_reversal(self, data: str) -> str:
         for replacement, original in self.metadata.get('replacements', {}).items():
             data = data.replace(
                 replacement,
@@ -672,7 +722,12 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
 
         return data
 
-    def get_processed_macro_data(self, data, attrs, config) -> Union[MacroResult, str]:
+    def get_processed_macro_data(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes,
+        config: Dict
+    ) -> Union[MacroResult, str]:
         hashed = hashlib.sha256(data.encode('utf-8')).hexdigest()
         if self.should_rerender(data, attrs, hashed, config):
             replacement = self.execute_macro(data, attrs, config)
@@ -699,24 +754,39 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
 
         return replacement
 
-    def get_replacement(self, data, attrs, config) -> Tuple[str, str]:
+    def get_replacement(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes,
+        config: Dict
+    ) -> Tuple[str, str]:
         raise NotImplementedError()
 
 
 class ImageMacroPlugin(AutomaticReversalMacroPlugin):
-    def get_extension_and_image_data(self, data: str, **attrs) -> Tuple[str, bytes]:
+    def get_extension_and_image_data(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes
+    ) -> Tuple[str, bytes]:
         raise NotImplementedError()
 
-    def execute_macro(self, data, attrs, config) -> MacroResult:
+    def execute_macro(
+        self,
+        data: str,
+        attrs: JirafsMacroAttributes,
+        config: Dict
+    ) -> MacroResult:
         generated_path = config['generated_path']
         hashed = hashlib.sha256(data.encode('utf-8')).hexdigest()
 
         (extension, image_data) = (
-            self.get_extension_and_image_data(data, **attrs)
+            self.get_extension_and_image_data(data, attrs)
         )
 
         filename = attrs.get('filename', f'{self.plugin_name}.{hashed}.{extension}')
 
+        assert isinstance(filename, str)
         file_path = os.path.join(
             generated_path,
             filename,
