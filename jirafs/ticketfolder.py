@@ -453,9 +453,9 @@ class TicketFolder(object):
 
         current_hash = self.run_git_command("rev-parse", "master")
         committed_files = set(
-            self.run_git_command(
-                "ls-tree", "--name-only", "-r", current_hash
-            ).split("\n")
+            self.run_git_command("ls-tree", "--name-only", "-r", current_hash).split(
+                "\n"
+            )
         )
         merge_base_files = set(
             self.run_git_command(
@@ -467,7 +467,7 @@ class TicketFolder(object):
             constants.LOCAL_ONLY_FILE,
             constants.GIT_IGNORE_FILE,
             constants.GIT_EXCLUDE_FILE,
-            allow_nonfile=True
+            allow_nonfile=True,
         )
 
         changed_files = self.filter_ignored_files(
@@ -477,8 +477,7 @@ class TicketFolder(object):
             constants.LOCAL_ONLY_FILE,
         )
         ready["files"] = [
-            filename for filename in changed_files
-            if filename not in ready["deleted"]
+            filename for filename in changed_files if filename not in ready["deleted"]
         ]
 
         return ready
@@ -494,8 +493,8 @@ class TicketFolder(object):
         modified_files = self.run_git_command("ls-files", "-m", failure_ok=True).split(
             "\n"
         )
-        deleted_files = (
-            self.run_git_command("ls-files", "-d", failure_ok=True).split("\n")
+        deleted_files = self.run_git_command("ls-files", "-d", failure_ok=True).split(
+            "\n"
         )
         uncommitted["files"] = self.filter_ignored_files(
             [filename for filename in new_files + modified_files if filename],
@@ -508,7 +507,7 @@ class TicketFolder(object):
             constants.LOCAL_ONLY_FILE,
             constants.GIT_IGNORE_FILE,
             constants.GIT_EXCLUDE_FILE,
-            allow_nonfile=True,   # They're deleted, after all
+            allow_nonfile=True,  # They're deleted, after all
         )
         return uncommitted
 
@@ -571,9 +570,7 @@ class TicketFolder(object):
                 if (
                     not attachment
                     and not allow_nonfile
-                    and not os.path.isfile(
-                        os.path.join(self.path, filename)
-                    )
+                    and not os.path.isfile(os.path.join(self.path, filename))
                 ):
                     continue
                 if filename.startswith("."):
@@ -641,7 +638,7 @@ class TicketFolder(object):
             fields.get_transformed(field_name)
 
         self.get_new_comment()
-        with open(self.get_path(constants.TICKET_COMMENTS), 'r') as inf:
+        with open(self.get_path(constants.TICKET_COMMENTS), "r") as inf:
             self.process_macros(inf.read())
 
         # Now let each plugin run its cleanup if necessary
@@ -773,8 +770,8 @@ class TicketFolder(object):
                             "in field '%s'." % (component, key_dotpath, field_name,)
                         )
                     elif component not in data:
-                        if 'default' in kwargs:
-                            data = kwargs['default']
+                        if "default" in kwargs:
+                            data = kwargs["default"]
                         else:
                             raise exceptions.JirafsError(
                                 f"Keypath {key_dotpath} does not exist"
@@ -819,13 +816,13 @@ class TicketFolder(object):
         else:
             if not os.path.exists(self.get_metadata_path("git")):
                 raise exceptions.JirafsError(
-                    u"{path} is not a valid ticket folder!".format(path=self.path)
+                    "{path} is not a valid ticket folder!".format(path=self.path)
                 )
 
             if self.version < constants.CURRENT_REPO_VERSION:
                 print(
-                    u"Your ticket folder at {path} is out-of-date "
-                    u"and is being automatically updated.".format(path=self.path)
+                    "Your ticket folder at {path} is out-of-date "
+                    "and is being automatically updated.".format(path=self.path)
                 )
         while self.version < constants.CURRENT_REPO_VERSION:
             migrator = getattr(

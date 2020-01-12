@@ -61,10 +61,7 @@ class Command(CommandPlugin):
                     'Deleting file "%s"', (filename,),
                 )
                 for attachment in folder.issue.fields.attachment:
-                    if (
-                        attachment.filename == filename
-                        and attachment.id not in deleted
-                    ):
+                    if attachment.filename == filename and attachment.id not in deleted:
                         folder.jira.delete_attachment(attachment.id)
                         deleted.add(id)
 

@@ -88,33 +88,30 @@ def main():
         "--traceback", action="store_true", default=False,
     )
     parser.add_argument(
-        '--debugger-port', default=58024, help=(
-            "(Requires --debugger) start debugger on this port."
-        )
+        "--debugger-port",
+        default=58024,
+        help=("(Requires --debugger) start debugger on this port."),
     )
     parser.add_argument(
-        "--debugger", action="store_true", default=False, help=(
-            "Launch ptvsd debugger on --debugger-port."
-        )
+        "--debugger",
+        action="store_true",
+        default=False,
+        help=("Launch ptvsd debugger on --debugger-port."),
     )
     args, extra = parser.parse_known_args()
 
     if args.debugger:
         try:
             import ptvsd
-            ptvsd.enable_attach(
-                address=('localhost', args.debugger_port)
-            )
+
+            ptvsd.enable_attach(address=("localhost", args.debugger_port))
             print(
                 f"{term.magenta}Waiting for debugger connection on "
                 f"port {args.debugger_port}...{term.normal}"
             )
             ptvsd.wait_for_attach()
         except ImportError:
-            print(
-                f"{term.red}Module 'ptvsd' required for debugging."
-                f"{term.normal}"
-            )
+            print(f"{term.red}Module 'ptvsd' required for debugging." f"{term.normal}")
             sys.exit(1)
 
     logging.config.dictConfig(LOGGING)
@@ -146,25 +143,25 @@ def main():
         sys.exit(value.return_code)
     except GitCommandError as e:
         print(
-            u"{t.red}Error (code: {code}) while running git "
-            u"command.{t.normal}".format(t=term, code=e.returncode)
+            "{t.red}Error (code: {code}) while running git "
+            "command.{t.normal}".format(t=term, code=e.returncode)
         )
         print("")
-        print(u"{t.red}Command:{t.normal}{t.red}{t.bold}".format(t=term))
-        print(u"    {cmd}".format(cmd=e.command))
-        print(u"{t.normal}".format(t=term))
-        print(u"{t.red}Output:{t.normal}{t.red}{t.bold}".format(t=term))
+        print("{t.red}Command:{t.normal}{t.red}{t.bold}".format(t=term))
+        print("    {cmd}".format(cmd=e.command))
+        print("{t.normal}".format(t=term))
+        print("{t.red}Output:{t.normal}{t.red}{t.bold}".format(t=term))
         for line in e.output.decode("utf8").split("\n"):
-            print(u"    %s" % line)
-        print(u"{t.normal}".format(t=term))
+            print("    %s" % line)
+        print("{t.normal}".format(t=term))
         if args.traceback:
             traceback.print_exc()
         sys.exit(10)
     except NotTicketFolderException:
         if not getattr(cmd_class, "TRY_SUBFOLDERS", False):
             print(
-                u"{t.red}The command '{cmd}' must be ran from "
-                u"within an issue folder.{t.normal}".format(t=term, cmd=command_name)
+                "{t.red}The command '{cmd}' must be ran from "
+                "within an issue folder.{t.normal}".format(t=term, cmd=command_name)
             )
             sys.exit(20)
         elif args.no_subfolders:
@@ -195,18 +192,18 @@ def main():
             sys.exit(21)
     except UnknownMacroError as e:
         print(
-            u"{t.red}Jirafs encountered an unknown macro while processing "
-            u"your content: {t.normal}{t.red}{t.bold}{error}"
-            u"{t.normal}".format(t=term, error=str(e))
+            "{t.red}Jirafs encountered an unknown macro while processing "
+            "your content: {t.normal}{t.red}{t.bold}{error}"
+            "{t.normal}".format(t=term, error=str(e))
         )
         if args.traceback:
             traceback.print_exc()
         sys.exit(30)
     except MacroError as e:
         print(
-            u"{t.red}Jirafs encountered an error while processing a "
-            u"{t.bold}{macro}{t.normal}{t.red} macro: "
-            u"{t.normal}{t.red}{t.bold}{error}{t.normal}".format(
+            "{t.red}Jirafs encountered an error while processing a "
+            "{t.bold}{macro}{t.normal}{t.red} macro: "
+            "{t.normal}{t.red}{t.bold}{error}{t.normal}".format(
                 t=term, macro=e.macro_name or "?", error=str(e)
             )
         )
@@ -215,17 +212,17 @@ def main():
         sys.exit(40)
     except JIRAError as e:
         print(
-            u"{t.red}Jirafs encountered an error while interacting with "
-            u"your JIRA instance: {t.normal}{t.red}{t.bold}{error}"
-            u"{t.normal}".format(t=term, error=str(e))
+            "{t.red}Jirafs encountered an error while interacting with "
+            "your JIRA instance: {t.normal}{t.red}{t.bold}{error}"
+            "{t.normal}".format(t=term, error=str(e))
         )
         if args.traceback:
             traceback.print_exc()
         sys.exit(70)
     except JiraInteractionFailed as e:
         print(
-            u"{t.red}JIRA was unable to satisfy your "
-            u"request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
+            "{t.red}JIRA was unable to satisfy your "
+            "request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
                 t=term, error=str(e)
             )
         )
@@ -234,8 +231,8 @@ def main():
         sys.exit(80)
     except JirafsError as e:
         print(
-            u"{t.red}Jirafs encountered an error processing your "
-            u"request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
+            "{t.red}Jirafs encountered an error processing your "
+            "request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
                 t=term, error=str(e)
             )
         )

@@ -45,8 +45,7 @@ class JiraFieldManager(dict):
         for k, v in self.items():
             if k in self.get_requested_per_ticket_fields():
                 result = self.folder.process_macros(
-                    v,
-                    path=self.get_generated_file_path()
+                    v, path=self.get_generated_file_path()
                 )
                 yield k, result
             else:
@@ -58,8 +57,7 @@ class JiraFieldManager(dict):
 
         try:
             return self.folder.process_macros(
-                self[field_name],
-                path=self.get_generated_file_path()
+                self[field_name], path=self.get_generated_file_path()
             )
         except KeyError:
             return default

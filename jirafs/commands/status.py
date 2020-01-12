@@ -117,7 +117,7 @@ class Command(CommandPlugin):
             result = result.add_line(
                 u"\t{t.%s}{filename}{t.normal} {post_message}" % color,
                 filename=filename,
-                post_message="(deleted)"
+                post_message="(deleted)",
             )
         for link, data in changes.get("links", {}).get("remote", {}).items():
             orig = data[0]
