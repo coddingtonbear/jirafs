@@ -226,16 +226,24 @@ class TicketFolder(object):
         return self._cached_issue
 
     @property
-    def metadata_dir(self):
+    def metadata_dir(self) -> str:
         return os.path.join(self.path, constants.METADATA_DIR,)
 
     @property
-    def git_master(self):
+    def git_master(self) -> str:
         return self.run_git_command("rev-parse", "master")
 
     @property
-    def git_merge_base(self):
+    def git_merge_base(self) -> str:
         return self.run_git_command("merge-base", "master", "jira",)
+
+    @property
+    def git_branch(self) -> str:
+        return self.run_git_command("rev-parse", "--abbrev-ref", "HEAD")
+
+    @property
+    def on_master(self) -> bool:
+        return self.git_branch == "master"
 
     def get_ticket_url(self):
         try:
@@ -246,7 +254,7 @@ class TicketFolder(object):
         except (IOError, OSError):
             return None
 
-    def get_metadata_path(self, *args):
+    def get_metadata_path(self, *args) -> str:
         return os.path.join(self.metadata_dir, *args)
 
     def get_remote_file_metadata(self, shadow=True):
@@ -842,6 +850,7 @@ class TicketFolder(object):
             "shadow",
             "operation.log",
             "subtasks",
+            "temp-generated",
         ]
         with codecs.open(
             self.get_local_path(constants.GIT_EXCLUDE_FILE), "w", "utf-8"

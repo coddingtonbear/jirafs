@@ -197,6 +197,15 @@ class JirafsPluginBase(object):
         return self._metadata
 
     def save(self):
+        # We'll also be running transformations for items when processing
+        # incoming changes from Jira, but since the 'jira' branch is
+        # always a fork from 'master', that may cause our later merge
+        # of those two branches to create a merge conflict.  To prevent
+        # that, let's just not let metadata be saved if we're not on the
+        # master copy.
+        if not self.ticketfolder.on_master:
+            return
+
         self._set_metadata(self.metadata)
 
 
@@ -621,7 +630,10 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
             "replacement": replacement,
             "is_temp": is_temp,
         }
-        self.metadata.setdefault("stored_in_session", []).append(metadata_key)
+
+        stored_in_session = self.metadata.setdefault("stored_in_session", [])
+        if metadata_key not in stored_in_session:
+            stored_in_session.append(metadata_key)
 
     def find_cache_entry(
         self, data: str, attrs: JirafsMacroAttributes, data_hash: str, config: Dict
