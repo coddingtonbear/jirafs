@@ -122,14 +122,16 @@ class Command(CommandPlugin):
                     "h3. At %s, %s wrote:\n\n" % (comment.created, comment.author)
                 )
                 final_lines = []
-                lines = comment.body.replace("\r\n", "\n").split("\n")
+                lines = folder.process_macro_reversals(
+                    comment.body.replace("\r\n", "\n")
+                ).split("\n")
                 for line in lines:
                     if not line:
                         final_lines.append("")
                     else:
                         final_lines.extend(
                             textwrap.wrap(
-                                folder.process_macro_reversals(line),
+                                line,
                                 width=70,
                                 expand_tabs=False,
                                 replace_whitespace=False,
