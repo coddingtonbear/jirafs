@@ -56,6 +56,20 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
         template = templates.get_template(template_name)
         return template.render(context)
 
+    def get_all(self):
+        lines = []
+
+        lines.append(
+            f"h1. {self.folder.issue.id}: {self.get_field_data('summary')}\n\n"
+        )
+        lines.append(f"h2. Description\n\n")
+        lines.append(self.get_field_data("description"))
+        lines.append("\n")
+        lines.append(f"h2. New Comment\n\n")
+        lines.append(self.get_field_data("new_comment"))
+
+        return "\n".join(lines)
+
     def get_comments(self):
         lines = []
 
@@ -67,6 +81,7 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
     def get_field_data(self, dotpath):
         special_fields = {
+            "": self.get_all,
             "new_comment": self.folder.get_new_comment,
             "comments": self.get_comments,
         }
@@ -79,6 +94,9 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
     def get_local_file_escaped_field_data(self, dotpath):
         data = self.get_field_data(dotpath)
+
+        if not data:
+            return {}, ""
 
         local_files = os.listdir(self.folder.path)
 
@@ -208,14 +226,6 @@ class Command(CommandPlugin):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--output",
-            "-o",
-            help=(
-                "Instead of opening a preview in your browser, "
-                "write HTML output to the specified path."
-            ),
-        )
-        parser.add_argument(
             "--port",
             "-p",
             help=(
@@ -232,26 +242,17 @@ class Command(CommandPlugin):
             default=False,
             help=("Do not open a webbrowser to the created webserver."),
         )
-        parser.add_argument("field_name")
+        parser.add_argument("field_name", nargs="?")
 
     def handle(self, args, folder, **kwargs):
         return self.cmd(
             folder,
-            args.field_name,
-            output=args.output,
+            args.field_name or "",
             port=args.port,
             open_browser=not args.no_browser,
         )
 
-    def main(
-        self, folder, field_name, output=None, port=0, open_browser=True, **kwargs
-    ):
-        if output:
-            content = get_converted_markup(folder, field_name)
-            with open(os.path.expanduser(output), "w") as outf:
-                outf.write(content)
-                return
-
+    def main(self, folder, field_name, port=0, open_browser=True, **kwargs):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
             s.bind(("", port))
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
