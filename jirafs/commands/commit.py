@@ -19,7 +19,6 @@ class Command(CommandPlugin):
         # Run all macros to ensure that we've written any file
         # changes that such macros might perform
         folder.process_macros_for_all_fields()
-        folder.process_macros_pre_commit_cleanup()
 
         original_hash = folder.run_git_command("rev-parse", "master")
         folder.run_git_command("add", "-A")

@@ -656,13 +656,6 @@ class TicketFolder(object):
             except NotImplementedError:
                 pass
 
-    def process_macros_pre_commit_cleanup(self):
-        for plugin in self.get_macro_plugins():
-            try:
-                plugin.cleanup_pre_commit()
-            except NotImplementedError:
-                pass
-
     def process_macros(self, data, path=None):
         macro_plugins = self.get_macro_plugins()
 

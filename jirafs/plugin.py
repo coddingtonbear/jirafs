@@ -572,9 +572,6 @@ class MacroPlugin(Plugin):
     def cleanup_post_process(self) -> None:
         return self.cleanup()
 
-    def cleanup_pre_commit(self) -> None:
-        raise NotImplementedError()
-
     def _generate_attrs_string(self, attrs: JirafsMacroAttributes) -> str:
         params = []
 
