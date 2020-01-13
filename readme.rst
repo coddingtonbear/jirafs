@@ -24,8 +24,9 @@ your workflow.  Currently, existing plugins include:
 
 * `jirafs-csv-table <http://github.com/coddingtonbear/jirafs-csv-table>`_:
   Make JIRA tables a little more easily by including local CSV files.
-* `jirafs-list-table <http://github.com/coddingtonbear/jirafs-list-table>`_:
-  Make JIRA tables a little more easily using a simple list-based markup.
+* `jirafs-graphviz <http://github.com/coddingtonbear/jirafs-graphviz>`_:
+  Embed graphviz dot or neato graphs in your Jira
+  issues without leaving your editor.
 
 Requirements
 ------------
