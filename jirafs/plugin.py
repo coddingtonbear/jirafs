@@ -600,14 +600,11 @@ class MacroPlugin(Plugin):
 
 
 class AutomaticReversalMacroPlugin(MacroPlugin):
-    def should_rerender(
-        self, data: str, attrs: JirafsMacroAttributes, hashed: str, config: Dict,
-    ) -> bool:
-        try:
-            self.find_cache_entry(data, attrs, hashed, config)
+    def should_rerender(self, data: str, cache_entry: Dict, config: Dict,) -> bool:
+        if cache_entry:
             return False
-        except ValueError:
-            return True
+
+        return True
 
     def _generate_metadata_key(
         self, data_hash: str, attrs: JirafsMacroAttributes, config: Dict
@@ -747,16 +744,23 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
         self, data: str, attrs: JirafsMacroAttributes, config: Dict
     ) -> Union[MacroResult, str]:
         hashed = hashlib.sha256(data.encode("utf-8")).hexdigest()
-        if self.should_rerender(data, attrs, hashed, config):
-            replacement = self.execute_macro(data, attrs, config)
-            if isinstance(replacement, MacroResult):
-                filenames = replacement.generated_filenames
-            else:
-                filenames = []
-        else:
+
+        filenames = []
+        replacement = ""
+
+        try:
             metadata = self.find_cache_entry(data, attrs, hashed, config)
             replacement = metadata["replacement"]
             filenames = metadata["filenames"]
+        except ValueError:
+            metadata = {}
+
+        if self.should_rerender(data, metadata, config):
+            replacement = self.execute_macro(data, attrs, config)
+            if isinstance(replacement, MacroResult):
+                filenames = replacement.generated_filenames
+
+        assert replacement
 
         if replacement:
             self.store_cache_entry(
