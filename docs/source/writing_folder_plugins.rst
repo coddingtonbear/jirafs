@@ -233,7 +233,6 @@ Examples
 See one of the following repositories for an example of this type of macro:
 
 * `jirafs-csv-table <https://github.com/coddingtonbear/jirafs-csv-table>`_
-* `jirafs-list-table <https://github.com/coddingtonbear/jirafs-list-table>`_
 
 
 Image Macros

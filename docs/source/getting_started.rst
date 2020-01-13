@@ -65,11 +65,10 @@ to JIRA as well as which changes you have made, but not yet committed.
 
 .. note::
 
-   Unlike when working with a git repository, you do not need to 'stage' 
+   Unlike when working with a git repository, you do not need to 'stage'
    files using a command analogous to git's "add" command when working with
    a JIRA issue using Jirafs.  All uncommitted files will
-   automatically be included in any commit made.  This behavior will likely
-   be surprising only to users who have not worked with mercurial (hg).
+   automatically be included in any commit made.
 
 Once you're satisfied with the changes that are about to be submitted to
 JIRA, run::
@@ -162,3 +161,18 @@ toward your favorite cat video, you could, for example, add a line::
 
     * Cat scares compilation: https://www.youtube.com/watch?v=DBRgFLHra48
 
+Macros
+------
+
+One of the most powerful features of Jirafs is how it can make your workflow
+vastly easier if you commonly need to do things like insert tables or
+graphs or charts in your issues.  There are a handful of macros available
+on PyPI including:
+
+* `jirafs-csv-table <https://github.com/coddingtonbear/jirafs-csv-table>`_:
+  Makes it easy for you to include tables in your Jira issue by just
+  referencing a local CSV file.
+* `jirafs-graphviz <https://github.com/coddingtonbear/jirafs-graphviz>`_:
+  Make it easy for you to include graphviz charts generated with programs
+  like ``dot`` or ``neato`` into your Jira issue by typing your graph
+  descriptions directly into your macro content.
