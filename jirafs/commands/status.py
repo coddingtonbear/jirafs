@@ -67,7 +67,7 @@ class Command(CommandPlugin):
             printed_changes = True
             result = result.add_line("")
             result = result.add_line(
-                "Uncommitted changes; use `jirafs submit` to submit changes "
+                "Uncommitted changes: use `jirafs submit` to submit changes "
                 "to JIRA, or use `jirafs commit` to commit your changes "
                 "for submission during a later `jirafs push`."
             )
