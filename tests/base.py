@@ -3,8 +3,6 @@ import json
 import os
 from unittest import TestCase
 
-from mock import patch
-
 from jira.resources import Issue
 
 
@@ -24,8 +22,20 @@ class BaseTestCase(TestCase):
 
     def get_empty_status(self):
         return {
-            "ready": {"files": [], "links": {}, "fields": {}, "new_comment": "",},
-            "uncommitted": {"files": [], "links": {}, "fields": {}, "new_comment": "",},
-            "local_uncommitted": {"files": [],},
+            "ready": {
+                "files": [],
+                "links": {},
+                "fields": {},
+                "new_comment": "",
+                "deleted": [],
+            },
+            "uncommitted": {
+                "files": [],
+                "links": {},
+                "fields": {},
+                "new_comment": "",
+                "deleted": [],
+            },
+            "local_uncommitted": {"files": []},
             "up_to_date": True,
         }
