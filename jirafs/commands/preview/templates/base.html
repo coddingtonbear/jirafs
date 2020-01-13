@@ -13,6 +13,27 @@
                 border: 1px solid black;
             }
         </style>
+        <script type="text/javascript">
+            if(window.EventSource) {
+                let counter = -1;
+                const source = new EventSource("/eventsource/");
+
+                source.addEventListener("counter", function (event) { 
+                    if (counter > -1 && parseInt(event.data) > counter) {
+                        window.location.reload();
+                    } else {
+                        counter = parseInt(event.data);
+                    }
+                });
+
+                source.onmessage = function (event) {  
+                    console.log(event)
+                    if (event.id == "CLOSE") {
+                        source.close(); 
+                    }
+                }
+            }
+        </script>
         {% block head %}
         {% endblock %}
     </head>

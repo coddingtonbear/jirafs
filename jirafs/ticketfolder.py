@@ -668,7 +668,7 @@ class TicketFolder(object):
             except MacroError as e:
                 # Annotate the MacroError with information about what
                 # macro caused the error
-                e.macro_name = plugin.COMPONENT_NAME
+                e.macro_name = plugin.entrypoint_name
                 raise e from e
 
         unprocessed = re.compile(r"(<jirafs:.*>)", re.MULTILINE | re.DOTALL).findall(
@@ -691,7 +691,7 @@ class TicketFolder(object):
             except MacroError as e:
                 # Annotate the MacroError with information about what
                 # macro caused the error
-                e.macro_name = plugin.COMPONENT_NAME
+                e.macro_name = plugin.entrypoint_name
                 raise e from e
 
         return data

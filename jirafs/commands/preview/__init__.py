@@ -5,15 +5,26 @@ import mimetypes
 import os
 import re
 import socket
+import time
 import traceback
 import uuid
 import webbrowser
 from http.server import ThreadingHTTPServer
 from http.server import SimpleHTTPRequestHandler
 
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
 import jinja2
 
 from jirafs.plugin import CommandPlugin
+
+
+class CountingEventHandler(FileSystemEventHandler):
+    counter = 0
+
+    def on_modified(self, event):
+        self.counter += 1
 
 
 def get_converted_markup(folder, data):
@@ -139,16 +150,41 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
             inf.seek(0)
             self.wfile.write(inf.read())
 
+    def send_eventsource_message(self, message):
+        self.wfile.write(str(len(message.encode("utf-8")) + 2).encode("utf-8"))
+        self.wfile.write("\r\n".encode("utf-8"))
+        self.wfile.write(message.encode("utf-8"))
+        self.wfile.write("\r\n".encode("utf-8"))
+
+    def serve_eventsource(self):
+        event_handler = CountingEventHandler()
+        observer = Observer()
+        observer.schedule(event_handler, path=self.folder.path, recursive=True)
+        observer.start()
+
+        self.send_response(200)
+        self.send_header("Transfer-encoding", "chunked")
+        self.send_header("Content-Type", "text/event-stream")
+        self.end_headers()
+
+        while True:
+            self.send_eventsource_message(
+                "event: counter\r\ndata: %s\r\n" % event_handler.counter
+            )
+            time.sleep(0.5)
+
     def do_GET(self):
         try:
             if self.path.startswith("/files/"):
                 self.serve_file(self.path[7:])
+            elif self.path == "/eventsource/":
+                self.serve_eventsource()
             else:
                 self.serve_preview_content(self.path[1:].replace("/", "."))
         except Exception:
             self.send_response(500)
             response = self.get_rendered_template(
-                "traceback.html", {"content": html.escape(traceback.format_exc()),}
+                "traceback.html", {"content": html.escape(traceback.format_exc())}
             )
             self.send_header("Content-type", "text/html")
             self.send_header("Content-length", len(response))
