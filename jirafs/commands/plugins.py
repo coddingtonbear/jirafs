@@ -39,15 +39,15 @@ class Command(CommandPlugin):
 
     def build_plugin_dict(self, enabled, available):
         all_plugins = {}
-        for plugin_name, cls in available.items():
-            all_plugins[plugin_name] = {
+        for entrypoint_name, cls in available.items():
+            all_plugins[entrypoint_name] = {
                 "enabled": False,
                 "class": cls,
             }
         for plugin_instance in enabled:
-            plugin_name = plugin_instance.plugin_name
-            all_plugins[plugin_name]["enabled"] = True
-            all_plugins[plugin_name]["instance"] = plugin_instance
+            entrypoint_name = plugin_instance.entrypoint_name
+            all_plugins[entrypoint_name]["enabled"] = True
+            all_plugins[entrypoint_name]["instance"] = plugin_instance
 
         return all_plugins
 
@@ -74,7 +74,7 @@ class Command(CommandPlugin):
         else:
             all_plugins = self.build_plugin_dict(enabled_plugins, available_plugins)
 
-            for plugin_name, plugin_data in all_plugins.items():
+            for entrypoint_name, plugin_data in all_plugins.items():
                 if plugin_data["enabled"] and args.disabled_only:
                     continue
                 if not plugin_data["enabled"] and args.enabled_only:
@@ -86,14 +86,14 @@ class Command(CommandPlugin):
 
                 print(
                     color
-                    + plugin_name
+                    + entrypoint_name
                     + t.normal
                     + (
                         " (Enabled)"
                         if plugin_data["enabled"]
                         else (
                             " (Disabled; enable by running `jirafs "
-                            "plugins --enable=%s`)" % plugin_name
+                            "plugins --enable=%s`)" % entrypoint_name
                         )
                     )
                 )
