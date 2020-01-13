@@ -8,7 +8,17 @@ import logging
 import os
 import re
 import sys
-from typing import Dict, Iterator, List, Optional, Set, Tuple, TYPE_CHECKING, Union
+from typing import (
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Pattern,
+    Set,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 from blessings import Terminal
 from distutils.version import LooseVersion
@@ -372,7 +382,7 @@ class MacroPlugin(Plugin):
 
         return self.TAG_NAME
 
-    def get_matchers(self) -> List[re.Pattern]:
+    def get_matchers(self) -> List[Pattern]:
         return [
             re.compile(rex.format(tag_name=self.tag_name), re.MULTILINE | re.DOTALL,)
             for rex in self.MATCHERS
