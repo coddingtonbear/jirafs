@@ -1,3 +1,14 @@
 include readme.rst
 include requirements.txt
 recursive-include tests *.rst *.txt *.json *.svg *.feature
+include *.rst
+include *.txt
+include .bumpversion.cfg
+include LICENSE
+include tox.ini
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs Makefile
+recursive-include jirafs *.html
+recursive-include jirafs *.yaml
+recursive-include tests *.jira
