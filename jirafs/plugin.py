@@ -723,13 +723,14 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
             replacement = metadata["replacement"]
             filenames = metadata["filenames"]
 
-        self.store_cache_entry(
-            replacement, filenames, attrs, hashed, config,
-        )
-        self.metadata.setdefault("replacements", {})[replacement] = {
-            "data": data,
-            "attrs": attrs,
-        }
+        if replacement:
+            self.store_cache_entry(
+                replacement, filenames, attrs, hashed, config,
+            )
+            self.metadata.setdefault("replacements", {})[replacement] = {
+                "data": data,
+                "attrs": attrs,
+            }
 
         return replacement
 
