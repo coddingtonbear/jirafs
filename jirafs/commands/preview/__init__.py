@@ -82,17 +82,21 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
         local_files = os.listdir(self.folder.path)
 
-        image_finder = re.compile(r"(!(?P<filename>[^!]+)!)")
         to_replace = []
-        for match in image_finder.finditer(data):
-            filename = match.groupdict()["filename"]
-            if "|" in filename:
-                filename = filename.split("|", 1)[0]
+        finders = [
+            re.compile(r"(!(?P<filename>[^!]+)!)"),
+            re.compile(r"(\[\^(?P<filename>[^\]]+)\])"),
+        ]
+        for finder in finders:
+            for match in finder.finditer(data):
+                filename = match.groupdict()["filename"]
+                if "|" in filename:
+                    filename = filename.split("|", 1)[0]
 
-            if filename in local_files:
-                to_replace.append(
-                    (filename, match.group(0), match.start(0), match.end(0),)
-                )
+                if filename in local_files:
+                    to_replace.append(
+                        (filename, match.group(0), match.start(0), match.end(0),)
+                    )
 
         placeholders = {}
         for filename, full, start, end in reversed(to_replace):
@@ -107,6 +111,10 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
         for placeholder, (filename, full) in placeholders.items():
             if full.startswith("!"):
                 data = data.replace(placeholder, f'<img src="files/{filename}" />')
+            elif full.startswith("[^"):
+                data = data.replace(
+                    placeholder, f'<a href="files/{filename}">{filename}</a>'
+                )
 
         return data
 
