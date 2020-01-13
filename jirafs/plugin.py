@@ -12,6 +12,7 @@ from typing import (
     Dict,
     Iterator,
     List,
+    Match,
     Optional,
     Pattern,
     Set,
@@ -388,7 +389,7 @@ class MacroPlugin(Plugin):
             for rex in self.MATCHERS
         ]
 
-    def get_matches(self, content: str) -> Iterator[re.Match]:
+    def get_matches(self, content: str) -> Iterator[Match]:
         for matcher in self.get_matchers():
             yield from matcher.finditer(content)
 
