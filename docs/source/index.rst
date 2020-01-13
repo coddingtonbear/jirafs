@@ -26,6 +26,7 @@ interface inspired by ``git`` and ``hg``.
    :maxdepth: 3
 
    getting_started
+   migrating
    commands
    advanced_commands
    configuration
