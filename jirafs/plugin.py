@@ -8,14 +8,14 @@ import logging
 import os
 import re
 import sys
-from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Dict, Iterator, List, Optional, Set, Tuple, TYPE_CHECKING, Union
 
 from blessings import Terminal
 from distutils.version import LooseVersion
 
 from .exceptions import MacroAttributeError, MacroContentError, MacroError
 from .types import JirafsMacroAttributes
-from . import __version__
+from . import __version__, constants
 
 if TYPE_CHECKING:
     from .ticketfolder import TicketFolder
@@ -661,11 +661,13 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
         except KeyError:
             raise ValueError("Metadata not found")
 
-    def cleanup_pre_commit(self) -> None:
-        pass
-
     def cleanup_pre_process(self) -> None:
+        # Clear the 'stored_in_session' list; immediately
+        # after this method is executed, we'll re-generate
+        # this key, and can use that for determining
+        # which keys are still in use
         self.metadata["stored_in_session"] = []
+        self.metadata["replacements"] = {}
         self.save()
 
     def cleanup_post_process(self) -> None:
@@ -675,22 +677,58 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
         accessed_keys = set(self.metadata.get("stored_in_session", []))
         obsolete_keys = known_keys - accessed_keys
 
-        active_files = set()
+        active_local_files: Set[str] = set()
+        active_temp_files: Set[str] = set()
         for key in accessed_keys:
-            for filename in cache[key]["filenames"]:
-                active_files.add(filename)
+            entry = cache[key]
+            target = active_local_files
+            if entry["is_temp"]:
+                target = active_temp_files
+            for filename in entry["filenames"]:
+                target.add(filename)
 
-        obsolete_files = set()
+        obsolete_local_files: Set[str] = set()
+        obsolete_temp_files: Set[str] = set()
         for key in obsolete_keys:
+            entry = cache[key]
+            target = obsolete_local_files
+            if entry["is_temp"]:
+                target = obsolete_temp_files
             for filename in cache[key]["filenames"]:
-                obsolete_files.add(filename)
+                target.add(filename)
+            del cache[key]
+            logger.debug(
+                "%s: deleting cache key %s", self.entrypoint_name, key,
+            )
 
-        to_delete = obsolete_files - active_files
-        existing_files = os.listdir(self.ticketfolder.path)
+        # Delete _both_ obsolete local & temp files from the local
+        # directory since a file can be present in both
+        local_to_delete = (
+            obsolete_local_files | obsolete_temp_files
+        ) - active_local_files
+        existing_local_files = os.listdir(self.ticketfolder.path)
 
-        for filename in to_delete:
-            if filename in existing_files:
+        for filename in local_to_delete:
+            if filename in existing_local_files:
                 os.unlink(os.path.join(self.ticketfolder.path, filename))
+                logger.debug(
+                    "%s: deleting obsolete local file %s",
+                    self.entrypoint_name,
+                    filename,
+                )
+
+        temp_to_delete = obsolete_temp_files - active_temp_files
+        temp_path = self.ticketfolder.get_path(constants.TEMP_GENERATED_FILES)
+        existing_files = os.listdir(temp_path)
+
+        for filename in temp_to_delete:
+            if filename in existing_files:
+                os.unlink(os.path.join(temp_path, filename))
+                logger.debug(
+                    "%s: deleting obsolete temp file %s",
+                    self.entrypoint_name,
+                    filename,
+                )
 
         self.save()
 

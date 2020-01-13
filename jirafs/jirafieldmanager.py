@@ -229,7 +229,7 @@ class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
 
 class GitRevisionJiraFieldManager(GitRevisionReader, AutomaticJiraFieldManager):
     def get_generated_file_path(self):
-        path = self.folder.get_path(".jirafs/temp-generated")
+        path = self.folder.get_path(constants.TEMP_GENERATED_FILES)
 
         if not os.path.isdir(path):
             os.mkdir(path)

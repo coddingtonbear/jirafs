@@ -16,6 +16,7 @@ GIT_EXCLUDE_FILE = ".jirafs/git/info/exclude"
 TICKET_OPERATION_LOG = "operation.log"
 METADATA_DIR = ".jirafs"
 GLOBAL_CONFIG = ".jirafs_config"
+TEMP_GENERATED_FILES = ".jirafs/temp-generated"
 GIT_AUTHOR = "Jirafs %s <jirafs@localhost>" % (version)
 
 # Config sections
@@ -38,6 +39,6 @@ ALLOW_USER_INPUT = True
 CURRENT_REPO_VERSION = 16
 
 
-from environmental_override import override
+from environmental_override import override  # noqa
 
 override(locals(), "JIRAFS_")
