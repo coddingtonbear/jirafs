@@ -35,6 +35,21 @@ Although by default, the issue will be cloned into a folder matching the name
 of the issue, you may specify a path into which the issue should be cloned
 by specifying an additional parameter (``PATH`` in the example forms above).
 
+``preview <field name>``
+------------------------
+
+Render the content of the field named ``field_name`` via your
+JIRA instance's Wiki Markup renderer.  This is useful for
+helping you ensure that your wiki markup is correct.
+
+Note that you can also access subkeys in fields containing JSON by using
+a dotpath, and can render the following special fields:
+
+* ``new_comment``: The formatted contents of your unsubmitted
+  comment.
+* ``comments``: The comments for this issue.
+
+
 ``submit``
 ----------
 

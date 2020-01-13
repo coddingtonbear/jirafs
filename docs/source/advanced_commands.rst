@@ -38,20 +38,6 @@ a dotpath, and can access the following special fields:
 * ``fields``: Returns a JSON structure representing all field
   contents.
 
-``preview <field name>``
-----------------------
-
-Render the content of the field named ``field_name`` via your
-JIRA instance's Wiki Markup renderer.  This is useful for
-helping you ensure that your wiki markup is correct.
-
-Note that you can also access subkeys in fields containing JSON by using
-a dotpath, and can render the following special fields:
-
-* ``new_comment``: The formatted contents of your unsubmitted
-  comment.
-* ``comments``: The comments for this issue.
-
 ``setfield <field name> <value>``
 ---------------------------------
 
