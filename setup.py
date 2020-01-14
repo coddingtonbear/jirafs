@@ -1,5 +1,5 @@
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.command.test import test as TestCommand
 import sys
 
@@ -44,7 +44,8 @@ setup(
     install_requires=requirements,
     tests_require=["tox", "behave>=1.2.5"],
     cmdclass={"test": Tox},
-    packages=find_packages(),
+    packages=["jirafs"],
+    include_package_data=True,
     entry_points={
         "console_scripts": ["jirafs = jirafs.cmdline:main"],
         "jirafs_commands": [
@@ -72,6 +73,7 @@ setup(
             "submit = jirafs.commands.submit:Command",
             "match = jirafs.commands.match:Command",
             "preview = jirafs.commands.preview:Command",
+            "version = jirafs.commands.version:Command",
         ],
     },
 )
