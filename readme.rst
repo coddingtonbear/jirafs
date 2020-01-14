@@ -30,6 +30,9 @@ your workflow.  Currently, existing plugins include:
 * `jirafs-mermaid <http://github.com/coddingtonbear/jirafs-mermaid>`_:
   Embed mermaid diagrams in your Jira issues without ever leaving
   your editor.
+* `jirafs-plantuml <http://github.com/coddingtonbear/jirafs-plantuml>`_:
+  Embed PlantUML diagrams in your Jira issues without ever leaving
+  your editor.
 
 Requirements
 ------------
