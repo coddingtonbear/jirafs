@@ -27,6 +27,9 @@ your workflow.  Currently, existing plugins include:
 * `jirafs-graphviz <http://github.com/coddingtonbear/jirafs-graphviz>`_:
   Embed graphviz dot or neato graphs in your Jira
   issues without leaving your editor.
+* `jirafs-mermaid <http://github.com/coddingtonbear/jirafs-mermaid>`_:
+  Embed mermaid diagrams in your Jira issues without ever leaving
+  your editor.
 
 Requirements
 ------------
