@@ -9,6 +9,7 @@ include tox.ini
 recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs Makefile
+recursive-include jirafs *.py
 recursive-include jirafs *.html
 recursive-include jirafs *.yaml
 recursive-include tests *.jira
