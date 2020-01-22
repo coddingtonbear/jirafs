@@ -125,6 +125,9 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
         return placeholders, data
 
+    def get_issue_title(self, field_name):
+        return f"[{self.folder.issue.key}]: {field_name}"
+
     def replace_placeholders(self, placeholders, data):
         for placeholder, (filename, full) in placeholders.items():
             if full.startswith("!"):
@@ -145,7 +148,8 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
                 {
                     "content": self.replace_placeholders(
                         placeholders, get_converted_markup(self.folder, data)
-                    )
+                    ),
+                    "title": self.get_issue_title(dotpath),
                 },
             )
         else:
@@ -207,10 +211,14 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
                 self.serve_eventsource()
             else:
                 self.serve_preview_content(self.path[1:].replace("/", "."))
-        except Exception:
+        except Exception as e:
             self.send_response(500)
             response = self.get_rendered_template(
-                "traceback.html", {"content": html.escape(traceback.format_exc())}
+                "traceback.html",
+                {
+                    "content": html.escape(traceback.format_exc()),
+                    "title": f"Error: {e}",
+                },
             )
             self.send_header("Content-type", "text/html")
             self.send_header("Content-length", len(response))
