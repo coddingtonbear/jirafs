@@ -43,6 +43,7 @@ class TicketFolder(object):
             self.get_metadata_path(constants.TICKET_OPERATION_LOG),
             maxBytes=2 ** 20,
             backupCount=2,
+            encoding="utf-8",
         )
         self._handler.setFormatter(self._formatter)
         self._logger = logging.getLogger(
