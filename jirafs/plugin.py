@@ -26,7 +26,7 @@ from distutils.version import LooseVersion
 
 from .exceptions import MacroAttributeError, MacroContentError, MacroError
 from .types import JirafsMacroAttributes
-from . import __version__, constants
+from . import __version__, constants, utils
 
 if TYPE_CHECKING:
     from .ticketfolder import TicketFolder
@@ -709,6 +709,11 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
                 "%s: deleting cache key %s", self.entrypoint_name, key,
             )
 
+        with open(self.ticketfolder.get_path(constants.TICKET_COMMENTS), "r") as inf:
+            files_referenced_by_comments = set(
+                utils.find_files_referenced_in_markup(inf.read()).keys()
+            )
+
         # Delete _both_ obsolete local & temp files from the local
         # directory since a file can be present in both
         local_to_delete = (
@@ -717,7 +722,10 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
         existing_local_files = os.listdir(self.ticketfolder.path)
 
         for filename in local_to_delete:
-            if filename in existing_local_files:
+            if (
+                filename in existing_local_files
+                and filename not in files_referenced_by_comments
+            ):
                 os.unlink(os.path.join(self.ticketfolder.path, filename))
                 logger.debug(
                     "%s: deleting obsolete local file %s",
@@ -730,7 +738,10 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
         existing_files = os.listdir(temp_path)
 
         for filename in temp_to_delete:
-            if filename in existing_files:
+            if (
+                filename in existing_files
+                and filename not in files_referenced_by_comments
+            ):
                 os.unlink(os.path.join(temp_path, filename))
                 logger.debug(
                     "%s: deleting obsolete temp file %s",

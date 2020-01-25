@@ -8,6 +8,8 @@ import pkg_resources
 import re
 import subprocess
 
+from typing import Dict, Tuple
+
 from jira.client import JIRA
 from distutils.version import LooseVersion
 
@@ -291,6 +293,27 @@ def format_date(folder, date):
             date_format = config.get(constants.CONFIG_MAIN, "date_format")
 
     return date.strftime(date_format)
+
+
+def find_files_referenced_in_markup(markup: str) -> Dict[str, Tuple[str, int, int]]:
+    matched_files = {}
+    finders = [
+        re.compile(r"(!(?P<filename>\w.*)!)"),
+        re.compile(r"(\[\^(?P<filename>\w.*)\])"),
+    ]
+    for finder in finders:
+        for match in finder.finditer(markup):
+            filename = match.groupdict()["filename"]
+            if "|" in filename:
+                filename = filename.split("|", 1)[0]
+
+            matched_files[filename] = (
+                match.group(0),
+                match.start(0),
+                match.end(0),
+            )
+
+    return matched_files
 
 
 PostStatusResponse = collections.namedtuple("PostStatusResponse", ["new", "hash"])

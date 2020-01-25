@@ -3,7 +3,6 @@ import html
 import json
 import mimetypes
 import os
-import re
 import socket
 import time
 import traceback
@@ -126,25 +125,20 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
         local_files = os.listdir(self.folder.path)
 
-        to_replace = []
-        finders = [
-            re.compile(r"(!(?P<filename>\w.*)!)"),
-            re.compile(r"(\[\^(?P<filename>\w.*)\])"),
-        ]
-        for finder in finders:
-            for match in finder.finditer(data):
-                filename = match.groupdict()["filename"]
-                if "|" in filename:
-                    filename = filename.split("|", 1)[0]
+        referenced_files = utils.find_files_referenced_in_markup(data)
 
-                if filename in local_files:
-                    to_replace.append(
-                        (filename, match.group(0), match.start(0), match.end(0),)
-                    )
-
-        matches_in_reverse_order = sorted(to_replace, key=lambda match: -1 * match[2])
+        matches_in_reverse_order = sorted(
+            [
+                (filename, match_data,)
+                for filename, match_data in referenced_files.items()
+            ],
+            key=lambda match: -1 * match[1][2],
+        )
         placeholders = {}
-        for filename, full, start, end in matches_in_reverse_order:
+        for filename, (full, start, end) in matches_in_reverse_order:
+            if filename not in local_files:
+                continue
+
             id = uuid.uuid4()
             placeholder = f"JIRAFS-PLACEHOLDER:{id}"
             placeholders[placeholder] = (filename, full)
