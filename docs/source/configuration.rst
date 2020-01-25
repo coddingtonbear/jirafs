@@ -78,7 +78,27 @@ For example:
 
 .. code-block:: ini
    :linenos:
-   :emphasize-lines: 4
+   :emphasize-lines: 2
 
    [main]
    ask_to_save = false
+
+
+Setting a Date Format for Rendered Comments
+-------------------------------------------
+
+By default, Jirafs will render a date using the following international
+date format::
+
+     %Y-%m-%d at %H:%M:%S %Z
+
+But you can configure the format to one more familiar to you by setting the
+``main.date_format`` configuration setting using the formatting codes
+described here: `https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes`_
+
+.. code-block:: ini
+   :linenos:
+   :emphasize-lines: 2
+
+   [main]
+   date_format = %d %B %Y at %h:%M %p
