@@ -1,7 +1,6 @@
 import io
 import json
 import os
-import textwrap
 
 from jirafs import constants, utils
 from jirafs.plugin import CommandPlugin
@@ -121,26 +120,8 @@ class Command(CommandPlugin):
                 comm.write(
                     "h3. At %s, %s wrote:\n\n" % (comment.created, comment.author)
                 )
-                final_lines = []
-                lines = folder.process_macro_reversals(
-                    comment.body.replace("\r\n", "\n")
-                ).split("\n")
-                for line in lines:
-                    if not line:
-                        final_lines.append("")
-                    else:
-                        final_lines.extend(
-                            textwrap.wrap(
-                                line,
-                                width=70,
-                                expand_tabs=False,
-                                replace_whitespace=False,
-                                break_long_words=False,
-                            )
-                        )
-                for line in final_lines:
-                    comm.write("%s\n" % line)
-                comm.write("\n")
+                comm.write(comment.body.replace("\r\n", "\n"))
+                comm.write("\n\n")
 
         folder.store_cached_issue()
 
