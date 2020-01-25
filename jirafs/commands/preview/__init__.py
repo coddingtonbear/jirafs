@@ -60,7 +60,7 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
         lines = []
 
         lines.append(
-            f"h1. {self.folder.issue.id}: {self.get_field_data('summary')}\n\n"
+            f"h1. {self.folder.issue.key}: {self.get_field_data('summary')}\n\n"
         )
         lines.append(f"h2. Description\n\n")
         lines.append(self.get_field_data("description"))
@@ -125,8 +125,8 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
         return placeholders, data
 
-    def get_issue_title(self, field_name):
-        return f"[{self.folder.issue.key}]: {field_name}"
+    def get_issue_title(self, html_title):
+        return f"[{self.folder.issue.key}]: {html_title}"
 
     def replace_placeholders(self, placeholders, data):
         for placeholder, (filename, full) in placeholders.items():
@@ -142,6 +142,11 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
     def serve_preview_content(self, dotpath):
         content_type = "text/html"
         placeholders, data = self.get_local_file_escaped_field_data(dotpath)
+
+        html_title = dotpath
+        if not html_title:
+            html_title = self.get_field_data("summary")
+
         if isinstance(data, str):
             response = self.get_rendered_template(
                 "base.html",
@@ -149,7 +154,7 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
                     "content": self.replace_placeholders(
                         placeholders, get_converted_markup(self.folder, data)
                     ),
-                    "title": self.get_issue_title(dotpath),
+                    "title": self.get_issue_title(html_title),
                 },
             )
         else:
