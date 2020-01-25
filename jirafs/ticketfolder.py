@@ -845,6 +845,7 @@ class TicketFolder(object):
             "operation.log",
             "subtasks",
             "temp-generated",
+            "plugin_meta",
         ]
         with codecs.open(
             self.get_local_path(constants.GIT_EXCLUDE_FILE), "w", "utf-8"

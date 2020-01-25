@@ -41,12 +41,7 @@ def stash_local_changes(repo):
             # This looks a little weird, I know, but what we're doing
             # is forcing a stash pop; even if it causes conflict markers,
             # that's better than just dropping the stash on the floor.
-            patch = repo.run_git_command("stash", "show", "-p", failure_ok=True)
-            if not patch:
-                return
-            repo.run_git_command(
-                "apply", "-3", failure_ok=True, stdin=patch.encode("utf-8")
-            )
+            repo.run_git_command("stash", "apply", failure_ok=True)
             repo.run_git_command("stash", "drop", failure_ok=True)
 
 
