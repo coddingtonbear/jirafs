@@ -283,4 +283,14 @@ def lazy_get_jira():
     return lambda domain, config=None: get_jira(domain, config)
 
 
+def format_date(folder, date):
+    date_format = constants.DEFAULT_DATE_FORMAT
+    config = folder.get_config()
+    if config.has_section(constants.CONFIG_MAIN):
+        if config.has_option(constants.CONFIG_MAIN, "date_format"):
+            date_format = config.get(constants.CONFIG_MAIN, "date_format")
+
+    return date.strftime(date_format)
+
+
 PostStatusResponse = collections.namedtuple("PostStatusResponse", ["new", "hash"])

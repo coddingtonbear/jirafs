@@ -12,11 +12,14 @@ import webbrowser
 from http.server import ThreadingHTTPServer
 from http.server import SimpleHTTPRequestHandler
 
+from dateutil.parser import parse
+
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 import jinja2
 
+from jirafs import utils
 from jirafs.plugin import CommandPlugin
 
 
@@ -63,13 +66,27 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
         lines = []
 
         lines.append(
+            "Jump to: [#Description] | [New Comment|#NewComment] | [#Comments]"
+        )
+        lines.append(
             f"h1. {self.folder.issue.key}: {self.get_field_data('summary')}\n\n"
         )
         lines.append(f"h2. Description\n\n")
-        lines.append(self.get_field_data("description"))
+        description_data = self.get_field_data("description")
+        if not description_data.strip():
+            lines.append("_Empty_")
+        else:
+            lines.append(description_data)
         lines.append("\n")
         lines.append(f"h2. New Comment\n\n")
-        lines.append(self.get_field_data("new_comment"))
+        comment_data = self.get_field_data("new_comment")
+        if not comment_data:
+            lines.append("_Empty_")
+        else:
+            lines.append(comment_data)
+        lines.append("\n")
+        lines.append(f"h2. Comments\n\n")
+        lines.append(self.get_comments())
 
         return "\n".join(lines)
 
@@ -77,7 +94,13 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
         lines = []
 
         for comment in self.folder.issue.fields.comment.comments:
-            lines.append("h3. At %s, %s wrote:\n" % (comment.created, comment.author,))
+            lines.append(
+                "h3. On %s, [~%s] wrote:\n"
+                % (
+                    utils.format_date(self.folder, parse(comment.created)),
+                    comment.author.key,
+                )
+            )
             lines.append(comment.body.replace("\r\n", "\n"))
 
         return "\n".join(lines)
