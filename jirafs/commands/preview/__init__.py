@@ -216,6 +216,8 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
                 self.serve_eventsource()
             else:
                 self.serve_preview_content(self.path[1:].replace("/", "."))
+        except BrokenPipeError:
+            pass
         except Exception as e:
             self.send_response(500)
             response = self.get_rendered_template(
