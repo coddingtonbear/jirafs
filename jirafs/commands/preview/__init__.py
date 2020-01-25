@@ -266,8 +266,8 @@ class Command(CommandPlugin):
         )
 
     def main(self, folder, field_name, port=0, open_browser=True, **kwargs):
-        if field_name.endswith(".jira"):
-            field_name = field_name.rsplit(".")[0]
+        if os.path.isfile(field_name) and field_name.endswith(".jira"):
+            field_name = field_name.split(".")[0]
 
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
             s.bind(("", port))
