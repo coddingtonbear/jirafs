@@ -20,6 +20,9 @@ import jinja2
 from jirafs.plugin import CommandPlugin
 
 
+SESSION_CONNECTED = None
+
+
 class CountingEventHandler(FileSystemEventHandler):
     counter = 0
 
@@ -208,11 +211,25 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
             )
             time.sleep(0.5)
 
+    def do_DELETE(self):
+        global SESSION_CONNECTED
+
+        if self.path == "/eventsource/":
+            SESSION_CONNECTED = False
+            self.send_response(200)
+        else:
+            self.send_response(404)
+        self.end_headers()
+
     def do_GET(self):
+        global SESSION_COUNTER
+
         try:
             if self.path.startswith("/files/"):
                 self.serve_file(self.path[7:])
             elif self.path == "/eventsource/":
+                SESSION_COUNTER = True
+
                 self.serve_eventsource()
             else:
                 self.serve_preview_content(self.path[1:].replace("/", "."))
@@ -257,6 +274,16 @@ class Command(CommandPlugin):
             default=False,
             help=("Do not open a webbrowser to the created webserver."),
         )
+        parser.add_argument(
+            "--serve-forever",
+            "-f",
+            action="store_true",
+            default=False,
+            help=(
+                "Do not automatically terminate preview session "
+                "when user navigates away from preview URL."
+            ),
+        )
         parser.add_argument("field_name", nargs="?")
 
     def handle(self, args, folder, **kwargs):
@@ -265,9 +292,27 @@ class Command(CommandPlugin):
             args.field_name or "",
             port=args.port,
             open_browser=not args.no_browser,
+            serve_forever=args.serve_forever,
         )
 
-    def main(self, folder, field_name, port=0, open_browser=True, **kwargs):
+    def continue_serving(self, serve_forever=True):
+        if serve_forever:
+            return True
+
+        if SESSION_CONNECTED is None or SESSION_CONNECTED:
+            return True
+
+        return False
+
+    def main(
+        self,
+        folder,
+        field_name,
+        port=0,
+        open_browser=True,
+        serve_forever=True,
+        **kwargs,
+    ):
         if os.path.isfile(field_name) and field_name.endswith(".jira"):
             field_name = field_name.split(".")[0]
 
@@ -281,6 +326,7 @@ class Command(CommandPlugin):
             IssueRequestHandler.get_converted_markup = get_converted_markup
 
             server = ThreadingHTTPServer(("", port), IssueRequestHandler)
+            server.timeout = 0.1
             print(f"Serving from http://127.0.0.1:{port}")
             print("Press <Ctrl+C> to Exit")
 
@@ -288,7 +334,7 @@ class Command(CommandPlugin):
                 webbrowser.open(f"http://127.0.0.1:{port}/{path}")
 
             try:
-                while True:
+                while self.continue_serving(serve_forever):
                     server.handle_request()
             except KeyboardInterrupt:
                 print("Exiting...")

@@ -73,13 +73,17 @@
             }
         </style>
         <script type="text/javascript">
+            let source
+            let endSessionOnUnload = true
+
             if(window.EventSource) {
-                let counter = -1;
-                const source = new EventSource("/eventsource/");
+                let counter = -1
+                source = new EventSource("/eventsource/")
 
                 source.addEventListener("counter", function (event) { 
                     if (counter > -1 && parseInt(event.data) > counter) {
-                        window.location.reload();
+                        endSessionOnUnload = false
+                        window.location.reload()
                     } else {
                         counter = parseInt(event.data);
                     }
@@ -88,10 +92,20 @@
                 source.onmessage = function (event) {  
                     console.log(event)
                     if (event.id == "CLOSE") {
-                        source.close(); 
+                        source.close()
                     }
                 }
             }
+            window.addEventListener("unload", function() {
+                if(source) {
+                    source.close()
+                }
+                if(endSessionOnUnload) {
+                    const xhr = new XMLHttpRequest()
+                    xhr.open("DELETE", "/eventsource/", false)
+                    xhr.send()
+                }
+            })
         </script>
         {% block head %}
         {% endblock %}
