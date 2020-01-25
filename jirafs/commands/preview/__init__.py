@@ -266,6 +266,9 @@ class Command(CommandPlugin):
         )
 
     def main(self, folder, field_name, port=0, open_browser=True, **kwargs):
+        if field_name.endswith(".jira"):
+            field_name = field_name.rsplit(".")[0]
+
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
             s.bind(("", port))
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
