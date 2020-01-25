@@ -287,7 +287,8 @@ class Command(CommandPlugin):
             if open_browser:
                 webbrowser.open(f"http://127.0.0.1:{port}/{path}")
 
-            while True:
-                server.handle_request()
-
-            server.shutdown()
+            try:
+                while True:
+                    server.handle_request()
+            except KeyboardInterrupt:
+                print("Exiting...")
