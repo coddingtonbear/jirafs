@@ -105,8 +105,8 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
         to_replace = []
         finders = [
-            re.compile(r"(!(?P<filename>[^!]+)!)"),
-            re.compile(r"(\[\^(?P<filename>[^\]]+)\])"),
+            re.compile(r"(!(?P<filename>\w.*)!)"),
+            re.compile(r"(\[\^(?P<filename>\w.*)\])"),
         ]
         for finder in finders:
             for match in finder.finditer(data):
@@ -119,8 +119,9 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
                         (filename, match.group(0), match.start(0), match.end(0),)
                     )
 
+        matches_in_reverse_order = sorted(to_replace, key=lambda match: -1 * match[2])
         placeholders = {}
-        for filename, full, start, end in reversed(to_replace):
+        for filename, full, start, end in matches_in_reverse_order:
             id = uuid.uuid4()
             placeholder = f"JIRAFS-PLACEHOLDER:{id}"
             placeholders[placeholder] = (filename, full)
@@ -170,8 +171,6 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
         self.wfile.write(response.encode("utf-8"))
 
     def serve_file(self, path):
-        print(path)
-
         if path not in os.listdir(self.folder.path):
             self.send_response(404)
             self.send_header("Content-length", 0)
@@ -337,4 +336,4 @@ class Command(CommandPlugin):
                 while self.continue_serving(serve_forever):
                     server.handle_request()
             except KeyboardInterrupt:
-                print("Exiting...")
+                pass
