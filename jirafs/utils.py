@@ -171,7 +171,12 @@ def get_default_jira_server(config=None):
         config.add_section(constants.CONFIG_JIRA)
 
     if not config.has_option(constants.CONFIG_JIRA, "server"):
-        value = get_user_input("Default JIRA URL: ")
+        server_url_finder = re.compile(r"(?P<domain>.*)/browse/.*")
+        value = get_user_input("Default JIRA URL (or example issue URL): ")
+        match = server_url_finder.match(value)
+        if match:
+            value = match.groupdict()["domain"]
+
         config.set(constants.CONFIG_JIRA, "server", value)
 
     with open(
