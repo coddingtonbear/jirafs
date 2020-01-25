@@ -42,7 +42,7 @@ class Command(CommandPlugin):
             folder = TicketFolder.initialize_ticket_folder(ticket_url, path, jira)
 
             utils.run_command_method_with_kwargs("pull", folder=folder)
-        except Exception:
+        except BaseException:
             shutil.rmtree(path)
             raise
 
