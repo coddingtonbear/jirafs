@@ -2,6 +2,8 @@ import io
 import json
 import os
 
+from dateutil.parser import parse
+
 from jirafs import constants, utils
 from jirafs.plugin import CommandPlugin
 
@@ -118,7 +120,11 @@ class Command(CommandPlugin):
         with io.open(comments_filename, "w", encoding="utf-8") as comm:
             for comment in folder.issue.fields.comment.comments:
                 comm.write(
-                    "h3. At %s, %s wrote:\n\n" % (comment.created, comment.author)
+                    "h3. On %s, [~%s] wrote:\n\n"
+                    % (
+                        utils.format_date(folder, parse(comment.created)),
+                        comment.author.key,
+                    )
                 )
                 comm.write(comment.body.replace("\r\n", "\n"))
                 comm.write("\n\n")

@@ -95,7 +95,7 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
         for comment in self.folder.issue.fields.comment.comments:
             lines.append(
-                "h3. On %s, [~%s] wrote:\n"
+                "h3. On %s, [~%s] wrote:\n\n"
                 % (
                     utils.format_date(self.folder, parse(comment.created)),
                     comment.author.key,
