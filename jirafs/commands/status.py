@@ -41,7 +41,7 @@ class Command(CommandPlugin):
         result = CommandResult()
 
         result = result.add_line(
-            u"On ticket {ticket} ({url})",
+            "On ticket {ticket} ({url})",
             ticket=folder.ticket_number,
             url=folder.cached_issue.permalink(),
         )
@@ -60,7 +60,9 @@ class Command(CommandPlugin):
             result = result.add_line(
                 "Ready for upload; use `jirafs push` to update JIRA."
             )
-            result = self.format_field_changes(ready, "green", result=result)
+            result = self.format_field_changes(
+                ready, "green", result=result, files_post_message="upload attachment"
+            )
 
         staged = folder_status["uncommitted"]
         if self.has_changes(staged):
@@ -71,7 +73,9 @@ class Command(CommandPlugin):
                 "to JIRA, or use `jirafs commit` to commit your changes "
                 "for submission during a later `jirafs push`."
             )
-            result = self.format_field_changes(staged, "red", result=result)
+            result = self.format_field_changes(
+                staged, "red", result=result, files_post_message="upload attachment"
+            )
 
         local_uncommitted = folder_status["local_uncommitted"]
         if self.has_changes(local_uncommitted, "files"):
@@ -88,7 +92,23 @@ class Command(CommandPlugin):
                 "be uploaded to JIRA even after being committed."
             )
             result = self.format_field_changes(
-                local_uncommitted, "cyan", no_upload=True, result=result,
+                local_uncommitted,
+                "cyan",
+                files_post_message="track in repository",
+                result=result,
+            )
+
+        conflicts = folder_status["conflicts"]
+        if self.has_changes(conflicts, "files"):
+            printed_changes = True
+            result = result.add_line("")
+            result = result.add_line(
+                "Local changes conflicted with changes merged "
+                "from your remote Jira issue.  Please correct "
+                "the following files and then run `jirafs commit`:"
+            )
+            result = self.format_field_changes(
+                conflicts, "yellow", files_post_message="conflicted", result=result,
             )
 
         if not printed_changes:
@@ -101,21 +121,19 @@ class Command(CommandPlugin):
 
         return result
 
-    def format_field_changes(self, changes, color, no_upload=False, result=None):
+    def format_field_changes(self, changes, color, files_post_message="", result=None):
         if result is None:
             result = CommandResult()
 
         for filename in changes.get("files", []):
             result = result.add_line(
-                u"\t{t.%s}{filename}{t.normal} {post_message}" % color,
+                "\t{t.%s}{filename}{t.normal}{post_message}" % color,
                 filename=filename,
-                post_message=(
-                    "(track in repository)" if no_upload else "(upload attachment)"
-                ),
+                post_message=(f" ({files_post_message})" if files_post_message else ""),
             )
         for filename in changes.get("deleted", []):
             result = result.add_line(
-                u"\t{t.%s}{filename}{t.normal} {post_message}" % color,
+                "\t{t.%s}{filename}{t.normal} {post_message}" % color,
                 filename=filename,
                 post_message="(deleted)",
             )
@@ -129,8 +147,8 @@ class Command(CommandPlugin):
                     description = "(Untitled)"
 
                 result = result.add_line(
-                    u"\t{t.%s}{description}: "
-                    u"{link}{t.normal} {post_message}" % (color,),
+                    "\t{t.%s}{description}: "
+                    "{link}{t.normal} {post_message}" % (color,),
                     description=description,
                     link=link,
                     post_message=(
@@ -144,8 +162,8 @@ class Command(CommandPlugin):
                     description = "(Untitled)"
 
                 result = result.add_line(
-                    u"\t{t.%s}{description}: "
-                    u"{link}{t.normal} {post_message}" % (color,),
+                    "\t{t.%s}{description}: "
+                    "{link}{t.normal} {post_message}" % (color,),
                     description=description,
                     link=link,
                     post_message="(removed remote link)",
@@ -159,7 +177,7 @@ class Command(CommandPlugin):
                 else:
                     status = "(Untitled)"
                 result = result.add_line(
-                    u"\t{t.%s}{status}: {link}{t.normal} {post_message}" % (color),
+                    "\t{t.%s}{status}: {link}{t.normal} {post_message}" % (color),
                     status=status.title(),
                     link=link,
                     post_message=(

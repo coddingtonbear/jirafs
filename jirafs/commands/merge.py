@@ -1,3 +1,5 @@
+import logging
+
 from jirafs import constants, utils
 from jirafs.plugin import CommandPlugin
 from jirafs.jirafieldmanager import JiraFieldManager
@@ -15,7 +17,9 @@ class Command(CommandPlugin):
     def main(self, folder, **kwargs):
         with utils.stash_local_changes(folder):
             original_merge_base = folder.git_merge_base
-            folder.run_git_command("merge", "jira")
+
+            folder.run_git_command("merge", "jira", failure_ok=True)
+
             final_merge_base = folder.git_merge_base
 
             new_comments = folder.run_git_command(
@@ -56,6 +60,16 @@ class Command(CommandPlugin):
                     "Merged 'jira' into 'master'; merge-base is now %s"
                     % (final_merge_base)
                 )
+
+            conflicted_files = folder.run_git_command(
+                "diff", "--name-only", "--diff-filter=U",
+            ).strip()
+            if conflicted_files:
+                folder.log(
+                    "Conflicts between your local changes and Jira were found!",
+                    level=logging.WARN,
+                )
+
             return utils.PostStatusResponse(
                 original_merge_base == final_merge_base, final_merge_base
             )

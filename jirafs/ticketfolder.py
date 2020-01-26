@@ -453,6 +453,18 @@ class TicketFolder(object):
                 return True
         return False
 
+    def get_conflicts(self):
+        conflicts = {}
+
+        conflicted_files = self.run_git_command(
+            "diff", "--name-only", "--diff-filter=U",
+        ).strip()
+
+        if conflicted_files:
+            conflicts["files"] = conflicted_files.split("\n")
+
+        return conflicts
+
     def get_ready_changes(self):
         ready = {
             "fields": (self.get_fields("HEAD") - self.get_fields(self.git_merge_base)),
@@ -806,6 +818,7 @@ class TicketFolder(object):
 
         return {
             "ready": self.get_ready_changes(),
+            "conflicts": self.get_conflicts(),
             "local_uncommitted": self.get_local_uncommitted_changes(),
             "uncommitted": self.get_uncommitted_changes(),
             "up_to_date": self.is_up_to_date(),
