@@ -58,7 +58,7 @@ class Command(CommandPlugin):
             printed_changes = True
             result = result.add_line("")
             result = result.add_line(
-                "Ready for upload; use `jirafs push` to update JIRA."
+                "Ready for upload; use `jirafs push` to update Jira"
             )
             result = self.format_field_changes(
                 ready, "green", result=result, files_post_message="upload attachment"
@@ -70,7 +70,7 @@ class Command(CommandPlugin):
             result = result.add_line("")
             result = result.add_line(
                 "Uncommitted changes: use `jirafs submit` to submit changes "
-                "to JIRA, or use `jirafs commit` to commit your changes "
+                "to Jira, or use `jirafs commit` to commit your changes "
                 "for submission during a later `jirafs push`."
             )
             result = self.format_field_changes(
@@ -82,14 +82,14 @@ class Command(CommandPlugin):
             printed_changes = True
             result = result.add_line("")
             result = result.add_line(
-                "Uncommitted changes prevented from being sent to JIRA "
+                "Uncommitted changes prevented from being sent to Jira "
                 "because they match at least one of the patterns in your "
                 "`.jirafs_local` file; use `jirafs commit` to track these "
                 "changes."
             )
             result = result.add_line(
                 "Note: these files will {t.bold}not{t.normal} "
-                "be uploaded to JIRA even after being committed."
+                "be uploaded to Jira even after being committed."
             )
             result = self.format_field_changes(
                 local_uncommitted,

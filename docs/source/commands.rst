@@ -22,13 +22,13 @@ Requires a single parameter (``source``) indicating what to clone.
 Possible forms include:
 
 * ``clone http://my.jira.server/browse/MYISSUE-1024 [PATH]``
-* ``clone MYISSUE-1024 [PATH]`` (will use default JIRA instance)
+* ``clone MYISSUE-1024 [PATH]`` (will use default Jira instance)
 
 Create a new issue folder for ``MYISSUE-1024`` (replace ``MYISSUE-1024`` with
-an actual JIRA issue number), and clone the relevant issue into this folder.
+an actual Jira issue number), and clone the relevant issue into this folder.
 
 Note that you may specify a full URL pointing to an issue, but if you do not
-specify a full URL, your default JIRA instance will be used; if you have
+specify a full URL, your default Jira instance will be used; if you have
 not yet set one, you will be asked to specify one.
 
 Although by default, the issue will be cloned into a folder matching the name
@@ -39,7 +39,7 @@ by specifying an additional parameter (``PATH`` in the example forms above).
 ------------------------
 
 Render the content of the field named ``field_name`` via your
-JIRA instance's Wiki Markup renderer.  This is useful for
+Jira instance's Wiki Markup renderer.  This is useful for
 helping you ensure that your wiki markup is correct.
 
 Note that you can also access subkeys in fields containing JSON by using
@@ -62,7 +62,7 @@ This is exactly equivalent to running a ``commit`` followed by a ``push``.
 ----------
 
 From within an issue folder, commits local changes and marks them for
-submission to JIRA next time ``push`` is run.
+submission to Jira next time ``push`` is run.
 
 .. note::
 
@@ -74,7 +74,7 @@ submission to JIRA next time ``push`` is run.
 ``pull`` *
 ----------
 
-From within an issue folder, fetches remote changes from JIRA and merges
+From within an issue folder, fetches remote changes from Jira and merges
 the changes into your local copy.  This command is identical to running
 ``fetch`` followed by ``merge``.
 
@@ -82,7 +82,7 @@ the changes into your local copy.  This command is identical to running
 ----------
 
 From within an issue folder, discovers any local changes, and pushes your
-local changes to JIRA.
+local changes to Jira.
 
 ``status`` *
 ------------
@@ -94,19 +94,19 @@ run ``jirafs push``.
 ``open`` *
 ----------
 
-From within an issue folder, opens the current JIRA issue in your
+From within an issue folder, opens the current Jira issue in your
 default web browser.
 
 ``subtask <summary>``
 ---------------------
 
 From within an issue folder, creates a new subtask of the current
-JIRA issue.
+Jira issue.
 
 ``assign [<username>]``
 -----------------------
 
-Change the assignee of the JIRA issue to the username specified.
+Change the assignee of the Jira issue to the username specified.
 If one does not specify a username,
 the assignee will be set to the currently authenticated user.
 

@@ -167,7 +167,7 @@ class TicketFolder(object):
         match = re.match(r"(.*)\/browse\/.*", self.issue_url)
         if not match:
             raise ValueError(
-                "Could not infer JIRA server URL from issue URL %s" % (self.issue_url,)
+                "Could not infer Jira server URL from issue URL %s" % (self.issue_url,)
             )
         return match.group(1)
 

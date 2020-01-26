@@ -6,7 +6,7 @@ from jirafs.utils import run_command_method_with_kwargs
 
 
 class Command(CommandPlugin):
-    """ Push locally-committed changes to JIRA """
+    """ Push locally-committed changes to Jira """
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "2.0.0"

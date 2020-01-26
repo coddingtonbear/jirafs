@@ -169,7 +169,7 @@ def get_default_jira_server(config=None):
 
     if not config.has_option(constants.CONFIG_JIRA, "server"):
         server_url_finder = re.compile(r"(?P<domain>.*)/browse/.*")
-        value = get_user_input("Default JIRA URL (or example issue URL): ")
+        value = get_user_input("Default Jira URL (or example issue URL): ")
         match = server_url_finder.match(value)
         if match:
             value = match.groupdict()["domain"]
@@ -225,7 +225,7 @@ def get_jira(domain=None, config=None):
         config = get_config()
 
     if not config.has_option(section, "username"):
-        value = get_user_input("JIRA Username (%s):" % login_data["server"])
+        value = get_user_input("Jira Username (%s):" % login_data["server"])
         login_data["username"] = value
         config.set(section, "username", value)
     else:
@@ -233,12 +233,12 @@ def get_jira(domain=None, config=None):
 
     if not config.has_option(section, "password"):
         value = get_user_input(
-            "JIRA Password (%s):" % login_data["server"], password=True,
+            "Jira Password (%s):" % login_data["server"], password=True,
         )
         login_data["password"] = value
 
         if ask_to_save:
-            save = get_user_input("Save JIRA Password (Y/N)?", boolean=True)
+            save = get_user_input("Save Jira Password (Y/N)?", boolean=True)
             if save:
                 config.set(section, "password", value)
     else:

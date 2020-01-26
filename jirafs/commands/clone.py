@@ -52,7 +52,7 @@ class Command(CommandPlugin):
     def main(self, path, url, jira):
         match = self.TICKET_RE.match(url)
         if not match:
-            raise exceptions.JirafsError("'%s' is not a valid JIRA ticket URL." % url)
+            raise exceptions.JirafsError("'%s' is not a valid Jira ticket URL." % url)
 
         return self.clone_from_issue(match, url, path, jira,)
 

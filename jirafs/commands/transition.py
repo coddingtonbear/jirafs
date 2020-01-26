@@ -27,12 +27,12 @@ class Command(CommandPlugin):
             # from the transitions API, but that API returns a 204 whether
             # or not the issue itself can be successfully transitioned.
             raise JiraInteractionFailed(
-                "JIRA was not able to successfully transition this issue "
+                "Jira was not able to successfully transition this issue "
                 "into the requested state.  This type of failure usually "
-                "occurs when one's JIRA configuration requires that certain "
+                "occurs when one's Jira configuration requires that certain "
                 "fields be specified before transitioning into a "
                 "given state.  Unfortunately, no details regarding what "
-                "fields may be required are provided via JIRA's API."
+                "fields may be required are provided via Jira's API."
             )
 
         return pull_result[1]

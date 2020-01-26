@@ -41,5 +41,5 @@ VIM Plugin
 
 If you're a vim user, I recommend you install my fork of the
 `confluencewiki.vim plugin <https://github.com/coddingtonbear/confluencewiki.vim>`_;
-if you do so, comment and description field files will use JIRA/Confluence's
+if you do so, comment and description field files will use Jira/Confluence's
 WikiMarkup for syntax highlighting.

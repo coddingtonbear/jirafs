@@ -7,7 +7,7 @@ are available for adventurous users.
 ``fetch``
 ---------
 
-Fetch upstream changes from JIRA, but do not apply them to your local
+Fetch upstream changes from Jira, but do not apply them to your local
 copy.  To apply the fetched changes to your local copy, run ``merge``.
 
 ``merge``

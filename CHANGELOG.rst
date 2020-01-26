@@ -1,3 +1,12 @@
+2.0
+---
+
+* Major revamping of Plugin API to allow for more-reliable
+  macro application and reversal, among other optimizations.
+* New 'preview' command allowing you to preview content entered
+  in any field for quickly verifying formatting and macro-generated content.
+* Changes & improvements across the board.
+
 1.2
 ---
 

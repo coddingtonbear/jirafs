@@ -213,7 +213,7 @@ def main():
     except JIRAError as e:
         print(
             "{t.red}Jirafs encountered an error while interacting with "
-            "your JIRA instance: {t.normal}{t.red}{t.bold}{error}"
+            "your Jira instance: {t.normal}{t.red}{t.bold}{error}"
             "{t.normal}".format(t=term, error=str(e))
         )
         if args.traceback:
@@ -221,7 +221,7 @@ def main():
         sys.exit(70)
     except JiraInteractionFailed as e:
         print(
-            "{t.red}JIRA was unable to satisfy your "
+            "{t.red}Jira was unable to satisfy your "
             "request: {t.normal}{t.red}{t.bold}{error}{t.normal}".format(
                 t=term, error=str(e)
             )

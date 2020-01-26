@@ -133,7 +133,7 @@ or as a void element::
    The trailing slash at the end of your macro is important!
 
 Your ``execute_macro`` method is expected to return text that should be sent
-to JIRA instead of your macro.  Note that the method signature remains
+to Jira instead of your macro.  Note that the method signature remains
 identical to that of a block element macro, but instead of receiving
 the content of the block, you will receive ``None``.
 
@@ -177,11 +177,11 @@ the basic functionality of a plugin:
         def execute_macro(self, data, prefix='', **kwargs):
             return prefix + data.upper()
 
-When you enter the following text into a JIRA ticket field::
+When you enter the following text into a Jira ticket field::
 
     <jirafs:upper-cased prefix="Hello, ">my name is Adam.</jirafs:upper-cased>
 
-the following content will be sent to JIRA instead::
+the following content will be sent to Jira instead::
 
     Hello, MY NAME IS ADAM.
 

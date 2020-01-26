@@ -4,7 +4,7 @@ from jirafs.utils import run_command_method_with_kwargs
 
 
 class Command(CommandPlugin):
-    """Create a new JIRA issue"""
+    """Create a new Jira issue"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"

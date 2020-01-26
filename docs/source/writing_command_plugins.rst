@@ -51,9 +51,9 @@ command plugin:
     this value will always be ``None`` whether or not your command was
     invoked from within a ticket folder.
   * ``jira``: A callable (accepting, optionally, the string domain
-    of a JIRA instance) which will return an instance of ``jira.client.JIRA``
-    corresponding with the domain you've specified, or the default JIRA
-    connection if no JIRA domain was specified.
+    of a Jira instance) which will return an instance of ``jira.client.JIRA``
+    corresponding with the domain you've specified, or the default Jira 
+    connection if no Jira domain was specified.
   * ``path``: The string path from which this command was called.  This
     can be used to create a ``jirafs.ticketfolder.TicketFolder`` instance
     representing the current ticket folder if so desired.

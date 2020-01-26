@@ -16,8 +16,8 @@ Welcome to Jirafs's documentation!
     :target: https://gitter.im/coddingtonbear/python-myfitnesspal
 
 Pronounced like 'giraffes', but totally unrelated to wildlife, this
-library lets you stay out of JIRA as much as possible by letting
-you edit your JIRA issues as a collection of text files using an
+library lets you stay out of Jira as much as possible by letting
+you edit your Jira issues as a collection of text files using an
 interface inspired by ``git`` and ``hg``.
 
 .. image:: http://coddingtonbear-public.s3.amazonaws.com/github/jirafs/readme_demo_20150719.gif

@@ -10,9 +10,9 @@ Python 3 virtualenv;  you can install using ``pip`` by running::
     pip install jirafs
 
 After Jirafs successfully installs, you'll have access to the ``jirafs``
-command that you can use for interacting with JIRA.
+command that you can use for interacting with Jira.
 
-Working with a JIRA issue
+Working with a Jira issue
 -------------------------
 
 First, you'll need to "clone" the issue you want to work with using
@@ -23,19 +23,19 @@ issue url you are concerned about)::
     jirafs clone http://my.jira.server/browse/MYISSUE-1024
 
 The first time you run this command, Jirafs will ask you for a series of details
-that it will use for communicating with JIRA; don't worry: although all of this
+that it will use for communicating with Jira; don't worry: although all of this
 information will be stored in a plaintext file at ``~/.jirafs_config``, Jirafs will
 not store your password unless you give it permission to do so.
 
 Once the command runs successfully, it will have created a new folder named
 after the issue you've cloned, and inside that folder it will place a series of
-text files representing the issue's contents in JIRA as well as copies of
-all attachments currently attached to the issue in JIRA.
+text files representing the issue's contents in Jira as well as copies of
+all attachments currently attached to the issue in Jira.
 
 The following text files are created:
 
 * ``fields.jira``:  This file will show all currently-set field values
-  for this JIRA issue (except fields written to their own files; see
+  for this Jira issue (except fields written to their own files; see
   ``description.jira`` below).  You **can** change field values here
   by editing the field values in the file.  See :ref:`editing_fields`
   for more information.
@@ -43,7 +43,7 @@ The following text files are created:
   description.  You **can** change the issue's description by editing
   the contents of this file.
 * ``links.jira``: This file lists all of the links associated with this
-  JIRA issue.  You can add new links (or remove links) by adding or
+  Jira issue.  You can add new links (or remove links) by adding or
   removing bulleted items from this list; see :ref:`adding_removing_links`
   for more information.
 * ``comments.read_only.jira``: This file shows all comments currently
@@ -61,17 +61,17 @@ description in ``description.jira``, write a comment into
     jirafs status
 
 to see both what changes you've marked as ready for being submitted
-to JIRA as well as which changes you have made, but not yet committed.
+to Jira as well as which changes you have made, but not yet committed.
 
 .. note::
 
    Unlike when working with a git repository, you do not need to 'stage'
    files using a command analogous to git's "add" command when working with
-   a JIRA issue using Jirafs.  All uncommitted files will
+   a Jira issue using Jirafs.  All uncommitted files will
    automatically be included in any commit made.
 
 Once you're satisfied with the changes that are about to be submitted to
-JIRA, run::
+Jira, run::
 
     jirafs submit
 
@@ -79,19 +79,19 @@ JIRA, run::
 
    ``jirafs submit`` really just runs ``jirafs commit`` followed by
    ``jirafs push`` (which itself runs ``jirafs pull`` to get your
-   local copy up-to-date with what it saw in JIRA), so although
+   local copy up-to-date with what it saw in Jira), so although
    ``jirafs submit`` is probably the path you want to take, feel
    free to use the lower-level more-git-like commands if you want.
 
 Please consider this to be just a simple overview -- there are a
 variety of other commands you can run to have finer-grained control
-over how the issue folder is synchronized with JIRA; see :doc:`commands`
+over how the issue folder is synchronized with Jira; see :doc:`commands`
 for more details.
 
 .. note::
 
    If you are a VIM user, there is a :ref:`vim-plugin`  available that provides
-   syntax highlighting for JIRA/Confluence's wikimarkup.
+   syntax highlighting for Jira/Confluence's wikimarkup.
 
 .. _editing_fields:
 
@@ -107,13 +107,13 @@ require you to edit the data in a more-structured way.  If the data
 you enter is not valid JSON, when ``push``-ing up changes, you will
 receive an error, but don't worry -- if you encounter such an error, edit
 the contents to be valid JSON, ``commit``, and ``push`` again.  You 
-may need to consult with JIRA's documentation to develop an understanding
+may need to consult with Jira's documentation to develop an understanding
 of how to change these values.
 
 .. note::
 
    You don't always need to enter values for every field in a JSON
-   dictionary; in some cases, JIRA will infer the missing information
+   dictionary; in some cases, Jira will infer the missing information
    for you.
 
 .. _adding_removing_links:
@@ -122,19 +122,19 @@ Adding, Removing or Changing Links
 ----------------------------------
 
 Each line of ``links.jira`` starts with a bullet (``*``), and although 
-links to other issues (in JIRA terminology -- "issue links") and links
+links to other issues (in Jira terminology -- "issue links") and links
 to arbitrary URLs ("remote links") appear similar, they have slightly
 different formats.
 
 Issue Links
 ~~~~~~~~~~~
 
-You can link other issues to your JIRA issue by adding bulleted lines in
+You can link other issues to your Jira issue by adding bulleted lines in
 the following format::
 
     * LINK TYPE: TICKET NUMBER
 
-So, if there is an issue relationship named "blocks", and your JIRA issue
+So, if there is an issue relationship named "blocks", and your Jira issue
 is blocked by a ticket numbered "JFS-284", you could add a line::
 
     * Blocks: JFS-284
