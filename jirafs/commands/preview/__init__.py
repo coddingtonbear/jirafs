@@ -97,7 +97,7 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
                 "h3. On %s, [~%s] wrote:\n\n"
                 % (
                     utils.format_date(self.folder, parse(comment.created)),
-                    comment.author.key,
+                    comment.author.name,
                 )
             )
             lines.append(comment.body.replace("\r\n", "\n"))

@@ -123,7 +123,7 @@ class Command(CommandPlugin):
                     "h3. On %s, [~%s] wrote:\n\n"
                     % (
                         utils.format_date(folder, parse(comment.created)),
-                        comment.author.key,
+                        comment.author.name,
                     )
                 )
                 comm.write(comment.body.replace("\r\n", "\n"))
