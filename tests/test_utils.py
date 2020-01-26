@@ -16,7 +16,7 @@ class TestStashLocalChanges(BaseTestCase):
             pass
 
         self.assertEqual(
-            repo.run_git_command.call_count, 4,
+            repo.run_git_command.call_count, 3,
         )
 
     def test_stash_local_changes_exception(self):
@@ -28,7 +28,7 @@ class TestStashLocalChanges(BaseTestCase):
                 raise Exception()
 
         self.assertEqual(
-            repo.run_git_command.call_count, 4,
+            repo.run_git_command.call_count, 3,
         )
 
 

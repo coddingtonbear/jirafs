@@ -37,5 +37,6 @@ class BaseTestCase(TestCase):
                 "deleted": [],
             },
             "local_uncommitted": {"files": []},
+            "conflicts": {},
             "up_to_date": True,
         }
