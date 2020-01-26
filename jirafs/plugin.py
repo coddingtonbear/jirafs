@@ -26,7 +26,7 @@ from distutils.version import LooseVersion
 
 from .exceptions import MacroAttributeError, MacroContentError, MacroError
 from .types import JirafsMacroAttributes
-from . import __version__, constants, utils
+from . import __version__, constants
 
 if TYPE_CHECKING:
     from .ticketfolder import TicketFolder
@@ -679,6 +679,8 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
         self.save()
 
     def cleanup_post_process(self) -> None:
+        from .utils import find_files_referenced_in_markup
+
         cache = self.metadata.get("reversal_cache", {})
 
         known_keys = set(cache.keys())
@@ -711,7 +713,7 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
 
         with open(self.ticketfolder.get_path(constants.TICKET_COMMENTS), "r") as inf:
             files_referenced_by_comments = set(
-                utils.find_files_referenced_in_markup(inf.read()).keys()
+                find_files_referenced_in_markup(inf.read()).keys()
             )
 
         # Delete _both_ obsolete local & temp files from the local
