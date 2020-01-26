@@ -1,3 +1,36 @@
+2.1
+---
+
+* Fixes to various bugs relating to merging upstream changes
+  from Jira with un-pushed local changes.
+
+  * User is now warned about conflicts were they to occur when merging-in
+    upstream changes.
+  * Conflicts are displayed on the ``status`` display should they exist,
+    including instructions about how to resolve them.
+
+* Additional polish for 'preview' function including:
+
+  * Fixes to exception display in-console for harmless errors resulting
+    from clients navigating away.
+  * Defaulting behavior such that server will automatically self-terminate
+    when the user navigates away.  If this behavior is not desired,
+    a command-line argument ``--serve-forever`` is available.
+  * Adding display of comments for 'all' preview mode.
+  * Adds links allowing you to jump to the specific section you're interested
+    in when in the 'all' preview mode.
+
+* Macro reversal changes for ``comments.read_only.jira``: No longer will
+  macros be reversed for read-only files given that the content of
+  historical comments cannot be changed.
+* Users can now set a preferred date format by setting a configuration
+  value ``main.date_format``.
+* Obsolete and undocumented "Clone" functionality allowing you to clone
+  a Jira ticketfolder from a git repository (instead of directly from
+  a Jira issue) was removed.
+* Jira server URL inference when cloning by using an issue number instead
+  of a ticket URL is improved to be more foolproof.
+
 2.0
 ---
 
