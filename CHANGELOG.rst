@@ -1,5 +1,11 @@
-2.1
----
+2.1.1
+-----
+
+* Fixes bug that would cause an unhelpful traceback to be displayed if you
+  were to run Jirafs commands outside of a ticketfolder.
+
+2.1.0
+-----
 
 * Fixes to various bugs relating to merging upstream changes
   from Jira with un-pushed local changes.
@@ -31,8 +37,8 @@
 * Jira server URL inference when cloning by using an issue number instead
   of a ticket URL is improved to be more foolproof.
 
-2.0
----
+2.0.0
+-----
 
 * Major revamping of Plugin API to allow for more-reliable
   macro application and reversal, among other optimizations.
@@ -40,8 +46,8 @@
   in any field for quickly verifying formatting and macro-generated content.
 * Changes & improvements across the board.
 
-1.2
----
+1.2.0
+-----
 
 * Adds new ``match`` command allowing you to test whether fields match (or
   do not match) expected values.  This is particularly useful for running
