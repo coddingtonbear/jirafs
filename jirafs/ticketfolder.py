@@ -36,6 +36,11 @@ class TicketFolder(object):
         self.issue_url = self.get_ticket_url()
         self.get_jira = jira
 
+        if not os.path.isdir(self.metadata_dir):
+            raise exceptions.NotTicketFolderException(
+                "%s is not a synchronizable ticket folder" % (path)
+            )
+
         self._formatter = logging.Formatter(
             fmt="%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s"
         )
@@ -53,11 +58,6 @@ class TicketFolder(object):
         self._logger_adapter = TicketFolderLoggerAdapter(
             self._logger, {"issue_id": self.ticket_number},
         )
-
-        if not os.path.isdir(self.metadata_dir):
-            raise exceptions.NotTicketFolderException(
-                "%s is not a synchronizable ticket folder" % (path)
-            )
 
         self.plugins = self.load_plugins()
 
