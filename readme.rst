@@ -12,7 +12,7 @@ library lets you stay out of Jira as much as possible by letting
 you edit your Jira issues as a collection of text files using an
 interface inspired by ``git`` and ``hg``.
 
-.. image:: http://coddingtonbear-public.s3.amazonaws.com/github/jirafs/readme_demo_2.1_v3.gif
+.. image:: http://coddingtonbear-public.s3.amazonaws.com/github/jirafs/readme_demo_2.1_v4.gif
 
 Read more details in `the docs <http://jirafs.readthedocs.org/>`_.
 
