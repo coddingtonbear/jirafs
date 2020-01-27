@@ -165,14 +165,6 @@ Macros
 ------
 
 One of the most powerful features of Jirafs is how it can make your workflow
-vastly easier if you commonly need to do things like insert tables or
-graphs or charts in your issues.  There are a handful of macros available
-on PyPI including:
-
-* `jirafs-csv-table <https://github.com/coddingtonbear/jirafs-csv-table>`_:
-  Makes it easy for you to include tables in your Jira issue by just
-  referencing a local CSV file.
-* `jirafs-graphviz <https://github.com/coddingtonbear/jirafs-graphviz>`_:
-  Make it easy for you to include graphviz charts generated with programs
-  like ``dot`` or ``neato`` into your Jira issue by typing your graph
-  descriptions directly into your macro content.
+easier if you ever need to do common things like insert tables,
+graphs, or charts in your issues.  There are a handful of macros available,
+and writing your own macro plugin is easy.  See :doc:`macros` for more information.
