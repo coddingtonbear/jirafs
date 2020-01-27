@@ -172,7 +172,7 @@ the basic functionality of a plugin:
 .. code-block:: python
 
     class Plugin(MacroPlugin):
-        COMPONENT_NAME = 'upper-cased'
+        TAG_NAME = 'upper-cased'
 
         def execute_macro(self, data, prefix='', **kwargs):
             return prefix + data.upper()
