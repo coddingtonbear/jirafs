@@ -101,6 +101,7 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
                 )
             )
             lines.append(comment.body.replace("\r\n", "\n"))
+            lines.append("\n")
 
         return "\n".join(lines)
 
@@ -239,6 +240,8 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         global SESSION_COUNTER
+
+        self.folder.clear_cache()
 
         try:
             if self.path.startswith("/files/"):

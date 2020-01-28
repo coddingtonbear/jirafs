@@ -1,3 +1,19 @@
+2.1.2
+-----
+
+* Fixes several minor bugs relating to issue previews including:
+
+  * In certain situations, the preview automatic change detection
+    would become stuck in a loop causing the page to refresh
+    continuously.
+  * Preview document was not delivered with an UTF-8 charset,
+    so non-latin-1 characters would be mangled.
+  * Changes to Jira fields would not be refreshed when rendering
+    preview after submitting changes.
+  * Insufficient whitespace between comments may cause Jira to
+    misinterpret headers as part of a previous comment's bulleted
+    list.
+
 2.1.1
 -----
 

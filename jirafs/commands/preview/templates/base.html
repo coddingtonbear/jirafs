@@ -1,6 +1,8 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>{{title}}</title>
+        <meta charset="UTF-8">
         <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
         <style type="text/css">
             body {
@@ -82,6 +84,7 @@
 
                 source.addEventListener("counter", function (event) { 
                     if (counter > -1 && parseInt(event.data) > counter) {
+                        source.close()
                         endSessionOnUnload = false
                         window.location.reload()
                     } else {
