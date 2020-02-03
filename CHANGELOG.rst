@@ -1,3 +1,12 @@
+2.1.3
+-----
+
+* Fixes a bug preventing the ``match`` subcommand from being able
+  to properly obtain field values.  (Issue #60)
+* Fixes a bug that would cause an exception to be raised when calculating
+  field differences if one's Jira instance either added or removed fields
+  between different ticketfolder versions.  (Issue #59)
+
 2.1.2
 -----
 
