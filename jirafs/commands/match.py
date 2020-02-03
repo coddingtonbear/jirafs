@@ -3,7 +3,6 @@ import os
 import subprocess
 
 from jirafs.plugin import CommandPlugin, CommandResult
-from jirafs.utils import run_command_method_with_kwargs
 
 
 class Command(CommandPlugin):
@@ -87,13 +86,7 @@ class Command(CommandPlugin):
         execute,
         execute_here,
     ):
-        actual_value = run_command_method_with_kwargs(
-            "field",
-            method="get_field_value_by_dotpath",
-            folder=folder,
-            field_name=field_name,
-            raw=raw,
-        )
+        actual_value = folder.get_field_value_by_dotpath(field_name, raw=raw)
 
         if isjson:
             field_value = json.loads(field_value)
