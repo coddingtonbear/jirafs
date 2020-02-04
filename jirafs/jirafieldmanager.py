@@ -54,10 +54,10 @@ class JiraFieldManager(dict):
                 yield k, v
 
     def get_transformed(self, field_name, default=None):
-        if field_name not in self.get_requested_per_ticket_fields():
-            return self[field_name]
-
         try:
+            if field_name not in self.get_requested_per_ticket_fields():
+                return self[field_name]
+
             return self.folder.process_macros(
                 self[field_name], path=self.get_generated_file_path()
             )
