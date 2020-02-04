@@ -1,3 +1,11 @@
+2.1.4
+-----
+
+* Fixes a bug in which search results from ``search_users`` were not
+  being displayed.  (Issue #61)
+* Fixes another field deletion/addition problem relating to Issue #59
+  (see release notes for 2.1.3 for more).
+
 2.1.3
 -----
 
