@@ -41,7 +41,7 @@ class Command(DirectOutputCommandPlugin):
                 [user.displayName, user.name, user.emailAddress, user.timeZone]
             )
 
-        return CommandResult(table)
+        return CommandResult(str(table))
 
     def add_arguments(self, parser):
         parser.add_argument("terms", nargs="*")

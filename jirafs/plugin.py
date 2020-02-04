@@ -340,7 +340,7 @@ class CommandPlugin(JirafsPluginBase):
         return result
 
     def handle(self, *args, **kwargs) -> None:
-        self.cmd(*args, **kwargs)
+        return self.cmd(*args, **kwargs)
 
     def cmd(self, *args, **kwargs) -> None:
         # By default, no return value; just execute and move along
