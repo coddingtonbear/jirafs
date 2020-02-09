@@ -88,6 +88,12 @@ def main():
         "--traceback", action="store_true", default=False,
     )
     parser.add_argument(
+        "--profile",
+        action="store_true",
+        default=False,
+        help="Generate a stack profile for this operation; requires 'pyinstrument'.",
+    )
+    parser.add_argument(
         "--debugger-port",
         default=58024,
         help=("(Requires --debugger) start debugger on this port."),
@@ -111,7 +117,20 @@ def main():
             )
             ptvsd.wait_for_attach()
         except ImportError:
-            print(f"{term.red}Module 'ptvsd' required for debugging." f"{term.normal}")
+            print(f"{term.red}Module 'ptvsd' required for debugging.{term.normal}")
+            sys.exit(1)
+
+    if args.profile:
+        try:
+            import pyinstrument
+
+            profiler = pyinstrument.Profiler()
+            profiler.start()
+        except ImportError:
+            print(
+                f"{term.red}Module 'pyinstrument' required for profiling."
+                f"{term.normal}"
+            )
             sys.exit(1)
 
     logging.config.dictConfig(LOGGING)
@@ -239,3 +258,7 @@ def main():
         if args.traceback:
             traceback.print_exc()
         sys.exit(90)
+    finally:
+        if args.profile:
+            profiler.stop()
+            print(profiler.output_text(unicode=True, color=True))
