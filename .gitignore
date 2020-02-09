@@ -16,3 +16,5 @@ share/*
 env/
 local/
 temp/
+.mypy_cache/
+package-lock.json
