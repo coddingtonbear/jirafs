@@ -5,7 +5,7 @@ from jirafs.plugin import CommandPlugin
 
 
 class Command(CommandPlugin):
-    """ Get the status of the current ticketfolder """
+    """ Set a field of the current issue """
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "2.0.0"
