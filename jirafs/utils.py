@@ -8,9 +8,10 @@ import pkg_resources
 import re
 import subprocess
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 from jira.client import JIRA
+from jira.resources import Comment
 from distutils.version import LooseVersion
 
 from . import constants
@@ -309,6 +310,15 @@ def find_files_referenced_in_markup(markup: str) -> Dict[str, Tuple[str, int, in
             )
 
     return matched_files
+
+
+def get_comment_author_display(comment: Comment) -> Optional[str]:
+    if hasattr(comment.author, "name"):
+        return comment.author.name
+    elif hasattr(comment.author, "displayName"):
+        return comment.author.displayName
+
+    return None
 
 
 PostStatusResponse = collections.namedtuple("PostStatusResponse", ["new", "hash"])
