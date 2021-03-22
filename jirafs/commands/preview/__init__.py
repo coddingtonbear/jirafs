@@ -8,7 +8,7 @@ import time
 import traceback
 import uuid
 import webbrowser
-from http.server import ThreadingHTTPServer
+from http.server import HTTPServer
 from http.server import SimpleHTTPRequestHandler
 
 from dateutil.parser import parse
@@ -344,7 +344,7 @@ class Command(CommandPlugin):
             IssueRequestHandler.folder = folder
             IssueRequestHandler.get_converted_markup = get_converted_markup
 
-            server = ThreadingHTTPServer(("", port), IssueRequestHandler)
+            server = HTTPServer(("", port), IssueRequestHandler)
             server.timeout = 0.1
             print(f"Serving from http://127.0.0.1:{port}")
             print("Press <Ctrl+C> to Exit")
