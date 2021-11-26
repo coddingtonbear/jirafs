@@ -5,7 +5,7 @@ from jirafs.plugin import CommandPlugin
 
 
 class Command(CommandPlugin):
-    """ Enable/Disable or display information about installed issue plugins """
+    """Enable/Disable or display information about installed issue plugins"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"
@@ -28,13 +28,18 @@ class Command(CommandPlugin):
             "--disabled-only", dest="disabled_only", action="store_true", default=False
         )
         parser.add_argument(
-            "--enable", type=str,
+            "--enable",
+            type=str,
         )
         parser.add_argument(
-            "--disable", type=str,
+            "--disable",
+            type=str,
         )
         parser.add_argument(
-            "--global", dest="set_global", default=False, action="store_true",
+            "--global",
+            dest="set_global",
+            default=False,
+            action="store_true",
         )
 
     def build_plugin_dict(self, enabled, available):
@@ -60,14 +65,18 @@ class Command(CommandPlugin):
         if args.enable:
             if args.set_global:
                 utils.set_global_config_value(
-                    "plugins", args.enable, "enabled",
+                    "plugins",
+                    args.enable,
+                    "enabled",
                 )
             else:
                 folder.set_config_value("plugins", args.enable, "enabled")
         elif args.disable:
             if args.set_global:
                 utils.set_global_config_value(
-                    "plugins", args.disable, "disabled",
+                    "plugins",
+                    args.disable,
+                    "disabled",
                 )
             else:
                 folder.set_config_value("plugins", args.disable, "disabled")

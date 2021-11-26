@@ -4,7 +4,7 @@ from jirafs.plugin import CommandPlugin, CommandResult
 
 
 class Command(CommandPlugin):
-    """ Get the status of the current ticketfolder """
+    """Get the status of the current ticketfolder"""
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "2.0.0"
@@ -108,7 +108,10 @@ class Command(CommandPlugin):
                 "the following files and then run `jirafs commit`:"
             )
             result = self.format_field_changes(
-                conflicts, "yellow", files_post_message="conflicted", result=result,
+                conflicts,
+                "yellow",
+                files_post_message="conflicted",
+                result=result,
             )
 
         if not printed_changes:
@@ -197,7 +200,10 @@ class Command(CommandPlugin):
                     post_message="(removed issue link)",
                 )
         for field, value_set in changes.get("fields", {}).items():
-            result = result.add_line("\t{t.%s}{field}{t.normal}" % color, field=field,)
+            result = result.add_line(
+                "\t{t.%s}{field}{t.normal}" % color,
+                field=field,
+            )
         if changes.get("new_comment", ""):
             result = result.add_line("\t{t.%s}[New Comment]{t.normal}" % color)
 

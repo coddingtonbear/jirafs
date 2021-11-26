@@ -3,7 +3,7 @@ from jirafs.plugin import CommandPlugin
 
 
 class Command(CommandPlugin):
-    """ Commit local changes for later submission to Jira """
+    """Commit local changes for later submission to Jira"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"

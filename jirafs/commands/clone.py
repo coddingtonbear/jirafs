@@ -9,7 +9,7 @@ from jirafs.ticketfolder import TicketFolder
 
 
 class Command(CommandPlugin):
-    """ Clone a new ticketfolder for the specified ticket URL"""
+    """Clone a new ticketfolder for the specified ticket URL"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"
@@ -44,7 +44,11 @@ class Command(CommandPlugin):
             raise
 
         folder.log(
-            "Issue %s cloned successfully to %s", (folder.issue_url, folder.path,)
+            "Issue %s cloned successfully to %s",
+            (
+                folder.issue_url,
+                folder.path,
+            ),
         )
 
         return folder
@@ -54,10 +58,17 @@ class Command(CommandPlugin):
         if not match:
             raise exceptions.JirafsError("'%s' is not a valid Jira ticket URL." % url)
 
-        return self.clone_from_issue(match, url, path, jira,)
+        return self.clone_from_issue(
+            match,
+            url,
+            path,
+            jira,
+        )
 
     def add_arguments(self, parser):
         parser.add_argument("ticket_url", nargs=1, type=str)
         parser.add_argument(
-            "path", nargs="*", type=str,
+            "path",
+            nargs="*",
+            type=str,
         )

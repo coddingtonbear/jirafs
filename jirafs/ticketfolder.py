@@ -24,7 +24,10 @@ from .exceptions import MacroError
 class TicketFolderLoggerAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         return (
-            "{{{issue_id}}} {msg}".format(issue_id=self.extra["issue_id"], msg=msg,),
+            "{{{issue_id}}} {msg}".format(
+                issue_id=self.extra["issue_id"],
+                msg=msg,
+            ),
             kwargs,
         )
 
@@ -56,7 +59,8 @@ class TicketFolder(object):
         )
         self._logger.addHandler(self._handler)
         self._logger_adapter = TicketFolderLoggerAdapter(
-            self._logger, {"issue_id": self.ticket_number},
+            self._logger,
+            {"issue_id": self.ticket_number},
         )
 
         self.plugins = self.load_plugins()
@@ -98,7 +102,10 @@ class TicketFolder(object):
             for line in in_:
                 ticket_number = line.strip()
                 folder = self.__class__(
-                    self.get_path(ticket_number,), utils.lazy_get_jira()
+                    self.get_path(
+                        ticket_number,
+                    ),
+                    utils.lazy_get_jira(),
                 )
                 self._subtasks.append(folder)
 
@@ -120,7 +127,8 @@ class TicketFolder(object):
             if name not in installed_plugins:
                 # This plugin is not installed.
                 self.log(
-                    "Plugin '%s' is not available.", (name,),
+                    "Plugin '%s' is not available.",
+                    (name,),
                 )
                 continue
 
@@ -130,7 +138,11 @@ class TicketFolder(object):
                 plugin.validate()
             except PluginValidationError as e:
                 self.log(
-                    "Plugin '%s' did not pass validation; not loading: %s.", (name, e,)
+                    "Plugin '%s' did not pass validation; not loading: %s.",
+                    (
+                        name,
+                        e,
+                    ),
                 )
 
             plugins.append(plugin)
@@ -150,7 +162,8 @@ class TicketFolder(object):
             local_config_file = self.get_metadata_path("config")
 
             config = utils.get_config(
-                additional_configs=[local_config_file], include_global=False,
+                additional_configs=[local_config_file],
+                include_global=False,
             )
             if not config.has_section(section):
                 config.add_section(section)
@@ -202,10 +215,17 @@ class TicketFolder(object):
     def store_cached_issue(self, shadow=True):
         storable = {"options": self.issue._options, "raw": self.issue.raw}
         with io.open(
-            self.get_path(".jirafs/issue.json", shadow=shadow), "w", encoding="utf-8",
+            self.get_path(".jirafs/issue.json", shadow=shadow),
+            "w",
+            encoding="utf-8",
         ) as out:
             out.write(
-                json.dumps(storable, indent=4, sort_keys=True, ensure_ascii=False,)
+                json.dumps(
+                    storable,
+                    indent=4,
+                    sort_keys=True,
+                    ensure_ascii=False,
+                )
             )
 
     @property
@@ -216,7 +236,9 @@ class TicketFolder(object):
                 with io.open(issue_path, "r", encoding="utf-8") as _in:
                     storable = json.loads(_in.read())
                     self._cached_issue = Issue(
-                        storable["options"], None, storable["raw"],
+                        storable["options"],
+                        None,
+                        storable["raw"],
                     )
             except IOError:
                 self.log(
@@ -228,7 +250,10 @@ class TicketFolder(object):
 
     @property
     def metadata_dir(self) -> str:
-        return os.path.join(self.path, constants.METADATA_DIR,)
+        return os.path.join(
+            self.path,
+            constants.METADATA_DIR,
+        )
 
     @property
     def git_master(self) -> str:
@@ -236,7 +261,11 @@ class TicketFolder(object):
 
     @property
     def git_merge_base(self) -> str:
-        return self.run_git_command("merge-base", "master", "jira",)
+        return self.run_git_command(
+            "merge-base",
+            "master",
+            "jira",
+        )
 
     @property
     def git_branch(self) -> str:
@@ -271,7 +300,14 @@ class TicketFolder(object):
     def set_remote_file_metadata(self, data, shadow=True):
         remote_files = self.get_path(".jirafs/remote_files.json", shadow=shadow)
         with io.open(remote_files, "w", encoding="utf-8") as out:
-            out.write(json.dumps(data, indent=4, sort_keys=True, ensure_ascii=False,))
+            out.write(
+                json.dumps(
+                    data,
+                    indent=4,
+                    sort_keys=True,
+                    ensure_ascii=False,
+                )
+            )
 
     def get_local_path(self, *args):
         return os.path.join(self.path, *args)
@@ -304,7 +340,10 @@ class TicketFolder(object):
     def initialize_ticket_folder(cls, ticket_url, path, jira):
         path = os.path.realpath(path)
 
-        metadata_path = os.path.join(path, constants.METADATA_DIR,)
+        metadata_path = os.path.join(
+            path,
+            constants.METADATA_DIR,
+        )
         os.mkdir(metadata_path)
 
         with io.open(
@@ -314,7 +353,15 @@ class TicketFolder(object):
 
         # Create bare git repository so we can easily detect changes.
         subprocess.check_call(
-            ("git", "--bare", "init", os.path.join(metadata_path, "git",)),
+            (
+                "git",
+                "--bare",
+                "init",
+                os.path.join(
+                    metadata_path,
+                    "git",
+                ),
+            ),
             stdout=subprocess.PIPE,
         )
         subprocess.check_call(
@@ -342,7 +389,10 @@ class TicketFolder(object):
         instance = cls(path, jira, migrate=False)
         instance.log(
             "Ticket folder for issue %s created at %s",
-            (instance.ticket_number, instance.path,),
+            (
+                instance.ticket_number,
+                instance.path,
+            ),
         )
         instance.run_git_command("add", "-A")
         instance.run_git_command("commit", "--allow-empty", "-m", "Initialized")
@@ -406,7 +456,14 @@ class TicketFolder(object):
 
     def get_local_file_at_revision(self, path, revision, failure_ok=True, binary=False):
         return self.run_git_command(
-            "show", "%s:%s" % (revision, path,), failure_ok=failure_ok, binary=binary,
+            "show",
+            "%s:%s"
+            % (
+                revision,
+                path,
+            ),
+            failure_ok=failure_ok,
+            binary=binary,
         )
 
     def get_ignore_globs(self, which=constants.LOCAL_ONLY_FILE):
@@ -457,7 +514,9 @@ class TicketFolder(object):
         conflicts = {}
 
         conflicted_files = self.run_git_command(
-            "diff", "--name-only", "--diff-filter=U",
+            "diff",
+            "--name-only",
+            "--diff-filter=U",
         ).strip()
 
         if conflicted_files:
@@ -493,7 +552,9 @@ class TicketFolder(object):
 
         changed_files = self.filter_ignored_files(
             self.run_git_command(
-                "diff", "--name-only", "%s..master" % self.git_merge_base,
+                "diff",
+                "--name-only",
+                "%s..master" % self.git_merge_base,
             ).split("\n"),
             constants.LOCAL_ONLY_FILE,
         )
@@ -633,7 +694,10 @@ class TicketFolder(object):
                 except PluginValidationError as e:
                     self.log(
                         "Plugin '%s' did not pass validation; " "not loading: %s.",
-                        (entrypoint_name, e,),
+                        (
+                            entrypoint_name,
+                            e,
+                        ),
                     )
 
                 plugins.append(plugin)
@@ -781,7 +845,12 @@ class TicketFolder(object):
                     if not isinstance(data, dict):
                         raise exceptions.JirafsError(
                             "Key '%s' (of dotpath '%s') is not an object "
-                            "in field '%s'." % (component, key_dotpath, field_name,)
+                            "in field '%s'."
+                            % (
+                                component,
+                                key_dotpath,
+                                field_name,
+                            )
                         )
                     elif component not in data:
                         if "default" in kwargs:
@@ -796,7 +865,11 @@ class TicketFolder(object):
             except (ValueError, TypeError):
                 raise exceptions.JirafsError(
                     "Field '%s' could not be parsed as JSON for retrieving "
-                    "dotpath '%s'." % (field_name, key_dotpath,)
+                    "dotpath '%s'."
+                    % (
+                        field_name,
+                        key_dotpath,
+                    )
                 )
 
         return data
@@ -807,7 +880,10 @@ class TicketFolder(object):
 
         try:
             self.run_git_command(
-                "merge-base", "--is-ancestor", jira_commit, master_commit,
+                "merge-base",
+                "--is-ancestor",
+                jira_commit,
+                master_commit,
             )
         except exceptions.GitCommandError:
             return False
@@ -864,7 +940,13 @@ class TicketFolder(object):
             self.get_local_path(constants.GIT_EXCLUDE_FILE), "w", "utf-8"
         ) as out:
             for line in metadata_excludes:
-                out.write("%s/%s\n" % (constants.METADATA_DIR, line,))
+                out.write(
+                    "%s/%s\n"
+                    % (
+                        constants.METADATA_DIR,
+                        line,
+                    )
+                )
             subtask_list_path = self.get_metadata_path("subtasks")
             if os.path.exists(subtask_list_path):
                 with open(subtask_list_path, "r") as in_:

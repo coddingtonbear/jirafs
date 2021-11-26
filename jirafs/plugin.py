@@ -185,7 +185,8 @@ class JirafsPluginBase(object):
     @property
     def metadata_filename(self) -> str:
         return self.ticketfolder.get_metadata_path(
-            "plugin_meta", "%s.json" % self.entrypoint_name,
+            "plugin_meta",
+            "%s.json" % self.entrypoint_name,
         )
 
     def get_configuration(self) -> Dict:
@@ -203,7 +204,13 @@ class JirafsPluginBase(object):
 
     def _set_metadata(self, data):
         with open(self.metadata_filename, "w") as out:
-            out.write(json.dumps(data, indent=4, sort_keys=True,))
+            out.write(
+                json.dumps(
+                    data,
+                    indent=4,
+                    sort_keys=True,
+                )
+            )
 
     @property
     def metadata(self):
@@ -353,7 +360,11 @@ class CommandPlugin(JirafsPluginBase):
         return getattr(self, "TRY_SUBFOLDERS", False)
 
     def auto_instantiate_folder(self) -> bool:
-        return getattr(self, "AUTOMATICALLY_INSTANTIATE_FOLDER", True,)
+        return getattr(
+            self,
+            "AUTOMATICALLY_INSTANTIATE_FOLDER",
+            True,
+        )
 
 
 class DirectOutputCommandPlugin(CommandPlugin):
@@ -385,7 +396,10 @@ class MacroPlugin(Plugin):
 
     def get_matchers(self) -> List[Pattern]:
         return [
-            re.compile(rex.format(tag_name=self.tag_name), re.MULTILINE | re.DOTALL,)
+            re.compile(
+                rex.format(tag_name=self.tag_name),
+                re.MULTILINE | re.DOTALL,
+            )
             for rex in self.MATCHERS
         ]
 
@@ -540,7 +554,11 @@ class MacroPlugin(Plugin):
             body = data.get("content")
             if "src" in attrs:
                 with open(
-                    os.path.join(self.ticketfolder.path, attrs["src"],), "r"
+                    os.path.join(
+                        self.ticketfolder.path,
+                        attrs["src"],
+                    ),
+                    "r",
                 ) as inf:
                     body = inf.read()
 
@@ -611,7 +629,12 @@ class MacroPlugin(Plugin):
 
 
 class AutomaticReversalMacroPlugin(MacroPlugin):
-    def should_rerender(self, data: str, cache_entry: Dict, config: Dict,) -> bool:
+    def should_rerender(
+        self,
+        data: str,
+        cache_entry: Dict,
+        config: Dict,
+    ) -> bool:
         if cache_entry:
             return False
 
@@ -708,7 +731,9 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
                 target.add(filename)
             del cache[key]
             logger.debug(
-                "%s: deleting cache key %s", self.entrypoint_name, key,
+                "%s: deleting cache key %s",
+                self.entrypoint_name,
+                key,
             )
 
         with open(self.ticketfolder.get_path(constants.TICKET_COMMENTS), "r") as inf:
@@ -758,7 +783,8 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
             data = data.replace(
                 replacement,
                 self.generate_tag_from_data_and_attrs(
-                    original["data"], original["attrs"],
+                    original["data"],
+                    original["attrs"],
                 ),
             )
 
@@ -788,7 +814,11 @@ class AutomaticReversalMacroPlugin(MacroPlugin):
 
         if replacement:
             self.store_cache_entry(
-                replacement, filenames, attrs, hashed, config,
+                replacement,
+                filenames,
+                attrs,
+                hashed,
+                config,
             )
             self.metadata.setdefault("replacements", {})[replacement] = {
                 "data": data,
@@ -820,7 +850,10 @@ class ImageMacroPlugin(AutomaticReversalMacroPlugin):
         filename = attrs.get("filename", f"{self.tag_name}.{hashed}.{extension}")
 
         assert isinstance(filename, str)
-        file_path = os.path.join(generated_path, filename,)
+        file_path = os.path.join(
+            generated_path,
+            filename,
+        )
         with open(file_path, "wb") as outf:
             outf.write(image_data)
 

@@ -4,7 +4,7 @@ from jirafs.plugin import CommandPlugin
 
 
 class Command(CommandPlugin):
-    """ Run a git command against this ticketfolder's underlying GIT repo """
+    """Run a git command against this ticketfolder's underlying GIT repo"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"

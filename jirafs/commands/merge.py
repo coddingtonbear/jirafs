@@ -7,7 +7,7 @@ from jirafs.jiralinkmanager import JiraLinkManager
 
 
 class Command(CommandPlugin):
-    """ Merge remote changes into your local copy """
+    """Merge remote changes into your local copy"""
 
     RUN_FOR_SUBTASKS = True
     TRY_SUBFOLDERS = True
@@ -62,7 +62,9 @@ class Command(CommandPlugin):
                 )
 
             conflicted_files = folder.run_git_command(
-                "diff", "--name-only", "--diff-filter=U",
+                "diff",
+                "--name-only",
+                "--diff-filter=U",
             ).strip()
             if conflicted_files:
                 folder.log(

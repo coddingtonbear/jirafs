@@ -3,7 +3,7 @@ from jirafs.utils import run_command_method_with_kwargs
 
 
 class Command(CommandPlugin):
-    """ Fetch and merge remote changes """
+    """Fetch and merge remote changes"""
 
     RUN_FOR_SUBTASKS = True
     TRY_SUBFOLDERS = True

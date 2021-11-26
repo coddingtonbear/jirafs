@@ -130,7 +130,10 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
         matches_in_reverse_order = sorted(
             [
-                (filename, match_data,)
+                (
+                    filename,
+                    match_data,
+                )
                 for filename, match_data in referenced_files.items()
             ],
             key=lambda match: -1 * match[1][2],
@@ -270,7 +273,7 @@ class IssueRequestHandler(SimpleHTTPRequestHandler):
 
 
 class Command(CommandPlugin):
-    """ Preview your Jira wiki markup """
+    """Preview your Jira wiki markup"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"

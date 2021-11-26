@@ -88,14 +88,18 @@ class JiraFieldManager(dict):
         try:
             for field in self.get_used_per_ticket_fields():
                 all_files.append(
-                    constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field,)
+                    constants.TICKET_FILE_FIELD_TEMPLATE.format(
+                        field_name=field,
+                    )
                 )
         except NotImplementedError:
             pass
 
         for field in self.get_requested_per_ticket_fields():
             all_files.append(
-                constants.TICKET_FILE_FIELD_TEMPLATE.format(field_name=field,)
+                constants.TICKET_FILE_FIELD_TEMPLATE.format(
+                    field_name=field,
+                )
             )
 
         return all_files
@@ -109,7 +113,7 @@ class JiraFieldManager(dict):
         data[field_name] = value
 
     def get_fields_from_string(self, string):
-        """ Gets field data from an incoming string.
+        """Gets field data from an incoming string.
 
         Parses through the string using the following RST-derived
         pattern::
@@ -204,7 +208,8 @@ class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
                 if field not in used_fields | requested_fields:
                     out.write(
                         u"* {human} ({field}):\n".format(
-                            human=self.get_human_name_for_field(field), field=field,
+                            human=self.get_human_name_for_field(field),
+                            field=field,
                         )
                     )
 
@@ -213,7 +218,10 @@ class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
                         field_string = ""
                     elif not isinstance(field_string, str):
                         field_string = json.dumps(
-                            field_string, sort_keys=True, indent=4, ensure_ascii=False,
+                            field_string,
+                            sort_keys=True,
+                            indent=4,
+                            ensure_ascii=False,
                         )
 
                     # Each line is preceded by 4 spaces of whitespace

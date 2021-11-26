@@ -9,7 +9,7 @@ from jirafs.plugin import CommandPlugin
 
 
 class Command(CommandPlugin):
-    """ Fetch remote changes """
+    """Fetch remote changes"""
 
     TRY_SUBFOLDERS = True
     RUN_FOR_SUBTASKS = False
@@ -33,7 +33,8 @@ class Command(CommandPlugin):
             for attachment in folder.issue.fields.attachment:
                 if attachment.filename == filename:
                     folder.log(
-                        'Download file "%s"', (attachment.filename,),
+                        'Download file "%s"',
+                        (attachment.filename,),
                     )
                     content = io.BytesIO(attachment.get())
                     save_path = folder.get_shadow_path(filename)

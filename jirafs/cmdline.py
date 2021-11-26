@@ -73,19 +73,26 @@ def main():
     commands = utils.get_installed_commands()
 
     parser = argparse.ArgumentParser(
-        description="Edit Jira issues locally from your filesystem", add_help=False,
+        description="Edit Jira issues locally from your filesystem",
+        add_help=False,
     )
     parser.add_argument("command", type=str, choices=commands.keys())
     parser.add_argument("--subtasks", action="store_true", default=False)
     parser.add_argument(
-        "--log-level", default="INFO", dest="log_level",
+        "--log-level",
+        default="INFO",
+        dest="log_level",
     )
     parser.add_argument("--folder", default=os.getcwd())
     parser.add_argument(
-        "--no-subfolders", action="store_true", default=False,
+        "--no-subfolders",
+        action="store_true",
+        default=False,
     )
     parser.add_argument(
-        "--traceback", action="store_true", default=False,
+        "--traceback",
+        action="store_true",
+        default=False,
     )
     parser.add_argument(
         "--profile",
@@ -188,7 +195,10 @@ def main():
 
         count_runs = 0
         for folder in os.listdir(os.getcwd()):
-            full_path = os.path.join(os.getcwd(), folder,)
+            full_path = os.path.join(
+                os.getcwd(),
+                folder,
+            )
             if not os.path.isdir(full_path):
                 continue
 

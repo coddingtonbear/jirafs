@@ -26,7 +26,10 @@ class Command(CommandPlugin):
         commands = utils.get_installed_commands()
         jira = utils.lazy_get_jira()
         commands["fetch"].execute_command(
-            [], jira=jira, path=folder.path, command_name="fetch",
+            [],
+            jira=jira,
+            path=folder.path,
+            command_name="fetch",
         )
 
     def add_arguments(self, parser):

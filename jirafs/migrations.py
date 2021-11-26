@@ -12,7 +12,10 @@ def set_repo_version(repo, version):
     with open(repo.get_metadata_path("version"), "w") as out:
         out.write(str(version))
     repo.run_git_command(
-        "add", "-f", repo.get_metadata_path("version"), failure_ok=True,
+        "add",
+        "-f",
+        repo.get_metadata_path("version"),
+        failure_ok=True,
     )
     repo.run_git_command(
         "commit", "-m", "Upgraded Repository to v%s" % version, failure_ok=True
@@ -20,7 +23,7 @@ def set_repo_version(repo, version):
 
 
 def migration_0002(repo, **kwargs):
-    """ Creates shadow repository used for storing remote values """
+    """Creates shadow repository used for storing remote values"""
     os.mkdir(repo.get_metadata_path("shadow"))
     subprocess.check_call(
         ("git", "clone", "-q", "../git", "."),
@@ -37,7 +40,7 @@ def migration_0002(repo, **kwargs):
 
 
 def migration_0003(repo, init=False, **kwargs):
-    """ Creates a shadow copy of the issue.
+    """Creates a shadow copy of the issue.
 
     .. note::
 
@@ -61,7 +64,7 @@ def migration_0003(repo, init=False, **kwargs):
 
 
 def migration_0004(repo, **kwargs):
-    """ Moves remote_files.json into version control. """
+    """Moves remote_files.json into version control."""
     local_remote_files_path = repo.get_metadata_path("remote_files.json")
     jira_remote_files_path = repo.get_shadow_path(".jirafs/remote_files.json")
     try:
@@ -78,7 +81,7 @@ def migration_0004(repo, **kwargs):
 
 
 def migration_0005(repo, init=False, **kwargs):
-    """ Dummy migration for RST->Jira format change.
+    """Dummy migration for RST->Jira format change.
 
     Note: TicketFolders older than version 5 cannot be upgraded past
     version 5; although I had written a migration for this originally,
@@ -96,13 +99,16 @@ def migration_0005(repo, init=False, **kwargs):
     )
 
     repo.clone(
-        repo.issue_url, repo.get_jira, temp_path,
+        repo.issue_url,
+        repo.get_jira,
+        temp_path,
     )
     temp_dir = os.listdir(temp_path)
     for filename in os.listdir(repo_path):
         if filename not in temp_dir and not filename.endswith(".jira.rst"):
             shutil.copyfile(
-                os.path.join(repo_path, filename), os.path.join(temp_path, filename),
+                os.path.join(repo_path, filename),
+                os.path.join(temp_path, filename),
             )
 
     shutil.rmtree(repo_path)
@@ -112,7 +118,7 @@ def migration_0005(repo, init=False, **kwargs):
 
 
 def migration_0006(repo, init=False, **kwargs):
-    """ Fix a glitch preventing folders from being completely portable.
+    """Fix a glitch preventing folders from being completely portable.
 
     Early versions of Jirafs would write an absolute path to the ignore
     file to the local git configuration, but that's not very desirable
@@ -127,7 +133,11 @@ def migration_0006(repo, init=False, **kwargs):
 
     repo.run_git_command(
         "config",
-        "--file=%s" % repo.get_metadata_path("git", "config",),
+        "--file=%s"
+        % repo.get_metadata_path(
+            "git",
+            "config",
+        ),
         "core.excludesfile",
         ".jirafs/gitignore",
     )
@@ -136,20 +146,31 @@ def migration_0006(repo, init=False, **kwargs):
 
 
 def migration_0007(repo, init=False, **kwargs):
-    """ Create the plugin metadata directory."""
+    """Create the plugin metadata directory."""
     try:
-        os.mkdir(repo.get_metadata_path("plugin_meta",))
+        os.mkdir(
+            repo.get_metadata_path(
+                "plugin_meta",
+            )
+        )
     except OSError:
         pass
     with open(repo.get_metadata_path("plugin_meta", ".empty"), "w") as out:
         out.write("")
-    repo.run_git_command("add", "-f", repo.get_metadata_path("plugin_meta", ".empty",))
+    repo.run_git_command(
+        "add",
+        "-f",
+        repo.get_metadata_path(
+            "plugin_meta",
+            ".empty",
+        ),
+    )
     repo.run_git_command("commit", "-m", "Completing migration_0007", failure_ok=True)
     set_repo_version(repo, 7)
 
 
 def migration_0008(repo, init=False, **kwargs):
-    """ Commit most of .jirafs folder to git so we can back up. """
+    """Commit most of .jirafs folder to git so we can back up."""
     if init:
         set_repo_version(repo, 8)
         return
@@ -157,7 +178,8 @@ def migration_0008(repo, init=False, **kwargs):
     with open(repo.get_metadata_path("gitignore"), "w") as out:
         out.write("\n".join([".jirafs/git", ".jirafs/shadow", ".jirafs/operation.log"]))
     repo.run_git_command(
-        "add", ".jirafs/gitignore",
+        "add",
+        ".jirafs/gitignore",
     )
     repo.run_git_command("commit", "-m", "Updating gitignore", failure_ok=True)
 
@@ -175,7 +197,7 @@ def migration_0008(repo, init=False, **kwargs):
 
 
 def migration_0009(repo, init=False, **kwargs):
-    """ Re-clone shadow copy so it does not reference an absolute path."""
+    """Re-clone shadow copy so it does not reference an absolute path."""
     if init:
         set_repo_version(repo, 9)
 
@@ -197,12 +219,12 @@ def migration_0009(repo, init=False, **kwargs):
 
 
 def migration_0010(repo, init=False, **kwargs):
-    """ Make sure that the operation.log and plugin_meta are untracked/tracked.
+    """Make sure that the operation.log and plugin_meta are untracked/tracked.
 
     * ``operation.log`` *cannot* be tracked, since if we make a change,
       followed by a stash pop, operation.log may have encountered changes
       since then.
-    * ``plugin_meta`` *must* be tracked, or when we pop stash, 
+    * ``plugin_meta`` *must* be tracked, or when we pop stash,
 
     """
     if init:
@@ -212,10 +234,16 @@ def migration_0010(repo, init=False, **kwargs):
     with open(repo.get_metadata_path("gitignore"), "w") as out:
         out.write("\n".join([".jirafs/git", ".jirafs/shadow", ".jirafs/operation.log"]))
     repo.run_git_command(
-        "add", "-f", ".jirafs/gitignore",
+        "add",
+        "-f",
+        ".jirafs/gitignore",
     )
     try:
-        os.mkdir(repo.get_metadata_path("plugin_meta",))
+        os.mkdir(
+            repo.get_metadata_path(
+                "plugin_meta",
+            )
+        )
     except OSError:
         # Already exists
         pass
@@ -223,14 +251,18 @@ def migration_0010(repo, init=False, **kwargs):
         out.write("")
     repo.run_git_command("add", "-f", repo.get_metadata_path("plugin_meta", ".empty"))
     repo.run_git_command(
-        "rm", "-f", "--cached", ".jirafs/operation.log", failure_ok=True,
+        "rm",
+        "-f",
+        "--cached",
+        ".jirafs/operation.log",
+        failure_ok=True,
     )
     repo.run_git_command("commit", "-m", "Completing migration_0010", failure_ok=True)
     set_repo_version(repo, 10)
 
 
 def migration_0011(repo, init=False, **kwargs):
-    """ Re-clone shadow copy so it does not reference an absolute path.
+    """Re-clone shadow copy so it does not reference an absolute path.
 
     .. note::
 
@@ -265,7 +297,7 @@ def migration_0011(repo, init=False, **kwargs):
 
 
 def migration_0012(repo, init=False, **kwargs):
-    """ Force the shadow repository to use a relative URL."""
+    """Force the shadow repository to use a relative URL."""
     subprocess.check_call(
         ("git", "remote", "set-url", "origin", "../git"),
         cwd=repo.get_metadata_path("shadow"),
@@ -277,7 +309,7 @@ def migration_0012(repo, init=False, **kwargs):
 
 
 def migration_0013(repo, init=False, **kwargs):
-    """ Ensure that folder URL is written to issue_url file."""
+    """Ensure that folder URL is written to issue_url file."""
     if init:
         set_repo_version(repo, 13)
         return
@@ -289,7 +321,10 @@ def migration_0013(repo, init=False, **kwargs):
 
     jira_base = utils.get_default_jira_server()
     ticket_number = repo.path.split("/")[-1:][0].upper()
-    issue_url = parse.urljoin(jira_base, "browse/" + ticket_number + "/",)
+    issue_url = parse.urljoin(
+        jira_base,
+        "browse/" + ticket_number + "/",
+    )
 
     with open(repo.get_metadata_path("issue_url", "w")) as out:
         out.write(issue_url)
@@ -307,23 +342,30 @@ def migration_0014(repo, init=False, **kwargs):
 
     if os.path.exists(repo.get_local_path(".jirafs_ignore")):
         shutil.copyfile(
-            repo.get_local_path(".jirafs_ignore"), repo.get_local_path(".jirafs_local"),
+            repo.get_local_path(".jirafs_ignore"),
+            repo.get_local_path(".jirafs_local"),
         )
         repo.run_git_command(
-            "add", ".jirafs_local",
+            "add",
+            ".jirafs_local",
         )
     if os.path.exists(repo.get_metadata_path("gitignore")):
         shutil.copyfile(
             repo.get_metadata_path("gitignore"), repo.get_local_path(".jirafs_ignore")
         )
         repo.run_git_command(
-            "add", ".jirafs_ignore",
+            "add",
+            ".jirafs_ignore",
         )
         repo.run_git_command("rm", repo.get_metadata_path("gitignore"))
 
     repo.run_git_command(
         "config",
-        "--file=%s" % repo.get_metadata_path("git", "config",),
+        "--file=%s"
+        % repo.get_metadata_path(
+            "git",
+            "config",
+        ),
         "core.excludesfile",
         ".jirafs/combined_ignore",
     )
@@ -345,12 +387,12 @@ def migration_0014(repo, init=False, **kwargs):
 
 
 def migration_0015(repo, init=False, **kwargs):
-    """ No-op; was previously something else."""
+    """No-op; was previously something else."""
     set_repo_version(repo, 15)
 
 
 def migration_0016(repo, init=False, **kwargs):
-    """ Add the 'macros_applied.patch' file to the repository."""
+    """Add the 'macros_applied.patch' file to the repository."""
     macro_path = repo.get_metadata_path("macros_applied.patch")
     if not os.path.exists(macro_path):
         with open(macro_path, "w") as out:

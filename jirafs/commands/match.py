@@ -6,7 +6,7 @@ from jirafs.plugin import CommandPlugin, CommandResult
 
 
 class Command(CommandPlugin):
-    """ Check whether a given dotpath matches an expected value """
+    """Check whether a given dotpath matches an expected value"""
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "2.0.0"
@@ -26,8 +26,12 @@ class Command(CommandPlugin):
         )
 
     def add_arguments(self, parser):
-        parser.add_argument("field_name",)
-        parser.add_argument("field_value",)
+        parser.add_argument(
+            "field_name",
+        )
+        parser.add_argument(
+            "field_value",
+        )
         parser.add_argument(
             "--json",
             help=("Process the provided field value as JSON"),
@@ -97,7 +101,9 @@ class Command(CommandPlugin):
         if success:
             comparison_result = u" == "
         message = u"{left} {comparison} {right}".format(
-            left=actual_value, comparison=comparison_result, right=field_value,
+            left=actual_value,
+            comparison=comparison_result,
+            right=field_value,
         )
 
         if negate:

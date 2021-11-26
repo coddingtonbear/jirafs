@@ -5,7 +5,7 @@ from jirafs.plugin import CommandPlugin, CommandResult
 
 
 class Command(CommandPlugin):
-    """ Get the status of the current ticketfolder """
+    """Get the status of the current ticketfolder"""
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "2.0.0"
@@ -27,7 +27,9 @@ class Command(CommandPlugin):
             action="store_true",
             default=False,
         )
-        parser.add_argument("field_name",)
+        parser.add_argument(
+            "field_name",
+        )
 
     def main(self, folder, field_name, raw=False, formatted=False):
         special_fields = {

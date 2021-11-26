@@ -45,7 +45,11 @@ class Command(CommandPlugin):
         while True:
             if field.get("default"):
                 value = input(
-                    "%s (%s): " % (field.get("prompt"), field.get("default"),)
+                    "%s (%s): "
+                    % (
+                        field.get("prompt"),
+                        field.get("default"),
+                    )
                 )
             else:
                 value = input("%s: " % (field.get("prompt")))
@@ -78,7 +82,10 @@ class Command(CommandPlugin):
         issue = jira_client.create_issue(issue_data)
 
         return run_command_method_with_kwargs(
-            "clone", path=None, url=issue.permalink(), jira=jira,
+            "clone",
+            path=None,
+            url=issue.permalink(),
+            jira=jira,
         )
 
     def add_arguments(self, parser):

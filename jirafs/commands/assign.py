@@ -10,10 +10,14 @@ class Command(CommandPlugin):
     def main(self, args, folder, **kwargs):
         username = args.username
         if not username:
-            username = folder.get_config().get(folder.jira_base, "username",)
+            username = folder.get_config().get(
+                folder.jira_base,
+                "username",
+            )
         folder.jira.assign_issue(folder.issue, username)
         folder.log(
-            "Successfully assigned %s to %s.", args=(folder.issue.key, username),
+            "Successfully assigned %s to %s.",
+            args=(folder.issue.key, username),
         )
 
     def add_arguments(self, parser):

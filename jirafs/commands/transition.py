@@ -6,7 +6,7 @@ from jirafs.exceptions import JiraInteractionFailed
 
 
 class Command(CommandPlugin):
-    """ Transition the current issue into a new state """
+    """Transition the current issue into a new state"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"

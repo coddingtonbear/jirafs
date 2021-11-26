@@ -5,7 +5,7 @@ from jirafs.plugin import CommandPlugin
 
 
 class Command(CommandPlugin):
-    """ Set a field of the current issue """
+    """Set a field of the current issue"""
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "2.0.0"
@@ -15,8 +15,12 @@ class Command(CommandPlugin):
         return self.cmd(folder, args.field_name, args.value, as_json=args.json)
 
     def add_arguments(self, parser):
-        parser.add_argument("field_name",)
-        parser.add_argument("value",)
+        parser.add_argument(
+            "field_name",
+        )
+        parser.add_argument(
+            "value",
+        )
         parser.add_argument(
             "--json",
             help=("Interpret value argument as JSON data."),
@@ -53,19 +57,33 @@ class Command(CommandPlugin):
                     elif not isinstance(cursor.get(component), dict):
                         raise JirafsError(
                             "Key '%s' (of dotpath '%s') is not an object "
-                            "in field '%s'." % (component, key_dotpath, field_name,)
+                            "in field '%s'."
+                            % (
+                                component,
+                                key_dotpath,
+                                field_name,
+                            )
                         )
                     else:
                         if component not in data:
                             raise JirafsError(
                                 "Key '%s' (of dotpath '%s') could not be found "
-                                "in field '%s'." % (component, key_dotpath, field_name,)
+                                "in field '%s'."
+                                % (
+                                    component,
+                                    key_dotpath,
+                                    field_name,
+                                )
                             )
                         cursor = cursor[component]
             except (ValueError, TypeError):
                 raise JirafsError(
                     "Field '%s' could not be parsed as JSON for retrieving "
-                    "dotpath '%s'." % (field_name, key_dotpath,)
+                    "dotpath '%s'."
+                    % (
+                        field_name,
+                        key_dotpath,
+                    )
                 )
             value = data
         else:

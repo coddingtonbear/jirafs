@@ -234,7 +234,8 @@ def get_jira(domain=None, config=None):
 
     if not config.has_option(section, "password"):
         value = get_user_input(
-            "Jira Password (%s):" % login_data["server"], password=True,
+            "Jira Password (%s):" % login_data["server"],
+            password=True,
         )
         login_data["password"] = value
 
@@ -271,7 +272,8 @@ def get_jira(domain=None, config=None):
 
 def get_git_version():
     result = subprocess.check_output(
-        ["git", "--version"], stderr=subprocess.PIPE,
+        ["git", "--version"],
+        stderr=subprocess.PIPE,
     ).decode("utf8")
     version_string = re.match("git version ([0-9.]+).*", result).group(1)
     return LooseVersion(version_string)

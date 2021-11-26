@@ -7,7 +7,7 @@ except ImportError:
 
 
 class Command(CommandPlugin):
-    """ Open a debug console """
+    """Open a debug console"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"

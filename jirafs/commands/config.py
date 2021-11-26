@@ -7,7 +7,7 @@ from jirafs.ticketfolder import TicketFolder
 
 
 class Command(DirectOutputCommandPlugin):
-    """ Get, set, or list global or per-folder configuration values """
+    """Get, set, or list global or per-folder configuration values"""
 
     MIN_VERSION = "2.0.0"
     MAX_VERSION = "3.0.0"

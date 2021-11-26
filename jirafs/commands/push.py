@@ -6,7 +6,7 @@ from jirafs.utils import run_command_method_with_kwargs
 
 
 class Command(CommandPlugin):
-    """ Push locally-committed changes to Jira """
+    """Push locally-committed changes to Jira"""
 
     TRY_SUBFOLDERS = True
     MIN_VERSION = "2.0.0"
@@ -58,7 +58,8 @@ class Command(CommandPlugin):
             deleted = set()
             for filename in status["ready"]["deleted"]:
                 folder.log(
-                    'Deleting file "%s"', (filename,),
+                    'Deleting file "%s"',
+                    (filename,),
                 )
                 for attachment in folder.issue.fields.attachment:
                     if attachment.filename == filename and attachment.id not in deleted:
@@ -70,7 +71,8 @@ class Command(CommandPlugin):
                     folder.get_local_file_at_revision(filename, "HEAD", binary=True)
                 )
                 folder.log(
-                    'Uploading file "%s"', (filename,),
+                    'Uploading file "%s"',
+                    (filename,),
                 )
                 # Delete the existing issue if there is one
                 for attachment in folder.issue.fields.attachment:
@@ -78,7 +80,9 @@ class Command(CommandPlugin):
                         attachment.delete()
                 upload.seek(0)
                 attachment = folder.jira.add_attachment(
-                    folder.ticket_number, upload, filename=filename,
+                    folder.ticket_number,
+                    upload,
+                    filename=filename,
                 )
                 file_meta[filename] = attachment.created
 
