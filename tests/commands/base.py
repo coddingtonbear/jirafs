@@ -26,5 +26,8 @@ class BaseCommandTestCase(BaseTestCase):
                 "clone",
                 url="http://arbitrary.com/browse/ALPHA-123",
                 jira=self.mock_get_jira,
-                path=os.path.join(self.root_folder, self.arbitrary_ticket_number,),
+                path=os.path.join(
+                    self.root_folder,
+                    self.arbitrary_ticket_number,
+                ),
             )

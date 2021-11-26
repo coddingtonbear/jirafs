@@ -1,8 +1,8 @@
 import os
 
-from .base import IntegrationTestBase
-
 from jirafs import constants
+
+from .base import IntegrationTestBase
 
 
 class TestCloneIssue(IntegrationTestBase):
@@ -78,7 +78,8 @@ class TestCloneIssue(IntegrationTestBase):
 
         with open(folder.get_path(description_filename), "r") as handle:
             self.assertEqual(
-                data["description"], handle.read().strip(),
+                data["description"],
+                handle.read().strip(),
             )
 
     def test_post_cloning_status(self):
@@ -105,5 +106,6 @@ class TestCloneIssue(IntegrationTestBase):
         ]
         for expectation in assert_strings:
             self.assertIn(
-                expectation, stdout,
+                expectation,
+                stdout,
             )

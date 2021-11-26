@@ -14,7 +14,8 @@ class TestPushCommand(BaseCommandTestCase):
             with patch("jirafs.commands.pull.Command.main") as pull:
                 pull.return_value = True, True
                 run_command_method_with_kwargs(
-                    "push", folder=self.ticketfolder,
+                    "push",
+                    folder=self.ticketfolder,
                 )
 
             self.assertEqual(0, len(update.call_args_list))
@@ -24,8 +25,16 @@ class TestPushCommand(BaseCommandTestCase):
             "ready": {
                 "files": [],
                 "fields": {
-                    "somefield": ("one", "two", "two",),
-                    "otherfield": ("one", "three", "three",),
+                    "somefield": (
+                        "one",
+                        "two",
+                        "two",
+                    ),
+                    "otherfield": (
+                        "one",
+                        "three",
+                        "three",
+                    ),
                 },
                 "links": {},
                 "deleted": [],
@@ -38,7 +47,8 @@ class TestPushCommand(BaseCommandTestCase):
                 with patch("jirafs.commands.pull.Command.main") as pull:
                     pull.return_value = True, True
                     run_command_method_with_kwargs(
-                        "push", folder=self.ticketfolder,
+                        "push",
+                        folder=self.ticketfolder,
                     )
 
                 self.assertEqual(1, len(update.call_args_list))

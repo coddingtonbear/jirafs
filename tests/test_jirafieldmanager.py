@@ -55,11 +55,17 @@ class TestJiraFieldManager(TestCase):
             "dictionary_field": {"name": "Adam Coddington"},
             "integer_field": 10,
             "string_field": "Hello",
-            "list_field": ["Alphabet", {"One": "Two",}],
+            "list_field": [
+                "Alphabet",
+                {
+                    "One": "Two",
+                },
+            ],
         }
 
         actual_result = JiraFieldManager(encoded_values)
 
         self.assertEqual(
-            expected_result, actual_result,
+            expected_result,
+            actual_result,
         )

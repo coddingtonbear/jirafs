@@ -1,12 +1,15 @@
 import os
+import sys
+
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
-import sys
 
 from jirafs import __version__ as version_string
 
-
-requirements_path = os.path.join(os.path.dirname(__file__), "requirements.txt",)
+requirements_path = os.path.join(
+    os.path.dirname(__file__),
+    "requirements.txt",
+)
 requirements = []
 with open(requirements_path, "r") as in_:
     requirements = [

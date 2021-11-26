@@ -18,7 +18,11 @@ class BaseTestCase(TestCase):
 
     def rehydrate_issue(self, filename):
         stored = json.loads(self.get_asset_contents(filename))
-        return Issue(stored["options"], None, stored["raw"],)
+        return Issue(
+            stored["options"],
+            None,
+            stored["raw"],
+        )
 
     def get_empty_status(self):
         return {

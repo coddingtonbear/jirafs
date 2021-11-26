@@ -31,7 +31,9 @@ def cloned_ticket_with_following_fields(context):
 
     issue_data = {
         "project": {"key": context.integration_testing["project"]},
-        "issuetype": {"name": "Task",},
+        "issuetype": {
+            "name": "Task",
+        },
     }
     for row in context.table:
         issue_data[row[0]] = json.loads(row[1])

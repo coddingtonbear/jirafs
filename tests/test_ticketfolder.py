@@ -5,12 +5,12 @@ import shutil
 import tempfile
 
 import mock
-from mock import patch
 import six
+from mock import patch
 
 from jirafs import exceptions
-from jirafs.utils import run_command_method_with_kwargs
 from jirafs.jirafieldmanager import JiraFieldManager
+from jirafs.utils import run_command_method_with_kwargs
 
 from .base import BaseTestCase
 
@@ -31,7 +31,10 @@ class TestTicketFolder(BaseTestCase):
                 "clone",
                 url="http://arbitrary.com/browse/ALPHA-123",
                 jira=self.mock_get_jira,
-                path=os.path.join(self.root_folder, self.arbitrary_ticket_number,),
+                path=os.path.join(
+                    self.root_folder,
+                    self.arbitrary_ticket_number,
+                ),
             )
 
     def test_cloned_issue_successfully(self):
@@ -66,7 +69,8 @@ class TestTicketFolder(BaseTestCase):
         self.ticketfolder._issue = self.rehydrate_issue("test_fetch/fetched.json")
         with patch.object(self.ticketfolder, "clear_cache") as clear_cache:
             run_command_method_with_kwargs(
-                "fetch", folder=self.ticketfolder,
+                "fetch",
+                folder=self.ticketfolder,
             )
             self.assertTrue(clear_cache.called)
 
@@ -102,7 +106,8 @@ class TestTicketFolder(BaseTestCase):
         src_path = self.get_asset_path("test_fetch/fetched.jira")
         dst_path = self.ticketfolder.get_shadow_path("fields.jira")
         shutil.copyfile(
-            src_path, dst_path,
+            src_path,
+            dst_path,
         )
 
         self.ticketfolder.run_git_command("add", "-A", shadow=True)
@@ -115,7 +120,8 @@ class TestTicketFolder(BaseTestCase):
         src_path = self.get_asset_path("test_status_local_changes/alpha.svg")
         dst_path = self.ticketfolder.get_local_path("alpha.svg")
         shutil.copyfile(
-            src_path, dst_path,
+            src_path,
+            dst_path,
         )
 
         expected_output = self.get_empty_status()
@@ -128,7 +134,8 @@ class TestTicketFolder(BaseTestCase):
         src_path = self.get_asset_path("test_fetch/fetched.jira")
         dst_path = self.ticketfolder.get_local_path("fields.jira")
         shutil.copyfile(
-            src_path, dst_path,
+            src_path,
+            dst_path,
         )
 
         expected_output = self.get_empty_status()
@@ -159,7 +166,11 @@ class TestTicketFolder(BaseTestCase):
             if expected_output[field] != actual_output[field]:
                 self.fail(
                     "Field %s does not match; Actual: %s != Expected: %s"
-                    % (field, actual_output[field], expected_output[field],)
+                    % (
+                        field,
+                        actual_output[field],
+                        expected_output[field],
+                    )
                 )
 
         self.assertEqual(expected_output, actual_output)

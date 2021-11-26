@@ -1,13 +1,13 @@
 import os
-from unittest import TestCase, SkipTest
 import shutil
 import subprocess
 import tempfile
+from unittest import SkipTest, TestCase
 
 from jira.client import JIRA
 
-from jirafs.utils import run_command_method_with_kwargs
 from jirafs.ticketfolder import TicketFolder
+from jirafs.utils import run_command_method_with_kwargs
 
 
 class IntegrationTestBase(TestCase):
@@ -35,7 +35,10 @@ class IntegrationTestBase(TestCase):
 
         self.jira = JIRA(
             {"server": self.jira_env["url"]},
-            basic_auth=(self.jira_env["username"], self.jira_env["password"],),
+            basic_auth=(
+                self.jira_env["username"],
+                self.jira_env["password"],
+            ),
         )
 
         self.created_issues = []
@@ -45,11 +48,16 @@ class IntegrationTestBase(TestCase):
         return self.jira
 
     def get_ticket_folder_for_path(self, path):
-        return TicketFolder(path, self.get_jira,)
+        return TicketFolder(
+            path,
+            self.get_jira,
+        )
 
     def _get_default_fields(self):
         return {
-            "project": {"key": self.jira_env["project"],},
+            "project": {
+                "key": self.jira_env["project"],
+            },
             "issuetype": {"name": "Task"},
         }
 
