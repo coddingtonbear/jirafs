@@ -355,6 +355,8 @@ class TicketFolder(object):
         subprocess.check_call(
             (
                 "git",
+                "-c",
+                "init.defaultBranch={}".format(constants.DEFAULT_BRANCH),
                 "--bare",
                 "init",
                 os.path.join(
@@ -363,6 +365,15 @@ class TicketFolder(object):
                 ),
             ),
             stdout=subprocess.PIPE,
+        )
+        subprocess.check_call(
+            (
+                "git",
+                "config",
+                "--file=%s" % os.path.join(metadata_path, "git", "config"),
+                "init.defaultBranch",
+                constants.DEFAULT_BRANCH,
+            )
         )
         subprocess.check_call(
             (

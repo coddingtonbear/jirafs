@@ -402,3 +402,9 @@ def migration_0016(repo, init=False, **kwargs):
     repo.run_git_command("commit", "-m", "Completing migration_0015", failure_ok=True)
 
     set_repo_version(repo, 16)
+
+
+def migration_0017(repo, init=False, **kwargs):
+    """Set initial branch name if not set."""
+    repo.run_git_command("config", "init.defaultBranch", "master")
+    set_repo_version(repo, 17)

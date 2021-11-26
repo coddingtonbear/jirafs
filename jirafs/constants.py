@@ -18,6 +18,7 @@ METADATA_DIR = ".jirafs"
 GLOBAL_CONFIG = ".jirafs_config"
 TEMP_GENERATED_FILES = ".jirafs/temp-generated"
 GIT_AUTHOR = "Jirafs %s <jirafs@localhost>" % (version)
+DEFAULT_BRANCH = "master"
 
 # Config sections
 CONFIG_JIRA = "jira"
@@ -38,7 +39,7 @@ ALLOW_USER_INPUT = True
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d at %H:%M:%S %Z"
 
-CURRENT_REPO_VERSION = 16
+CURRENT_REPO_VERSION = 17
 
 
 from environmental_override import override  # noqa
