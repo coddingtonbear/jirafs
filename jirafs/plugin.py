@@ -8,7 +8,9 @@ import logging
 import os
 import re
 import sys
+from distutils.version import LooseVersion
 from typing import (
+    TYPE_CHECKING,
     Dict,
     Iterator,
     List,
@@ -17,16 +19,14 @@ from typing import (
     Pattern,
     Set,
     Tuple,
-    TYPE_CHECKING,
     Union,
 )
 
 from blessings import Terminal
-from distutils.version import LooseVersion
 
+from . import __version__, constants
 from .exceptions import MacroAttributeError, MacroContentError, MacroError
 from .types import JirafsMacroAttributes
-from . import __version__, constants
 
 if TYPE_CHECKING:
     from .ticketfolder import TicketFolder
@@ -152,8 +152,8 @@ class CommandResult(str):
 
 
 class JirafsPluginBase(object):
-    MIN_VERSION = None
-    MAX_VERSION = None
+    MIN_VERSION: Optional[str] = None
+    MAX_VERSION: Optional[str] = None
 
     def __init__(self, ticketfolder, entrypoint_name, **kwargs):
         self.ticketfolder: TicketFolder = ticketfolder

@@ -97,10 +97,10 @@ class Command(CommandPlugin):
 
         success = actual_value == field_value
 
-        comparison_result = u" != "
+        comparison_result = " != "
         if success:
-            comparison_result = u" == "
-        message = u"{left} {comparison} {right}".format(
+            comparison_result = " == "
+        message = "{left} {comparison} {right}".format(
             left=actual_value,
             comparison=comparison_result,
             right=field_value,

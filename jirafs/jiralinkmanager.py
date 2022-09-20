@@ -1,4 +1,3 @@
-import copy
 import re
 
 from jirafs import constants, exceptions
@@ -6,7 +5,7 @@ from jirafs.readers import GitRevisionReader, WorkingCopyReader
 
 
 class JiraLinkManager(dict):
-    TICKET_MATCHER = re.compile("[A-Za-z]+-\d+")
+    TICKET_MATCHER = re.compile(r"[A-Za-z]+-\d+")
 
     def __init__(self, data, prepared=False):
         if not prepared:
@@ -70,9 +69,9 @@ class JiraLinkManager(dict):
                 left, right = line.split(": ", 1)
             except ValueError:
                 raise exceptions.IssueValidationError(
-                    u"Remote links must have a description; format your "
-                    u"link to {url} like '* Your Title: {url}' "
-                    u"to continue.".format(url=line.strip())
+                    "Remote links must have a description; format your "
+                    "link to {url} like '* Your Title: {url}' "
+                    "to continue.".format(url=line.strip())
                 )
             left = left.strip()
             right = right.strip()
@@ -98,7 +97,7 @@ class AutomaticJiraLinkManager(JiraLinkManager):
         )
 
     def get_file_contents(self, path):
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class GitRevisionJiraLinkManager(GitRevisionReader, AutomaticJiraLinkManager):

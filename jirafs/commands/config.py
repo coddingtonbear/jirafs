@@ -82,7 +82,7 @@ class Command(DirectOutputCommandPlugin):
             parameters = config.items(section)
             for key, value in parameters:
                 lines = lines.add_line(
-                    u"{section}.{key}={value}", section=section, key=key, value=value
+                    "{section}.{key}={value}", section=section, key=key, value=value
                 )
 
         return lines

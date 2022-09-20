@@ -33,8 +33,8 @@ class Command(CommandPlugin):
                 continue
             if data[1].get("status") not in valid_types:
                 raise exceptions.IssueValidationError(
-                    u"{status} is not a valid issue link type for {target}; "
-                    u"options include the following: {options}".format(
+                    "{status} is not a valid issue link type for {target}; "
+                    "options include the following: {options}".format(
                         status=data[1].get("status"),
                         target=target,
                         options=", ".join(valid_types.keys()),
@@ -91,7 +91,7 @@ class Command(CommandPlugin):
             comment = folder.get_new_comment(clear=True, ready=True)
             if comment:
                 folder.log(
-                    u'Adding comment "{comment}"'.format(
+                    'Adding comment "{comment}"'.format(
                         comment=self.truncate_field_value(comment)
                     )
                 )

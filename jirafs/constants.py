@@ -1,3 +1,5 @@
+from environmental_override import override  # noqa
+
 from jirafs import __version__ as version
 
 # Metadata filenames
@@ -5,7 +7,7 @@ TICKET_DETAILS = "fields.jira"
 TICKET_COMMENTS = "comments.read_only.jira"
 TICKET_NEW_COMMENT = "new_comment.jira"
 TICKET_LINKS = "links.jira"
-TICKET_FILE_FIELD_TEMPLATE = u"{field_name}.jira"
+TICKET_FILE_FIELD_TEMPLATE = "{field_name}.jira"
 
 # Generic settings
 LOCAL_ONLY_FILE = ".jirafs_local"
@@ -41,7 +43,5 @@ DEFAULT_DATE_FORMAT = "%Y-%m-%d at %H:%M:%S %Z"
 
 CURRENT_REPO_VERSION = 17
 
-
-from environmental_override import override  # noqa
 
 override(locals(), "JIRAFS_")

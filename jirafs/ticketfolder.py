@@ -1,9 +1,9 @@
 import codecs
 import fnmatch
-import logging
-import logging.handlers
 import io
 import json
+import logging
+import logging.handlers
 import os
 import re
 import subprocess
@@ -11,14 +11,11 @@ from urllib import parse
 
 from jira.resources import Issue
 
-from . import constants
-from . import exceptions
-from . import migrations
-from . import utils
-from .jiralinkmanager import JiraLinkManager
-from .jirafieldmanager import JiraFieldManager
-from .plugin import MacroPlugin, PluginValidationError
+from . import constants, exceptions, migrations, utils
 from .exceptions import MacroError
+from .jirafieldmanager import JiraFieldManager
+from .jiralinkmanager import JiraLinkManager
+from .plugin import MacroPlugin, PluginValidationError
 
 
 class TicketFolderLoggerAdapter(logging.LoggerAdapter):
@@ -49,7 +46,7 @@ class TicketFolder(object):
         )
         self._handler = logging.handlers.RotatingFileHandler(
             self.get_metadata_path(constants.TICKET_OPERATION_LOG),
-            maxBytes=2 ** 20,
+            maxBytes=2**20,
             backupCount=2,
             encoding="utf-8",
         )

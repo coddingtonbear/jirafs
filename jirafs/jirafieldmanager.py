@@ -207,7 +207,7 @@ class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
             for field in sorted(self.keys()):
                 if field not in used_fields | requested_fields:
                     out.write(
-                        u"* {human} ({field}):\n".format(
+                        "* {human} ({field}):\n".format(
                             human=self.get_human_name_for_field(field),
                             field=field,
                         )
@@ -225,7 +225,7 @@ class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
                         )
 
                     # Each line is preceded by 4 spaces of whitespace
-                    padded_lines = [u"    %s\n" % f for f in field_string.split("\n")]
+                    padded_lines = ["    %s\n" % f for f in field_string.split("\n")]
                     for line in padded_lines:
                         out.write(line)
                 else:
@@ -234,7 +234,7 @@ class WorkingCopyJiraFieldManager(WorkingCopyReader, AutomaticJiraFieldManager):
                     )
                     with io.open(field_path, "w", encoding="utf-8") as fout:
                         fout.write(self[field])
-                        fout.write(u"\n")
+                        fout.write("\n")
 
 
 class GitRevisionJiraFieldManager(GitRevisionReader, AutomaticJiraFieldManager):
