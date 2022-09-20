@@ -1,4 +1,5 @@
 import codecs
+import copy
 import fnmatch
 import io
 import json
@@ -209,21 +210,29 @@ class TicketFolder(object):
         if hasattr(self, "_jira"):
             del self._jira
 
+    def serialize(self) -> str:
+        options = copy.copy(self.issue._options)
+        if "default_batch_size" in options:
+            # This will have classes as keys, which will cause everything
+            # to have a real problem; let's just pop this off
+            options.pop("default_batch_size")
+
+        storable = {"options": options, "raw": self.issue.raw}
+
+        return json.dumps(
+            storable,
+            indent=4,
+            sort_keys=True,
+            ensure_ascii=False,
+        )
+
     def store_cached_issue(self, shadow=True):
-        storable = {"options": self.issue._options, "raw": self.issue.raw}
         with io.open(
             self.get_path(".jirafs/issue.json", shadow=shadow),
             "w",
             encoding="utf-8",
         ) as out:
-            out.write(
-                json.dumps(
-                    storable,
-                    indent=4,
-                    sort_keys=True,
-                    ensure_ascii=False,
-                )
-            )
+            out.write(self.serialize())
 
     @property
     def cached_issue(self):

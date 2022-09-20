@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import shutil
@@ -52,9 +53,16 @@ def migration_0003(repo, init=False, **kwargs):
         os.mkdir(repo.get_shadow_path(".jirafs"))
     except OSError:
         pass
-    storable = {"options": repo.issue._options, "raw": repo.issue.raw}
+
+    options = copy.copy(repo.issue._options)
+    if "default_batch_size" in options:
+        # This will have classes as keys, which will cause everything
+        # to have a real problem; let's just pop this off
+        options.pop("default_batch_size")
+
+    storable = {"options": options, "raw": repo.issue.raw}
     with open(repo.get_shadow_path(".jirafs/issue.json"), "w") as out:
-        out.write(json.dumps(storable))
+        out.write(json.dumps(storable, default=lambda x: str(x)))
     issue_pickle_path = repo.get_shadow_path(".jirafs/issue.json")
     repo.run_git_command("add", "-f", issue_pickle_path, shadow=True)
     repo.run_git_command("commit", "-m", "Completing migration_0003", shadow=True)
