@@ -1,8 +1,8 @@
 import os
 import tempfile
 
-import mock
-from mock import patch
+from unittest import mock
+from unittest.mock import patch
 
 from jirafs.utils import run_command_method_with_kwargs
 

@@ -7,7 +7,7 @@ before_install:
 - curl -fI $INTEGRATION_TESTING_URL
 - pip install --upgrade setuptools
 - pip install -r requirements.txt
-- pip install pytest mock behave
+- pip install pytest behave
 - pip install -e .
 - git config --global user.email "gitbot@adamcoddington.net"
 - git config --global user.name "I'm a Robot"

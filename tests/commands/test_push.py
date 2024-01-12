@@ -1,4 +1,4 @@
-from mock import call, patch
+from unittest.mock import call, patch
 
 from jirafs.utils import run_command_method_with_kwargs
 
