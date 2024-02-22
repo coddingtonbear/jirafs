@@ -4,9 +4,9 @@ import os
 import shutil
 import tempfile
 
-import mock
+from unittest import mock
 import six
-from mock import patch
+from unittest.mock import patch
 
 from jirafs import exceptions
 from jirafs.jirafieldmanager import JiraFieldManager
@@ -63,7 +63,7 @@ class TestTicketFolder(BaseTestCase):
 
         expected_result = json.loads(self.get_asset_contents("basic.status.json"))
 
-        self.assertEquals(actual_result, expected_result)
+        self.assertEqual(actual_result, expected_result)
 
     def test_fetch(self):
         self.ticketfolder._issue = self.rehydrate_issue("test_fetch/fetched.json")

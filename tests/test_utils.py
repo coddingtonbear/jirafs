@@ -1,6 +1,6 @@
 from distutils.version import LooseVersion
 
-import mock
+from unittest import mock
 
 from jirafs import utils
 
